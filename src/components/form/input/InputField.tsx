@@ -1,38 +1,30 @@
-import React, { FC } from "react";
+import React, { forwardRef } from "react";
 
-interface InputProps {
-  type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
-  id?: string;
-  name?: string;
-  placeholder?: string;
-  defaultValue?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string;
-  min?: string;
-  max?: string;
-  step?: number;
-  disabled?: boolean;
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
 }
 
-const Input: FC<InputProps> = ({
-  type = "text",
-  id,
-  name,
-  placeholder,
-  defaultValue,
-  onChange,
-  className = "",
-  min,
-  max,
-  step,
-  disabled = false,
-  success = false,
-  error = false,
-  hint,
-}) => {
+const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
+  const {
+    type = "text",
+    id,
+    name,
+    placeholder,
+    defaultValue,
+    onChange,
+    className = "",
+    min,
+    max,
+    step,
+    disabled = false,
+    success = false,
+    error = false,
+    hint,
+    ...rest
+  } = props;
+
   // Determine input styles based on state (disabled, success, error)
   let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
 
@@ -50,6 +42,7 @@ const Input: FC<InputProps> = ({
   return (
     <div className="relative">
       <input
+        ref={ref}
         type={type}
         id={id}
         name={name}
@@ -61,6 +54,7 @@ const Input: FC<InputProps> = ({
         step={step}
         disabled={disabled}
         className={inputClasses}
+        {...rest}
       />
 
       {/* Optional Hint Text */}
@@ -79,6 +73,8 @@ const Input: FC<InputProps> = ({
       )}
     </div>
   );
-};
+});
+
+Input.displayName = "Input";
 
 export default Input;
