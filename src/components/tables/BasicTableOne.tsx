@@ -40,6 +40,7 @@ const tableData: Order[] = [
         "/images/user/user-22.jpg",
         "/images/user/user-23.jpg",
         "/images/user/user-24.jpg",
+        "/images/user/user-24.jpg",
       ],
     },
     budget: "3.9K",

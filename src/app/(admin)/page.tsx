@@ -12,8 +12,8 @@ import {TodaySale} from "@/components/ecommerce/TodaySale";
 
 export const metadata: Metadata = {
   title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+    "Fydaa - Admin Dashboard",
+  description: "This is Fydaa Admin Dashboard",
 };
 
 export default function Ecommerce() {
