@@ -1,4 +1,4 @@
-# Fydaa Next.js - Free Next.js Tailwind Admin Dashboard Template
+# Fydaa 
 
 
 1. Install dependencies:
