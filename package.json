@@ -1,5 +1,5 @@
 {
-  "name": "free-nextjs-admin-dashboard",
+  "name": "fydaa-crm",
   "version": "2.0.1",
   "private": true,
   "scripts": {
@@ -15,8 +15,7 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
-    "@react-jvectormap/core": "^1.0.4",
-    "@react-jvectormap/world": "^1.1.2",
+  
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/postcss": "^4.0.9",
     "apexcharts": "^4.3.0",
