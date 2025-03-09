@@ -1,11 +1,10 @@
 "use client";
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
-import Button from "@/components/ui/button/Button";
+import Label from "@/components/form/Label"; 
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
-import React, { useState, FormEvent, useRef, useEffect } from "react";
+import React, { useState, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import { useAuth } from "@/context/AuthContext";

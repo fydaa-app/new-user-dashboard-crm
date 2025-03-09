@@ -1,22 +1,16 @@
 "use client";
-import Image from "next/image";
-
-import CountryMap from "./CountryMap";
-import { useState } from "react";
-import { MoreDotIcon } from "@/icons";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
-
+//import { useState } from "react";
+ 
 export default function TopProducts() {
-  const [isOpen, setIsOpen] = useState(false);
+  //const [isOpen, setIsOpen] = useState(false);
 
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
+  // function toggleDropdown() {
+  //   setIsOpen(!isOpen);
+  // }
 
-  function closeDropdown() {
-    setIsOpen(false);
-  }
+  // function closeDropdown() {
+  //   setIsOpen(false);
+  // }
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
@@ -82,7 +76,7 @@ export default function TopProducts() {
             </div>
             <div>
               <p className="font-semibold text-gray-500 text-theme-sm dark:text-white/90">
-              Disney Princess Pink Bag 18'
+              Disney Princess Pink Bag 18
               </p>              
             </div>
           </div>
