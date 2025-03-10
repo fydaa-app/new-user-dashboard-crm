@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
-import Badge from "../ui/badge/Badge";
-import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon,ExportIcon ,SalesIcon,OrderIcon,DiscIcon,NewCustomerIcon} from "@/icons";
+import {ExportIcon ,SalesIcon,OrderIcon,DiscIcon,NewCustomerIcon} from "@/icons";
 
 export const TodaySale = () => {
   return (

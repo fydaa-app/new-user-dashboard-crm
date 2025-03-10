@@ -1,15 +1,118 @@
 "use client";
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
-import Label from "@/components/form/Label";
-import Button from "@/components/ui/button/Button";
+import Label from "@/components/form/Label"; 
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, FormEvent, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { setCookie } from "cookies-next";
+import { useAuth } from "@/context/AuthContext";
+
+// Define types for login response and form data
+interface LoginResponse {
+  message: string;
+  token: string;
+  employee: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
+  userData: null;
+}
 
 export default function SignInForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
+  // State for form inputs and UI
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isChecked, setIsChecked] = useState<boolean>(false);
+  
+  // State for error handling and loading
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Refs for form elements
+  const formRef = useRef<HTMLFormElement>(null);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  
+  // Next.js router for navigation
+  const router = useRouter();
+  
+  // Auth context
+  const { login } = useAuth();
+
+  // Handle form submission
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      // Check if refs are available
+      const emailValue = emailInputRef.current?.value || email;
+      const passwordValue = passwordInputRef.current?.value || password;
+
+      // Validate inputs
+      if (!emailValue || !passwordValue) {
+        setError("Please enter both email and password");
+        setIsLoading(false);
+        return;
+      }
+
+      // Perform login API call
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_LOGIN_ENDPOINT}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          email: emailValue, 
+          password: passwordValue 
+        }),
+      });
+
+      const data: LoginResponse = await response.json();
+
+      if (response.ok) {
+        // Set token in cookie (more secure than localStorage)
+        // Cookie expires in 1 day by default, or 30 days if "keep me logged in" is checked
+        const expiresIn = isChecked ? 30 : 1;
+        setCookie("authToken", data.token, { 
+          expires: new Date(new Date().getTime() + expiresIn * 24 * 60 * 60 * 1000),
+          path: "/",
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict"
+        });
+        
+        // Update auth context
+        login(data.token, data.employee);
+
+        // Redirect to dashboard or home page
+        router.push("/");
+      } else {
+        // Handle login error
+        setError(data.message || "Login failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An unexpected error occurred. Please try again later.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to trigger form submission programmatically
+  const submitForm = () => {
+    if (!isLoading && formRef.current) {
+      formRef.current.dispatchEvent(
+        new Event('submit', { cancelable: true, bubbles: true })
+      );
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -18,7 +121,7 @@ export default function SignInForm() {
           className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
         >
           <ChevronLeftIcon />
-          Back to dashboard
+          Back to home
         </Link>
       </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
@@ -84,23 +187,45 @@ export default function SignInForm() {
                 </span>
               </div>
             </div>
-            <form>
+            <form ref={formRef} onSubmit={handleSubmit}>
+              {error && (
+                <div className="mb-4 text-sm text-error-500 bg-error-50 p-3 rounded">
+                  {error}
+                </div>
+              )}
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <Input placeholder="info@gmail.com" type="email" />
+                  <div className="relative flex">
+                    <div className="flex-1 z-10">
+                      <Input 
+                        ref={emailInputRef}
+                        placeholder="info@gmail.com" 
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <Label>
                     Password <span className="text-error-500">*</span>{" "}
                   </Label>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                    />
+                  <div className="relative flex">
+                    <div className="flex-1 z-10">
+                      <Input
+                        ref={passwordInputRef}
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                    </div>
                     <span
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
@@ -115,22 +240,32 @@ export default function SignInForm() {
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Checkbox checked={isChecked} onChange={setIsChecked} />
+                    <Checkbox 
+                      checked={isChecked} 
+                      onChange={setIsChecked} 
+                    />
                     <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
                       Keep me logged in
                     </span>
                   </div>
                   <Link
-                    href="/reset-password"
+                    href="/full-width-pages/auth/reset-password"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     Forgot password?
                   </Link>
                 </div>
                 <div>
-                  <Button className="w-full" size="sm">
-                    Sign in
-                  </Button>
+                  <button
+                    onClick={submitForm}
+                    disabled={isLoading}
+                    className="w-full inline-flex items-center justify-center bg-brand-500 text-white hover:bg-brand-600 
+                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 px-4 py-2 
+                              rounded-lg text-sm font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+                    type="button"
+                  >
+                    {isLoading ? "Signing In..." : "Sign in"}
+                  </button>
                 </div>
               </div>
             </form>
@@ -139,7 +274,7 @@ export default function SignInForm() {
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                 Don&apos;t have an account? {""}
                 <Link
-                  href="/signup"
+                  href="/full-width-pages/auth/sign-up"
                   className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                 >
                   Sign Up
