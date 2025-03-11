@@ -8,7 +8,7 @@ interface Option {
 interface SelectProps {
   options: Option[];
   placeholder?: string;
-  onChange: (value: string) => void;
+  onChange: (option: Option) => void;
   className?: string;
   defaultValue?: string;
 }
@@ -25,8 +25,11 @@ const Select: React.FC<SelectProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
-    setSelectedValue(value);
-    onChange(value); // Trigger parent handler
+    const selectedOption = options.find((option) => option.value === value);
+    if (selectedOption) {
+      setSelectedValue(value);
+      onChange(selectedOption); // ✅ Pass the full Option object
+    }
   };
 
   return (

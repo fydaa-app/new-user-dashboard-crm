@@ -19,7 +19,7 @@ export default function MonthlyTarget() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "radialBar",
-      height: 520,
+      height: 250,
       sparkline: {
         enabled: true,
       },
@@ -116,7 +116,7 @@ export default function MonthlyTarget() {
               options={options}
               series={series}
               type="radialBar"
-              height={520}
+              height={250}
             />
           </div>
 

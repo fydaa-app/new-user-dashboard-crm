@@ -17,7 +17,7 @@ export default function MonthlySalesChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 170,
+      height: 350,
       toolbar: {
         show: false,
       },
@@ -145,7 +145,7 @@ export default function MonthlySalesChart() {
             options={options}
             series={series}
             type="bar"
-            height={170}
+            height={350}
           />
         </div>
       </div>

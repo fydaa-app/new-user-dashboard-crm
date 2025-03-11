@@ -25,13 +25,10 @@ export default function AuthLayout({
                   <Image
                     width={231}
                     height={48}
-                    src="./images/logo/icon.png"
+                    src="/images/logo/logo.png"
                     alt="Logo"
                   />
-                </Link>
-                <p className="text-center text-gray-400 dark:text-white/60">
-                  fydaa
-                </p>
+                </Link>               
               </div>
             </div>
           </div>

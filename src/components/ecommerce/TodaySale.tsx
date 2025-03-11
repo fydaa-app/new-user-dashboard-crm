@@ -54,6 +54,14 @@ export const TodaySale = () => {
               <span className="total-yes">+0.5% from yesterday</span>
             </div>
            </div>
+           <div className="col-span-4">
+            <div className="box-total-sales">
+              <NewCustomerIcon />
+              <h2 className="numbers-sale">8</h2>
+              <p className="total-sale-text">Assets under Advisory</p>
+              <span className="total-yes">+0.5% from yesterday</span>
+            </div>
+           </div>
         </div>       
     </div> 
     </div>
