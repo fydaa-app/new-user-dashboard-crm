@@ -28,31 +28,7 @@
            <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
              Number of customer based on country
            </p>
-         </div>
- 
-         <div className="relative inline-block">
-           <button onClick={toggleDropdown} className="dropdown-toggle">
-             <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-           </button>
-           <Dropdown
-             isOpen={isOpen}
-             onClose={closeDropdown}
-             className="w-40 p-2"
-           >
-             <DropdownItem
-               onItemClick={closeDropdown}
-               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-             >
-               View More
-             </DropdownItem>
-             <DropdownItem
-               onItemClick={closeDropdown}
-               className="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-             >
-               Delete
-             </DropdownItem>
-           </Dropdown>
-         </div>
+         </div> 
        </div>
        <div className="px-4 py-6 my-6 overflow-hidden border border-gary-200 rounded-2xl bg-gray-50 dark:border-gray-800 dark:bg-gray-900 sm:px-6">
          <div

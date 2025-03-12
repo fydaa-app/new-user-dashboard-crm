@@ -13,7 +13,7 @@ export default function TargetVsRealityChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 230,
+      height: 200,
       toolbar: {
         show: false,
       },
@@ -111,7 +111,7 @@ export default function TargetVsRealityChart() {
             options={options}
             series={series}
             type="bar"
-            height={230}
+            height={200}
           />
         </div>
       </div>

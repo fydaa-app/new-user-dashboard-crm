@@ -41,7 +41,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <SalesIcon />
               <h2 className="numbers-sale">${data.totalRevenue}</h2>
               <p className="total-sale-text">Total Revenue</p>
-              <span className="total-yes">+8% from yesterday</span>
+              <span className="total-yes">+0% from yesterday</span>
             </div>
           </div>
           <div className="col-span-4">
@@ -49,7 +49,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <OrderIcon />
               <h2 className="numbers-sale">{data.totalTransactionsAmount}</h2>
               <p className="total-sale-text">Total Transactions</p>
-              <span className="total-yes">+5% from yesterday</span>
+              <span className="total-yes">+0% from yesterday</span>
             </div>
           </div>
           <div className="col-span-4">
@@ -57,7 +57,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <DiscIcon />
               <h2 className="numbers-sale">{data.noOfPayments}</h2>
               <p className="total-sale-text">Total Payments</p>
-              <span className="total-yes">+1.2% from yesterday</span>
+              <span className="total-yes">+0% from yesterday</span>
             </div>
           </div>
           <div className="col-span-4">
@@ -65,7 +65,15 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <NewCustomerIcon />
               <h2 className="numbers-sale">{data.countOfUsers}</h2>
               <p className="total-sale-text">New Users</p>
-              <span className="total-yes">+0.5% from yesterday</span>
+              <span className="total-yes">+0% from yesterday</span>
+            </div>
+          </div>
+          <div className="col-span-4">
+            <div className="box-total-sales">
+              <SalesIcon />
+              <h2 className="numbers-sale">0</h2>
+              <p className="total-sale-text">Assets Under Management</p>
+              <span className="total-yes">+0% from yesterday</span>
             </div>
           </div>
         </div>

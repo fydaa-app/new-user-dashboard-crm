@@ -3,24 +3,21 @@ import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import TodaySale from "@/components/ecommerce/TodaySale";
 
-const API_URL = "https://crm-prod.fydaa.com/referrals/cards-Data";
-
 interface CardData {
     type: string;
     totalRevenue?: number;
     totalTransactionsAmount?: number;
     noOfPayments?: number;
     countOfUsers?: number;
-  }
+}
 
 interface TodaySalesData {
-totalRevenue: number;
-totalTransactionsAmount: number;
-noOfPayments: number;
-countOfUsers: number;
+    totalRevenue: number;
+    totalTransactionsAmount: number;
+    noOfPayments: number;
+    countOfUsers: number;
 }
   
-
 const TodaySaleWrapper = () => {
 
 let todaySalesData: TodaySalesData = {
@@ -35,7 +32,7 @@ let todaySalesData: TodaySalesData = {
 
   useEffect(() => {
     const fetchSalesData = async () => {
-      const AUTH_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6OCwiZW1haWwiOiJhZG1pbkBmeWRhYS5pbiIsInJvbGUiOiIwIiwiaWF0IjoxNzQxNzY4Mjc1LCJleHAiOjE3NDE3NzE4NzV9.pS0H5t7lFHbka06o6J7si0yVXRNGP26bQti7N5PZxI8";
+      const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
         console.error("Auth token not found in cookies");
@@ -44,7 +41,7 @@ let todaySalesData: TodaySalesData = {
       }
 
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
