@@ -14,7 +14,6 @@ interface User {
   createdAt: string;
 }
 
-
 interface APIResponse {
   success: boolean;
   users: User[];
@@ -45,10 +44,8 @@ export default async function TransactionTablesPage() {
     <div>
       <PageBreadcrumb pageTitle="Transaction" />
       <div className="space-y-6">
-        <ComponentCard title="Transaction List">
-          {/* Pass the data down as props */}
-          <TransactionTable users={users} error={error} />
-          {/* <Pagination currentPage={5} totalPages={10} onPageChange={(page) => console.log(page)} /> */}
+        <ComponentCard title="Transaction List">          
+          <TransactionTable users={users} error={error} />          
         </ComponentCard>
       </div>
     </div>

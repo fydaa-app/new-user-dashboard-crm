@@ -11,6 +11,7 @@ interface SelectProps {
   onChange: (option: Option) => void;
   className?: string;
   defaultValue?: string;
+value?: string
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -28,7 +29,7 @@ const Select: React.FC<SelectProps> = ({
     const selectedOption = options.find((option) => option.value === value);
     if (selectedOption) {
       setSelectedValue(value);
-      onChange(selectedOption); // ✅ Pass the full Option object
+      onChange(selectedOption); 
     }
   };
 

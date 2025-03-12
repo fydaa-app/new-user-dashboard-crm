@@ -38,8 +38,10 @@ const AppHeader: React.FC = () => {
 
    const { selectedOption, setSelectedOption } = useGlobalContext();
 
-   const handleSelectChange = (option: { value: string; label: string} | null) => {
-    // setSelectedOption(option.value);     
+   const handleSelectChange = (option: { value: string; label: string} | null) => {     
+    if(option) {
+      setSelectedOption(option.value)
+      }    
   };
 
   useEffect(() => {
@@ -183,7 +185,7 @@ const AppHeader: React.FC = () => {
             options={options}
             placeholder="Select Option"
             onChange={handleSelectChange}
-            // value={selectedOption}
+            value={selectedOption}
             className="dark:bg-dark-900"
           />
           <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">

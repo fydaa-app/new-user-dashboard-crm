@@ -6,11 +6,10 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 import TargetVsRealityChart from "@/components/ecommerce/TargetvsRealityChart";
 import TopProducts from "@/components/ecommerce/TopProducts";
-import {TodaySale} from "@/components/ecommerce/TodaySale";
+import TodaySaleWrapper from "@/components/ecommerce/TodaySaleWrapper"; 
 
 export const metadata: Metadata = {
-  title:
-    "Fydaa - Admin Dashboard",
+  title: "Fydaa - Admin Dashboard",
   description: "This is Fydaa Admin Dashboard",
 };
 
@@ -18,7 +17,7 @@ export default function Ecommerce() {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
       <div className="col-span-12">
-        <TodaySale />
+        <TodaySaleWrapper /> 
       </div>
 
       <div className="col-span-12 xl:col-span-7">
@@ -34,7 +33,7 @@ export default function Ecommerce() {
       </div>
 
       <div className="col-span-12 xl:col-span-6">
-        <TargetVsRealityChart /> 
+        <TargetVsRealityChart />
       </div>
 
       <div className="col-span-12 xl:col-span-5">
