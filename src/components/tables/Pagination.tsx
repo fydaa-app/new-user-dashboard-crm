@@ -1,9 +1,10 @@
+"use client";
+import React from "react";
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 };
-
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
@@ -13,7 +14,6 @@ const Pagination: React.FC<PaginationProps> = ({
     { length: Math.min(3, totalPages) },
     (_, i) => i + Math.max(currentPage - 1, 1)
   );
-
   return (
     <div className="flex items-center ">
       <button
@@ -50,5 +50,4 @@ const Pagination: React.FC<PaginationProps> = ({
     </div>
   );
 };
-
 export default Pagination;

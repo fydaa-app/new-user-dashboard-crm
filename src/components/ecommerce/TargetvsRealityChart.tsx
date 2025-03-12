@@ -13,7 +13,7 @@ export default function TargetVsRealityChart() {
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
-      height: 230,
+      height: 200,
       toolbar: {
         show: false,
       },
@@ -43,7 +43,12 @@ export default function TargetVsRealityChart() {
         "Apr",
         "May",
         "Jun",
-        "Jul",        
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",        
       ],
       axisBorder: {
         show: false,
@@ -84,11 +89,11 @@ export default function TargetVsRealityChart() {
   const series = [
     {
       name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291],
+      data: [168, 385, 201, 298, 187, 195, 291, 298, 187, 195, 291, 298],
     },
     {
        name: "Investment",
-       data: [168, 385, 201, 298, 187, 195, 291],
+       data: [168, 585, 201, 268, 187, 155, 261, 168, 585, 201, 268, 187],
     },
   ];
  
@@ -106,7 +111,7 @@ export default function TargetVsRealityChart() {
             options={options}
             series={series}
             type="bar"
-            height={230}
+            height={200}
           />
         </div>
       </div>

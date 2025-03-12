@@ -6,20 +6,21 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 import TargetVsRealityChart from "@/components/ecommerce/TargetvsRealityChart";
 import TopProducts from "@/components/ecommerce/TopProducts";
-import {TodaySale} from "@/components/ecommerce/TodaySale";
+import TodaySaleWrapper from "@/components/ecommerce/TodaySaleWrapper"; 
 
 export const metadata: Metadata = {
-  title:
-    "Next.js E-commerce Dashboard | TailAdmin - Next.js Dashboard Template",
-  description: "This is Next.js Home for TailAdmin Dashboard Template",
+  title: "Fydaa - Admin Dashboard",
+  description: "This is Fydaa Admin Dashboard",
 };
 
 export default function Ecommerce() {
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
-      <div className="col-span-12 space-y-6 xl:col-span-7">
-        <TodaySale />
+      <div className="col-span-12">
+        <TodaySaleWrapper /> 
+      </div>
 
+      <div className="col-span-12 xl:col-span-7">
         <MonthlySalesChart />
       </div>
 
@@ -32,7 +33,7 @@ export default function Ecommerce() {
       </div>
 
       <div className="col-span-12 xl:col-span-6">
-        <TargetVsRealityChart /> 
+        <TargetVsRealityChart />
       </div>
 
       <div className="col-span-12 xl:col-span-5">
