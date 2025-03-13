@@ -3,7 +3,6 @@ import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable, { TransactionTableProps } from "@/components/tables/TransactionTable";
-import Pagination from "@/components/tables/Pagination";
 
 interface User {
   id: number;

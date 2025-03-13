@@ -1,19 +1,18 @@
 "use client";
  import Image from "next/image";
  
- import CountryMap from "./CountryMap";
- import { useState } from "react";
+ import CountryMap from "./CountryMap"; 
  
  export default function DemographicCard() {
-   const [isOpen, setIsOpen] = useState(false);
+  //  const [isOpen, setIsOpen] = useState(false);
  
-   function toggleDropdown() {
-     setIsOpen(!isOpen);
-   }
+  //  function toggleDropdown() {
+  //    setIsOpen(!isOpen);
+  //  }
  
-   function closeDropdown() {
-     setIsOpen(false);
-   }
+  //  function closeDropdown() {
+  //    setIsOpen(false);
+  //  }
  
    return (
      <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
