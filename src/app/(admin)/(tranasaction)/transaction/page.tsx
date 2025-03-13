@@ -2,7 +2,7 @@
 import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import TransactionTable, { TransactionTableProps } from "@/components/tables/TransactionTable";
+import TransactionTable from "@/components/tables/TransactionTable";
 
 interface User {
   id: number;
@@ -34,7 +34,7 @@ export default async function TransactionTablesPage() {
       // Ensure that data.users is an array of User
       users = Array.isArray(data.users) ? data.users : [];
     }
-  } catch (err: any) {
+  } catch (err) {
     console.error("Error fetching data:", err);
     error = "Error fetching data";
   }

@@ -26,11 +26,11 @@ export default function MonthlySalesChart() {
           },
         });
 
-        const data = await response.json();
+        const data: { dataPoints: { label: string; revenue: number }[] } = await response.json();
 
         if (data.dataPoints) {
-          const labels = data.dataPoints.map((point: any) => point.label);
-          const salesData = data.dataPoints.map((point: any) => point.revenue); // Using `transactionCount` for the graph
+          const labels = data.dataPoints.map((point) => point.label);
+          const salesData = data.dataPoints.map((point) => point.revenue); // Using `transactionCount` for the graph
 
           setCategories(labels);
           setSeries([{ name: "Sales", data: salesData }]);

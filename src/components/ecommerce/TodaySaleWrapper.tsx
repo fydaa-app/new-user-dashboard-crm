@@ -4,30 +4,27 @@ import Cookies from "js-cookie";
 import TodaySale from "@/components/ecommerce/TodaySale";
 
 interface CardData {
-    type: string;
-    totalRevenue?: number;
-    totalTransactionsAmount?: number;
-    noOfPayments?: number;
-    countOfUsers?: number;
+  type: string;
+  totalRevenue?: number;
+  totalTransactionsAmount?: number;
+  noOfPayments?: number;
+  countOfUsers?: number;
 }
 
 interface TodaySalesData {
-    totalRevenue: number;
-    totalTransactionsAmount: number;
-    noOfPayments: number;
-    countOfUsers: number;
+  totalRevenue: number;
+  totalTransactionsAmount: number;
+  noOfPayments: number;
+  countOfUsers: number;
 }
-  
-const TodaySaleWrapper = () => {
 
-let todaySalesData: TodaySalesData = {
+const TodaySaleWrapper = () => {
+  const [salesData, setSalesData] = useState<TodaySalesData>({
     totalRevenue: 0,
     totalTransactionsAmount: 0,
     noOfPayments: 0,
     countOfUsers: 0,
-    };
-
-  const [salesData, setSalesData] = useState<TodaySalesData | null>(null);
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -41,22 +38,27 @@ let todaySalesData: TodaySalesData = {
       }
 
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}`, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}`,
+          {
+            headers: {
+              Authorization: `Bearer ${AUTH_TOKEN}`,
+            },
+          }
+        );
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+          throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        
-       const data: CardData[] = await response.json();
-       
+
+        const data: CardData[] = await response.json();
+
         // Map API response to required format
-        todaySalesData  = {
+        const todaySalesData: TodaySalesData = {
           totalRevenue: data.find((item) => item.type === "Total Revenue")?.totalRevenue || 0,
-          totalTransactionsAmount: data.find((item) => item.type === "Total Transactions")?.totalTransactionsAmount || 0,
+          totalTransactionsAmount: Number(
+            (data.find((item) => item.type === "Total Transactions")?.totalTransactionsAmount || 0).toFixed(2)
+          ),
           noOfPayments: data.find((item) => item.type === "Total Payments")?.noOfPayments || 0,
           countOfUsers: data.find((item) => item.type === "New Users")?.countOfUsers || 0,
         };

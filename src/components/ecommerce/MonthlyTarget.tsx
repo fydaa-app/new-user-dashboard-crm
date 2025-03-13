@@ -11,7 +11,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 export default function MonthlyTarget() {
   // State to store API data
   const [progressData, setProgressData] = useState({
-    percentage: 0,
+    percentage:0,
     goal: 0,
     achieved: 0,
   });
@@ -41,7 +41,7 @@ export default function MonthlyTarget() {
     fetchData();
   }, []);
 
-  const series = [progressData.percentage]; // Set percentage from API response
+  const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -96,7 +96,7 @@ export default function MonthlyTarget() {
           </div>
 
           <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-[95%] rounded-full bg-success-50 px-3 py-1 text-xs font-medium text-success-600 dark:bg-success-500/15 dark:text-success-500">
-            +{progressData.percentage}%
+            +{Number((progressData.percentage).toFixed(2))}%
           </span>
         </div>
       </div>
