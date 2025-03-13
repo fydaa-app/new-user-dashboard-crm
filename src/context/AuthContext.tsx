@@ -1,5 +1,5 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { getCookie, deleteCookie } from 'cookies-next';
 import { useRouter, usePathname } from 'next/navigation';
 
@@ -31,22 +31,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Logout function (wrapped with useCallback)
+  const handleLogout = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    deleteCookie('authToken');
+    localStorage.removeItem('userInfo');
+    router.push('/signin');
+  }, [router]);
+
   // Check if user is authenticated
   useEffect(() => {
     const authToken = getCookie('authToken') as string | undefined;
     
-    // If on client side, check authentication
     if (typeof window !== 'undefined') {
       setIsLoading(true);
       
       if (authToken) {
         try {
-          // Validate token (you can add a token validation call to API here)
           const userData = JSON.parse(localStorage.getItem('userInfo') || '{}');
           setUser(userData);
           setToken(authToken);
-          
-          // If on login page but already authenticated, redirect to dashboard
+
           if (pathname === '/signin' || pathname === '/sign-up' || pathname === '/') {
             router.push('/');
           }
@@ -55,16 +61,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           handleLogout();
         }
       } else {
-        // Not authenticated, redirect to login page if not already there and not on public path
         const publicPaths = ['/signin', '/signup', '/reset-password'];
-        if (!publicPaths.includes(pathname as string) && pathname.startsWith('/admin')) {
+        if (!publicPaths.includes(pathname) && pathname.startsWith('/admin')) {
           router.push('/signin');
         }
       }
-      
+
       setIsLoading(false);
     }
-  }, [pathname, router]);
+  }, [pathname, router, handleLogout]); // ✅ handleLogout now has a stable reference
 
   // Login function
   const login = (newToken: string, userData: Employee) => {
@@ -72,15 +77,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(userData);
     localStorage.setItem('userInfo', JSON.stringify(userData));
     router.push('/');
-  };
-
-  // Logout function
-  const handleLogout = () => {
-    setUser(null);
-    setToken(null);
-    deleteCookie('authToken');
-    localStorage.removeItem('userInfo');
-    router.push('/signin');
   };
 
   const value = {

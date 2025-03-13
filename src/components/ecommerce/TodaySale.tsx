@@ -39,7 +39,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">${data.totalRevenue}</h2>
+              <h2 className="numbers-sale">{data.totalRevenue}</h2>
               <p className="total-sale-text">Total Revenue</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>
@@ -71,8 +71,8 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">0</h2>
-              <p className="total-sale-text">Assets Under Management</p>
+              <h2 className="numbers-sale">RS.{data.totalTransactionsAmount}</h2>
+              <p className="total-sale-text">Asset Under Advisory</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>
           </div>
