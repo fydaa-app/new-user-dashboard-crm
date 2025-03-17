@@ -8,11 +8,12 @@ import {
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
-  ListIcon,
   PieChartIcon,
-  PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  LeaderboardIcon,
+  SettingIcon,
+  ShoppingCartIcon,
 } from "../icons/index";
 
 type NavItem = {
@@ -29,14 +30,14 @@ const navItems: NavItem[] = [
     path: "/",
   },  
   {
-    icon: <UserCircleIcon />,
+    icon: <LeaderboardIcon />,
     name: "Leaderboard",
     path: "/leaderboard",
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <ShoppingCartIcon />,
     name: "Tranasaction",
-    path: "/leaderboard",
+    path: "/transaction",
   },
   {
     icon: <UserCircleIcon />,
@@ -55,7 +56,7 @@ const navItems: NavItem[] = [
   },  
   {
     name: "Settings",
-    icon: <ListIcon />,
+    icon: <SettingIcon />,
     path: "/settings",
   },
   {
@@ -81,16 +82,7 @@ const navItems: NavItem[] = [
   
 ];
 
-const othersItems: NavItem[] = [  
-  {
-    icon: <PlugInIcon />,
-    name: "Authentication",
-    subItems: [
-      { name: "Sign In", path: "/signin", pro: false },
-      { name: "Sign Up", path: "/signup", pro: false },
-    ],
-  },
-];
+const othersItems: NavItem[] = [];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
@@ -311,14 +303,14 @@ const AppSidebar: React.FC = () => {
             <>
               <Image
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src="/images/logo/logo2.png"
                 alt="Logo"
                 width={150}
                 height={40}
               />
               <Image
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src="/images/logo/logo.png"
                 alt="Logo"
                 width={150}
                 height={40}
@@ -326,7 +318,7 @@ const AppSidebar: React.FC = () => {
             </>
           ) : (
             <Image
-              src="/images/logo/logo-icon.svg"
+              src="/images/logo/icon.png"
               alt="Logo"
               width={32}
               height={32}

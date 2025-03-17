@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
-import Input from "../input/InputField";
-import Select from "../Select";
+import Input from "../input/InputField"; 
 import Radio from "../input/Radio";
 import Form from "../Form";
 import { CalenderIcon } from "../../../icons";
@@ -23,25 +22,7 @@ export default function ExampleFormTwo() {
     e.preventDefault();
     console.log("Form submitted:");
   };
-
-  const optionsGender = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
-    { value: "other", label: "Others" },
-  ];
-  const categoryOptions = [
-    { value: "cate1", label: "Category 1" },
-    { value: "cate2", label: "Category 2" },
-    { value: "cate3", label: "Category 3" },
-  ];
-  const country = [
-    { value: "bd", label: "Bangladesh" },
-    { value: "usa", label: "United States" },
-    { value: "canada", label: "Canada" },
-  ];
-  const handleSelectGender = (value: string) => {
-    console.log("Selected value:", value);
-  };
+ 
 
   const handleRadioChange = (value: string) => {
     setSelectedOption(value);
@@ -66,13 +47,7 @@ export default function ExampleFormTwo() {
           </div>
           <div className="col-span-2">
             <Label htmlFor="email">Gender</Label>
-            <Select
-              options={optionsGender}
-              placeholder="Select an option"
-              onChange={handleSelectGender}
-              defaultValue=""
-              className="bg-gray-50 dark:bg-gray-800"
-            />
+             
           </div>
           <div className="col-span-2">
             <Label htmlFor="lastName">Date of Birth</Label>
@@ -93,13 +68,7 @@ export default function ExampleFormTwo() {
           </div>
           <div className="col-span-2">
             <Label htmlFor="email">Category</Label>
-            <Select
-              options={categoryOptions}
-              placeholder="Select an option"
-              onChange={handleSelectGender}
-              defaultValue=""
-              className="bg-gray-50 dark:bg-gray-800"
-            />
+             
           </div>
           <div className="col-span-2">
             <h4 className="pb-4 text-base font-medium text-gray-800 border-b border-gray-200 dark:border-gray-800 dark:text-white/90">
@@ -124,13 +93,7 @@ export default function ExampleFormTwo() {
           </div>
           <div>
             <Label htmlFor="email">Category</Label>
-            <Select
-              options={country}
-              placeholder="--Select Country--"
-              onChange={handleSelectGender}
-              defaultValue=""
-              className="bg-gray-50 dark:bg-gray-800"
-            />
+             
           </div>
           <div className="flex items-center gap-3 col-span-full">
             <Label className="m-0">Membership:</Label>
