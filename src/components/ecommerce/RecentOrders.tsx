@@ -9,8 +9,9 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 import Cookies from "js-cookie";
-
+import { useGlobalContext } from "@/context/GlobalState";
 interface Order {
+  date: string;
   userName: string;
   planName: string;
   orderValue: number;
@@ -19,20 +20,20 @@ interface Order {
 
 export default function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const { selectedOption } = useGlobalContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RECENT_ORDERS_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RECENT_ORDERS_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
         });
         if (!response.ok) {
           throw new Error("Failed to fetch orders");
-        }
-
+        }        
         const data = await response.json();
         setOrders(data.orders || []);
       } catch (error) {
@@ -41,7 +42,7 @@ export default function RecentOrders() {
     };
 
     fetchOrders();
-  }, []);
+  }, [selectedOption]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
@@ -56,6 +57,9 @@ export default function RecentOrders() {
         <Table>
           <TableHeader className="border-gray-100 dark:border-gray-800 border-y">
             <TableRow>
+              <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                Date
+              </TableCell>
               <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                 User Name
               </TableCell>
@@ -74,9 +78,10 @@ export default function RecentOrders() {
             {orders.length > 0 ? (
               orders.map((order, index) => (
                 <TableRow key={index}>
+                  <TableCell className="py-3">{order.date}</TableCell>
                   <TableCell className="py-3">{order.userName}</TableCell>
                   <TableCell className="py-3">{order.planName}</TableCell>
-                  <TableCell className="py-3">${order.orderValue}</TableCell>
+                  <TableCell className="py-3">Rs.{order.orderValue}</TableCell>
                   <TableCell className="py-3">
                     <Badge
                       size="sm"

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
 
 interface TopPlan {
   planId: number;
@@ -13,12 +14,13 @@ export default function TopProducts() {
   const [topPlans, setTopPlans] = useState<TopPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { selectedOption } = useGlobalContext();
 
   useEffect(() => {
     const fetchTopPlans = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {        
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TOP_PLAN_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TOP_PLAN_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
@@ -38,7 +40,7 @@ export default function TopProducts() {
     };
 
     fetchTopPlans();
-  }, []);
+  }, [selectedOption]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">

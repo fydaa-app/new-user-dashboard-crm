@@ -4,9 +4,10 @@ import { ExportIcon, SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon } from "@/i
 
 interface DataProps {
   totalRevenue?: number;
-  totalTransactionsAmount?: number;
+  totalNoOfTransactions?: number;
   noOfPayments?: number;
   countOfUsers?: number;
+  assetsUnderManagement?: number;
 }
 
 const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean }) => {
@@ -47,7 +48,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <OrderIcon />
-              <h2 className="numbers-sale">{data.totalTransactionsAmount}</h2>
+              <h2 className="numbers-sale">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>
@@ -71,7 +72,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">RS.{data.totalTransactionsAmount}</h2>
+              <h2 className="numbers-sale">RS. {data.assetsUnderManagement}</h2>
               <p className="total-sale-text">Asset Under Advisory</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>

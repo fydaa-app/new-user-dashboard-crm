@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
 
 // Dynamically import ReactApexChart
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -15,14 +16,14 @@ export default function MonthlyTarget() {
     goal: 0,
     achieved: 0,
   });
-
+const { selectedOption } = useGlobalContext();
   // Fetch API data
   useEffect(() => {
     async function fetchData() {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
@@ -39,7 +40,7 @@ export default function MonthlyTarget() {
     }
 
     fetchData();
-  }, []);
+  }, [selectedOption]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {
