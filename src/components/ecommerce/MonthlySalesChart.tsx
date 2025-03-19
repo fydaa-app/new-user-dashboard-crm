@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -14,13 +15,13 @@ export default function MonthlySalesChart() {
     { name: "Sales", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-
+  const { selectedOption } = useGlobalContext();
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_SALE_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_SALE_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
@@ -41,7 +42,7 @@ export default function MonthlySalesChart() {
     }
 
     fetchSalesData();
-  }, []);
+  }, [selectedOption]);
 
   const options: ApexOptions = {
     colors: ["#465fff"],

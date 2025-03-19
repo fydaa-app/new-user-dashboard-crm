@@ -1,118 +1,111 @@
 "use client";
+import { useEffect, useState } from "react";
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
+import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
+
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
-  loading: () => <p>Loading Chart...</p>
+  loading: () => <p>Loading Chart...</p>,
 });
 
+interface ProgressItem {
+  label: string;
+  target: number;
+  reality: number;
+}
+
+interface SeriesData {
+  name: string;
+  data: number[];
+}
 export default function TargetVsRealityChart() {
+  const [series, setSeries] = useState<SeriesData[]>([
+    { name: "Target", data: [] },
+    { name: "Reality", data: [] },
+  ]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const { selectedOption } = useGlobalContext();
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?timeframe=${selectedOption || "monthly"}`,
+          {
+            headers: {
+              Authorization: `Bearer ${AUTH_TOKEN}`,
+            },
+          }
+        );
+        const data = await response.json();
+        const progressData: ProgressItem[] = data.progressData;
+        if (data?.progressData) {
+          const categories = progressData.map((item) => item.label);
+          const targetData = progressData.map((item) => item.target);
+          const realityData = progressData.map((item) => item.reality);
+          setSeries([
+            { name: "Target", data: targetData },
+            { name: "Reality", data: realityData },
+          ]);
+          setCategories(categories);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, [selectedOption]);
+
   const options: ApexOptions = {
-    colors: ["#4AB58E","#FFCF00"],
+    colors: ["#4AB58E", "#FFCF00"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
       height: 200,
-      toolbar: {
-        show: false,
-      },
+      toolbar: { show: false },
     },
     plotOptions: {
       bar: {
         horizontal: false,
         columnWidth: "80%",
         borderRadius: 2,
-        barHeight: "100%",
         distributed: false,
       },
     },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ["transparent"],
-    },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ["transparent"] },
     xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",        
-      ],
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
+      categories: categories,
+      axisBorder: { show: false },
+      axisTicks: { show: false },
     },
-    legend: {
-      show: false,
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Outfit",
-    },
-    yaxis: {
-        show: false,
-    },
+    legend: { show: false },
+    yaxis: { show: false },
     grid: {
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
+      yaxis: { lines: { show: true } },
     },
-    fill: {
-      opacity: 1,
-    },
-
+    fill: { opacity: 1 },
     tooltip: {
-      x: {
-        show: false,
-      },
-      y: {
-        formatter: (val: number) => `${val}`,
-      },
+      x: { show: false },
+      y: { formatter: (val: number) => `${val}` },
     },
   };
-  const series = [
-    {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 298, 187, 195, 291, 298],
-    },
-    {
-       name: "Investment",
-       data: [168, 585, 201, 268, 187, 155, 261, 168, 585, 201, 268, 187],
-    },
-  ];
- 
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-            Target vs Reality
+          Target vs Reality
         </h3>
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">
         <div className="-ml-5 min-w-[650px] xl:min-w-full pl-2">
-          <ReactApexChart
-            options={options}
-            series={series}
-            type="bar"
-            height={200}
-          />
+          <ReactApexChart options={options} series={series} type="bar" height={200} />
         </div>
       </div>
     </div>

@@ -45,19 +45,27 @@ const AppHeader: React.FC = () => {
   };
 
   useEffect(() => {
+    setSelectedOption("monthly");
+    
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
         inputRef.current?.focus();
       }
     };
-
+    
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, []);
+  }, [selectedOption,setSelectedOption]);
+
+  // useEffect(() => {
+  //   if (!selectedOption) {
+  //     setSelectedOption("monthly"); 
+  //   }
+  // }, [selectedOption, setSelectedOption]);
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
@@ -181,7 +189,7 @@ const AppHeader: React.FC = () => {
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="relative">
-           <Select
+           <Select 
             options={options}
             placeholder="Select Option"
             onChange={handleSelectChange}
