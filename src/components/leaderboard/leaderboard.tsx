@@ -14,8 +14,8 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
 
   const getBadgeSrc = (rank: number) => {
     switch (rank) {
-      case 1: return "/images/icons/badge_gold.svg";
-      case 2: return "/images/icons/badge_silver.svg";
+      case 1: return "/images/icons/badge_gold-tq-r_sbf.svg";
+      case 2: return "/images/icons/badge_silver-DFF-h3F9.svg";
       case 3: return "/images/icons/badge_bronze.svg";
       default: return "/images/icons/badge_default.svg";
     }
