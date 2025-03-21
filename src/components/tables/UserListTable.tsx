@@ -53,8 +53,8 @@ export default function UserListTable({ users, error }: UserTableProps) {
               </TableHeader>
               {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                {users.map((user) => (
-                  <TableRow >
+                {users.map((user, index) => (
+                  <TableRow key={index}>
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <div className="flex items-center gap-3">
                         <div>
