@@ -1,52 +1,81 @@
-// app/transaction-tables/page.tsx
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
 
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  referredBy: string;
-  createdAt: string;
+interface Transaction {
+  userName: string;
+  orderAmount: string;
+  transactionType: string;
+  planName: string;
+  managerName: string;
+  date: string;
+  time: string;
 }
 
-interface APIResponse {
-  success: boolean;
-  users: User[];
-}
+async function fetchTransactions(page: number): Promise<{ transactions: Transaction[]; error: string | null }> {
+    try {
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
+                }
+            }
+        );
+  
+        if (!response.ok) {
+            throw new Error("Failed to fetch");
+        }
 
-export default async function TransactionTablesPage() {
-  let users: User[] = [];
-  let error: string | null = null;
-
-  try {
-    const res = await fetch("https://crm-prod.fydaa.com/referrals/latest-referred-users", {
-      next: { revalidate: 60 },
-    });
-    const data: APIResponse = await res.json();
-
-    if (!data.success) {
-      error = "Failed to load data";
-    } else {
-      // Ensure that data.users is an array of User
-      users = Array.isArray(data.users) ? data.users : [];
+        const data = await response.json();
+        return { transactions: Array.isArray(data.transactions) ? data.transactions : [], error: null };
+    } catch (err) {
+        console.error("Error fetching data:", err);
+        return { transactions: [], error: "Error fetching data" };
     }
-  } catch (err) {
-    console.error("Error fetching data:", err);
-    error = "Error fetching data";
-  }
+}
 
-  return (
-    <div>
-      <PageBreadcrumb pageTitle="Transaction" />
-      <div className="space-y-6">
-        <ComponentCard title="Transaction List">          
-          <TransactionTable users={users} error={error} />          
-        </ComponentCard>
-      </div>
-    </div>
-  );
+export default function TransactionTablesPage() {
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [page, setPage] = useState(1);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function loadUsers() {
+            const { transactions, error } = await fetchTransactions(page);
+            setTransactions(transactions);
+            setError(error);
+        }
+        loadUsers();
+    }, [page]); 
+
+    return (
+        <div>
+            <PageBreadcrumb pageTitle="Transaction" />
+            <div className="space-y-6">
+                <ComponentCard title="Transaction List">
+                    <TransactionTable transactions={transactions} error={error} />
+                    <div className="flex justify-between mt-4">
+                        <button 
+                            className="px-4 py-2 bg-gray-200 rounded"
+                            onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                            disabled={page === 1}
+                        >
+                            Previous
+                        </button>
+                        <span>Page {page}</span>
+                        <button 
+                            className="px-4 py-2 bg-gray-200 rounded"
+                            onClick={() => setPage(prev => prev + 1)}
+                        >
+                            Next
+                        </button>
+                    </div>
+                </ComponentCard>
+            </div>
+        </div>
+    );
 }
