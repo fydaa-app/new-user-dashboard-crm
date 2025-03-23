@@ -23,10 +23,10 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
 
   const getValue = (entry: any) => {
     switch (activeCriteria) {
-      case 'revenue': return `$${entry.revenue}`;
+      case 'revenue': return `RS${entry.revenue}`;
       case 'users': return entry.userCount;
-      case 'investment': return `$${entry.totalInvestment}`;
-      default: return `$${entry.revenue}`;
+      case 'investment': return `RS${entry.totalInvestment}`;
+      default: return `RS${entry.revenue}`;
     }
   };
 
@@ -52,24 +52,43 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
               </div>
               <div className="leaderboard-col-inner">
                 <div className="leaderboard-col-icon-row flex items-center">
-                  <Image
-                    className="leaderboard-icon"
-                    src={getBadgeSrc(position)}
-                    alt={`${position} place`}
-                    width={50}
-                    height={50}
-                  />
+                  <div>
+                    <Image
+                      className="leaderboard-icon"
+                      src={getBadgeSrc(position)}
+                      alt={`${position} place`}
+                      width={50}
+                      height={50}
+                    />
+                    <div className="leaderboard-icon-sale">
+                        <div className="leaderboard-sale-text">sell</div>
+                    </div>
+                  </div>                  
                   <div className="leaderboard-title-head">
                     <div className="leaderboard-title">
                       {topThree[position - 1].name}
                     </div>
+                    <div className="leaderboard-countery"><span>🇨🇺</span></div>
                   </div>
+                </div>               
+                <div className="leaderboard-hr-info">
+                    <div>
+                        <div className="leaderboard-hr-text">Total User</div>
+                        <div className="leaderboard-hr-text-small"> </div>
+                    </div>
+                    <div className="leaderboard-hr-price-col">
+                        <div className="leaderboard-hr-info-green">{topThree[position - 1].userCount}</div>
+                        <div className="leaderboard-hr-info-grey"></div>
+                    </div>
                 </div>
                 <div className="leaderboard-hr-info">
-                  <div className="leaderboard-hr-price-col">
-                    <div className="leaderboard-hr-info-green">
-                      {getValue(topThree[position - 1])}
-                    </div>
+                  <div className="flex flex-col justify-end">
+                      <div className="leaderboard-hr-text-bold"> RS{topThree[position - 1].revenue}</div>
+                      <div className="leaderboard-hr-text-small">Revenue</div>
+                  </div>
+                  <div className="flex flex-col justify-end">
+                      <div className="leaderboard-hr-text-bold">RS{topThree[position - 1].totalInvestment}</div>
+                      <div className="leaderboard-hr-text-small">Investment</div>
                   </div>
                 </div>
               </div>
@@ -85,7 +104,7 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
             {tableTabs.map((tab) => (
               <Link
                 key={tab}
-                href={`/transaction-tables?criteria=${tab}`}
+                href={`/leaderboard?criteria=${tab}`}
                 passHref
               >
                 <button className={`table-price-box-tab ${
@@ -122,10 +141,10 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                       <div className="table-col-bold-title">{entry.name}</div>
                     </div>
                   </td>
-                  <td className="table-col-price-black">${entry.revenue}</td>
+                  <td className="table-col-price-black">Rs{entry.revenue}</td>
                   <td className="table-col-price-green">{entry.userCount}</td>
                   <td className="table-col-price-green">
-                    ${entry.totalInvestment}
+                    Rs{entry.totalInvestment}
                   </td>
                 </tr>
               ))}

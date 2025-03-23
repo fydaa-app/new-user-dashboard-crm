@@ -45,7 +45,7 @@ export default async function LeaderboardPage({
     <div>
       <PageBreadcrumb pageTitle="LeaderBoard" />
       <div className="space-y-6">
-        <ComponentCard title="User List">
+        <ComponentCard title="LeaderBoard">
           <Leaderboard
             leaderboardData={leaderboardData}
             activeCriteria={criteria}
