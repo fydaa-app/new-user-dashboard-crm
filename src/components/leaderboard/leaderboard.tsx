@@ -83,11 +83,11 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                 </div>
                 <div className="leaderboard-hr-info">
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold"> RS{topThree[position - 1].revenue}</div>
+                      <div className="leaderboard-hr-text-bold"> Rs.{topThree[position - 1].revenue}</div>
                       <div className="leaderboard-hr-text-small">Revenue</div>
                   </div>
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold">RS{topThree[position - 1].totalInvestment}</div>
+                      <div className="leaderboard-hr-text-bold">Rs.{topThree[position - 1].totalInvestment}</div>
                       <div className="leaderboard-hr-text-small">Investment</div>
                   </div>
                 </div>

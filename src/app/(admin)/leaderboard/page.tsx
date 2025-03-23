@@ -1,4 +1,3 @@
-// app/transaction-tables/page.tsx
 import React from "react";
 import { cookies } from "next/headers";
 import ComponentCard from "@/components/common/ComponentCard";
@@ -7,10 +6,10 @@ import Leaderboard from "@/components/leaderboard/leaderboard";
 
 async function fetchLeaderboard(criteria: string) {
   try {
-    // Get auth token from cookies using Next.js cookies API - with await
+    // Await cookies to access its methods
     const cookieStore = await cookies();
     const authToken = cookieStore.get("authToken")?.value || "";
-    
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_LEADERBOARD_LIST_ENDPOINT}?criteria=${criteria}`,
       {
@@ -33,12 +32,11 @@ async function fetchLeaderboard(criteria: string) {
 }
 
 export default async function LeaderboardPage({
-  searchParams,
+  searchParams = {},
 }: {
   searchParams?: { criteria?: string };
 }) {
-  // Correctly handle the search params in a server component
-  const criteria = searchParams?.criteria || 'revenue';
+  const criteria = searchParams.criteria || "revenue";
   const leaderboardData = await fetchLeaderboard(criteria);
 
   return (
