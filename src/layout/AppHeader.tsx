@@ -9,8 +9,16 @@ import React, { useState ,useEffect,useRef} from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
+import { useModal } from "@/hooks/useModal"; // Adjust path as needed
+import {Modal} from "@/components/ui/modal";
+import Label from "@/components/form/Label";
+import Input from "@/components/form/input/InputField";
+import Button from "@/components/ui/button/Button";
 
 const AppHeader: React.FC = () => {
+  const { isOpen, openModal, closeModal } = useModal();
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
@@ -40,9 +48,24 @@ const AppHeader: React.FC = () => {
 
    const handleSelectChange = (option: { value: string; label: string} | null) => {     
     if(option) {
-      setSelectedOption(option.value)
+      setSelectedOption(option.value);
+        if (option.value === "custom_date") {
+          openModal();
+        }
       }    
   };
+
+  const handleSaveDates = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Custom Dates:", startDate, endDate);
+    closeModal();
+  };
+
+  const handleSave = () => {
+    // Handle save logic here
+    console.log("Saving changes...");
+    closeModal();
+  }
 
   useEffect(() => {
     setSelectedOption("monthly");
@@ -207,6 +230,48 @@ const AppHeader: React.FC = () => {
             <UserDropdown /> 
         </div>
       </div>
+      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
+      <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
+        <div className="px-2 pr-14">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+            Select Custom Date Range
+          </h4>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+            Please choose your custom start and end dates.
+          </p>
+        </div>
+        <form className="flex flex-col" onSubmit={handleSaveDates}>
+          <div className="px-2 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+              <div>
+                <Label>Start Date</Label>
+                <Input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>End Date</Label>
+                <Input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+            <Button size="sm" variant="outline" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              Save Dates
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
     </header>
   );
 };
