@@ -80,12 +80,18 @@ export default function SignInForm() {
         // Set token in cookie (more secure than localStorage)
         // Cookie expires in 1 day by default, or 30 days if "keep me logged in" is checked
         const expiresIn = isChecked ? 30 : 1;
-        setCookie("authToken", data.token, { 
+        const cookieOptions = { 
           expires: new Date(new Date().getTime() + expiresIn * 24 * 60 * 60 * 1000),
           path: "/",
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict"
-        });
+          sameSite: "strict" as "strict" // Type assertion to literal 'strict'
+        };
+        
+        // Store auth token
+        setCookie("authToken", data.token, cookieOptions);
+        
+        // Store employee data in cookies
+        setCookie("employeeData", JSON.stringify(data.employee), cookieOptions);
         
         // Update auth context
         login(data.token, data.employee);

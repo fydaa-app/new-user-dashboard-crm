@@ -33,7 +33,7 @@ export default function AdminLayout({
           <AppHeader />
           
           {/* Page Content */}
-          <div className="p-4 md:p-6">
+          <div className="p-4 md:p-6 dark:bg-gray-900">
             {children}
           </div>
         </main>

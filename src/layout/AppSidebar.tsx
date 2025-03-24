@@ -46,8 +46,8 @@ const navItems: NavItem[] = [
   },
   {
     icon: <PieChartIcon />,
-    name: "Sale Report",
-    path: "/line-chart",
+    name: "Payment Report",
+    path: "/salereport",
   },
   {
     name: "Payouts",
