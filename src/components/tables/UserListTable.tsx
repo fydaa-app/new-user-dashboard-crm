@@ -10,6 +10,7 @@ import {
 
 export interface UserTableProps {
   users: {
+    userId:number;
     userName: string;
     mobileNumber: string;
     planName: string;

@@ -60,15 +60,15 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                       width={50}
                       height={50}
                     />
-                    <div className="leaderboard-icon-sale">
+                    {/* <div className="leaderboard-icon-sale">
                         <div className="leaderboard-sale-text">sell</div>
-                    </div>
+                    </div> */}
                   </div>                  
                   <div className="leaderboard-title-head">
                     <div className="leaderboard-title">
                       {topThree[position - 1].name}
                     </div>
-                    <div className="leaderboard-countery"><span>🇨🇺</span></div>
+                    {/* <div className="leaderboard-countery"><span>🇨🇺</span></div> */}
                   </div>
                 </div>               
                 <div className="leaderboard-hr-info">
@@ -83,11 +83,11 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                 </div>
                 <div className="leaderboard-hr-info">
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold"> Rs.{topThree[position - 1].revenue}</div>
+                      <div className="leaderboard-hr-text-bold"> Rs. {topThree[position - 1].revenue}</div>
                       <div className="leaderboard-hr-text-small">Revenue</div>
                   </div>
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold">Rs.{topThree[position - 1].totalInvestment}</div>
+                      <div className="leaderboard-hr-text-bold">Rs. {topThree[position - 1].totalInvestment}</div>
                       <div className="leaderboard-hr-text-small">Investment</div>
                   </div>
                 </div>
@@ -141,10 +141,10 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                       <div className="table-col-bold-title">{entry.name}</div>
                     </div>
                   </td>
-                  <td className="table-col-price-black">Rs{entry.revenue}</td>
+                  <td className="table-col-price-black">Rs. {entry.revenue}</td>
                   <td className="table-col-price-green">{entry.userCount}</td>
                   <td className="table-col-price-green">
-                    Rs{entry.totalInvestment}
+                    Rs. {entry.totalInvestment}
                   </td>
                 </tr>
               ))}

@@ -6,6 +6,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
 
 interface User {
+    userId:number;
   userName: string;
   mobileNumber: string;
   planName: string;

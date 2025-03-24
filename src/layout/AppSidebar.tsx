@@ -57,7 +57,7 @@ const navItems: NavItem[] = [
   {
     name: "Settings",
     icon: <SettingIcon />,
-    path: "/settings",
+    path: "/userdetails",
   },
   {
     name: "Sign Out",

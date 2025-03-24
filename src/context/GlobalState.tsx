@@ -6,6 +6,13 @@ interface GlobalContextProps {
   setSelectedOption: (value: string) => void;
 }
 
+interface GlobalState {
+  selectedOption: string;
+  setSelectedOption: (option: string) => void;
+  customDates: { start: string; end: string };
+  setCustomDates: (dates: { start: string; end: string }) => void;
+}
+
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
