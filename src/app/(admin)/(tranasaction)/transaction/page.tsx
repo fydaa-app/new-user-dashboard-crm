@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
+import Cookies from 'js-cookie';
 
 interface Transaction {
   userName: string;
@@ -26,6 +27,11 @@ async function fetchTransactions(page: number): Promise<{ transactions: Transact
             }
         );
   
+        if (response.status === 401) {
+            Cookies.remove('authToken'); 
+            window.location.href = "/signin";          
+        }
+
         if (!response.ok) {
             throw new Error("Failed to fetch");
         }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
+import Cookies from 'js-cookie';
 
 interface User {
     userId:number;
@@ -26,6 +27,11 @@ async function fetchUsers(page: number): Promise<{ users: User[]; error: string 
             }
         );
   
+        if (response.status === 401) {
+            Cookies.remove('authToken'); 
+            window.location.href = "/signin";          
+        }
+
         if (!response.ok) {
             throw new Error("Failed to fetch");
         }

@@ -106,36 +106,36 @@ export default function UserTab({
             {activeTab === 'Portfolio' && portfolioDetails?.map((portfolio) => (
               <div key={portfolio.portfolioId} className="p-4">
                 <div className="border-b border-gray-100 dark:border-white/[0.05]">
-                    <h3 className="text-lg font-semibold mb-4">{portfolio.portfolioName}</h3>
+                    <h3 className="text-lg font-semibold mb-4 dark:text-gray-400">{portfolio.portfolioName}</h3>
                 </div>                               
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Invested Amount</p>
-                    <p className="font-medium">{formatCurrency(portfolio.totalInvestedValue)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Invested Amount</p>
+                    <p className="font-medium dark:text-gray-400">{formatCurrency(portfolio.totalInvestedValue)}</p>
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Current Value</p>
-                    <p className="font-medium">{formatCurrency(portfolio.currentValue)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Current Value</p>
+                    <p className="font-medium dark:text-gray-400">{formatCurrency(portfolio.currentValue)}</p>
                   </div>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Realised Profit</p>
-                    <p className="font-medium">{formatCurrency(portfolio.realizedReturn)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Realised Profit</p>
+                    <p className="font-medium dark:text-gray-400">{formatCurrency(portfolio.realizedReturn)}</p>
                   </div>
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Unrealised Profit</p>
-                    <p className="font-medium">{formatCurrency(portfolio.unrealizedReturn)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Unrealised Profit</p>
+                    <p className="font-medium dark:text-gray-400">{formatCurrency(portfolio.unrealizedReturn)}</p>
                   </div>
                 </div>                
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Absolute Return </p>
-                    <p className="font-medium">0%</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Absolute Return </p>
+                    <p className="font-medium dark:text-gray-400">{(((portfolio.currentValue - portfolio.totalInvestedValue) / portfolio.totalInvestedValue) * 100).toFixed(2)}%</p>
                   </div> 
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <p className="text-sm text-gray-500">Total Profit </p>
-                    <p className="font-medium">{formatCurrency(portfolio.totalProfit)}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Total Profit </p>
+                    <p className="font-medium dark:text-gray-400">{formatCurrency(portfolio.totalProfit)}</p>
                   </div>                  
                 </div>
               </div>

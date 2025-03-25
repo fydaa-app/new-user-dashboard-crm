@@ -31,6 +31,10 @@ export default function RecentOrders() {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
         });
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
         if (!response.ok) {
           throw new Error("Failed to fetch orders");
         }        

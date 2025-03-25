@@ -40,6 +40,15 @@ export default function TargetVsRealityChart() {
             },
           }
         );
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders");
+        }   
+
         const data = await response.json();
         const progressData: ProgressItem[] = data.progressData;
         if (data?.progressData) {

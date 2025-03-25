@@ -28,6 +28,11 @@ const { selectedOption } = useGlobalContext();
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
         });
+
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }

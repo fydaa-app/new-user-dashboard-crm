@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Leaderboard from "@/components/leaderboard/leaderboard";
+import Cookies from 'js-cookie';
 
 async function fetchLeaderboard(criteria: string) {
   try {
@@ -18,6 +19,11 @@ async function fetchLeaderboard(criteria: string) {
         },
       }
     );
+
+    if (response.status === 401) {
+        Cookies.remove('authToken'); 
+        window.location.href = "/signin";          
+    }
 
     if (!response.ok) {
       throw new Error("Failed to fetch");

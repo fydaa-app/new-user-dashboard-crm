@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
-
+import Cookies from 'js-cookie';
+type Usable<T> = Promise<T> | { then(onFulfilled: (value: T) => any): any };
 interface UserData {
   userDetails: any;
   portfolioDetails: any[];
@@ -14,17 +15,16 @@ interface UserData {
 }
 
 interface PageProps {
-  params: {
-    userId: string;
-  };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Usable<{ userId: string }>; 
 }
 
 export default function UserDetails({ params }: PageProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { userId } = params;
+  const resolvedParams = React.use(params as Promise<{ userId: string }>);
+  const { userId } = resolvedParams;
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -36,7 +36,10 @@ export default function UserDetails({ params }: PageProps) {
             }
           }
         );
-
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -51,7 +54,7 @@ export default function UserDetails({ params }: PageProps) {
     };
 
     fetchUserData();
-  }, [params.userId]);
+  }, [userId]);
 
   if (loading) {
     return <div>Loading user data...</div>;
