@@ -868,7 +868,7 @@ img.leaderboard-icon {
 .table-col-price-black {
   font-size: 14px;
   line-height: 20px;
-  justify-content: flex-start;
+  justify-content: center;
   display: flex;
   align-items: center;
   color: #000000;
@@ -877,7 +877,7 @@ img.leaderboard-icon {
   color: #0e9f6e;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   font-weight: 700;
 }
 

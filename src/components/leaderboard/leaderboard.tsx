@@ -21,15 +21,22 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
     }
   };
 
+  const formatCurrency = (value: number) => 
+    new Intl.NumberFormat('en-IN', { 
+      style: 'currency', 
+      currency: 'INR' 
+    }).format(value);
+    
+
   const getValue = (entry: any) => {
     switch (activeCriteria) {
-      case 'revenue': return `RS${entry.revenue}`;
+      case 'revenue': return `${formatCurrency(entry.revenue)}`;
       case 'users': return entry.userCount;
       case 'investment': return `RS${entry.totalInvestment}`;
       default: return `RS${entry.revenue}`;
     }
   };
-
+  
   return (
     <div className="dashboard-design-main">
       <div className="leaderboard-row">
@@ -83,11 +90,11 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                 </div>
                 <div className="leaderboard-hr-info">
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold"> Rs. {topThree[position - 1].revenue}</div>
+                      <div className="leaderboard-hr-text-bold">{formatCurrency(topThree[position - 1].revenue)}</div>
                       <div className="leaderboard-hr-text-small">Revenue</div>
                   </div>
                   <div className="flex flex-col justify-end">
-                      <div className="leaderboard-hr-text-bold">Rs. {topThree[position - 1].totalInvestment}</div>
+                      <div className="leaderboard-hr-text-bold">{formatCurrency(topThree[position - 1].totalInvestment)}</div>
                       <div className="leaderboard-hr-text-small">Investment</div>
                   </div>
                 </div>
@@ -141,10 +148,10 @@ const Leaderboard = ({ leaderboardData, activeCriteria }: any) => {
                       <div className="table-col-bold-title">{entry.name}</div>
                     </div>
                   </td>
-                  <td className="table-col-price-black">Rs. {entry.revenue}</td>
+                  <td className="table-col-price-black">{formatCurrency(entry.revenue)}</td>
                   <td className="table-col-price-green">{entry.userCount}</td>
                   <td className="table-col-price-green">
-                    Rs. {entry.totalInvestment}
+                    {formatCurrency(entry.totalInvestment)}
                   </td>
                 </tr>
               ))}

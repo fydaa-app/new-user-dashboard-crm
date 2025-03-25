@@ -13,16 +13,23 @@ interface UserData {
   stockOrders: any[];
 }
 
-export default function UserDetails({ params }: { params: { userId: string }}) {
+interface PageProps {
+  params: {
+    userId: string;
+  };
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function UserDetails({ params }: PageProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const { userId } = params;
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         const response = await fetch(
-              `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}/1681`,
+              `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT}/${userId}`,
           {
             headers: {
                 Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
