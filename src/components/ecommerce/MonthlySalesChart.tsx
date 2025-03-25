@@ -27,6 +27,11 @@ export default function MonthlySalesChart() {
           },
         });
 
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
+
         const data: { dataPoints: { label: string; revenue: number }[] } = await response.json();
 
         if (data.dataPoints) {

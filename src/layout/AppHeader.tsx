@@ -56,14 +56,11 @@ const AppHeader: React.FC = () => {
   };
 
   const handleSaveDates = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Custom Dates:", startDate, endDate);
+    e.preventDefault();    
     closeModal();
   };
 
-  const handleSave = () => {
-    // Handle save logic here
-    console.log("Saving changes...");
+  const handleSave = () => {   
     closeModal();
   }
 
@@ -83,12 +80,6 @@ const AppHeader: React.FC = () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedOption,setSelectedOption]);
-
-  // useEffect(() => {
-  //   if (!selectedOption) {
-  //     setSelectedOption("monthly"); 
-  //   }
-  // }, [selectedOption, setSelectedOption]);
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">

@@ -5,6 +5,7 @@ import UserInfoCard from "@/components/view-user-profile/UserInfoCard";
 import UserMetaCard from "@/components/view-user-profile/UserMetaCard";
 import UseRreferralDetail from "@/components/view-user-profile/UseRreferralDetail";
 import React, { useState, useEffect } from "react";
+import Cookies from 'js-cookie';
 
 interface User {
   firstName: string;
@@ -32,7 +33,10 @@ async function fetchUserDetails(): Promise<{ user: User | null; error: string | 
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-
+    if (response.status === 401) {
+      Cookies.remove('authToken'); 
+      window.location.href = "/signin";          
+    }
     if (!response.ok) throw new Error("Failed to fetch");
 
     const data = await response.json();

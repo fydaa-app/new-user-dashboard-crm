@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Leaderboard from "@/components/leaderboard/leaderboard";
+import Cookies from "js-cookie";
 
 async function fetchLeaderboard(criteria: string) {
   try {
@@ -19,6 +20,11 @@ async function fetchLeaderboard(criteria: string) {
       }
     );
 
+    if (response.status === 401) {
+      Cookies.remove("authToken");
+      window.location.href = "/signin";
+    }
+
     if (!response.ok) {
       throw new Error("Failed to fetch");
     }
@@ -32,11 +38,15 @@ async function fetchLeaderboard(criteria: string) {
 }
 
 export default async function LeaderboardPage({
-  searchParams = {},
+  searchParams,
 }: {
-  searchParams?: { criteria?: string };
+  searchParams: Promise<{ criteria?: string }>;
 }) {
-  const criteria = searchParams.criteria || "revenue";
+  // Resolve the searchParams promise
+  const resolvedSearchParams = await searchParams;
+  const criteria: "revenue" | "users" | "investment" =
+    (resolvedSearchParams.criteria as "revenue" | "users" | "investment") || "revenue";
+
   const leaderboardData = await fetchLeaderboard(criteria);
 
   return (

@@ -7,9 +7,10 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-
+import Link from "next/link";
 export interface UserTableProps {
   users: {
+    userId:number;
     userName: string;
     mobileNumber: string;
     planName: string;
@@ -49,6 +50,9 @@ export default function UserListTable({ users, error }: UserTableProps) {
                   <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                    Onboarding Date
                   </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                    Action
+                  </TableCell>
                 </TableRow>
               </TableHeader>
               {/* Table Body */}
@@ -78,6 +82,16 @@ export default function UserListTable({ users, error }: UserTableProps) {
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(user.onboardingDate).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Link 
+                        href={`/user/${user.userId}`} // Update this URL pattern as needed
+                        className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        role="button"
+                        aria-label={`View details for ${user.userName}`}
+                      >
+                        View
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
