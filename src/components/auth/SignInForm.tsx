@@ -84,7 +84,7 @@ export default function SignInForm() {
           expires: new Date(new Date().getTime() + expiresIn * 24 * 60 * 60 * 1000),
           path: "/",
           secure: process.env.NODE_ENV === "production",
-          sameSite: "strict" as "strict" // Type assertion to literal 'strict'
+          sameSite: "strict" as const // Change here: use 'as const'
         };
         
         // Store auth token
