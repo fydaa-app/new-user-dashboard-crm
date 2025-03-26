@@ -5,12 +5,12 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
-import { useModal } from "@/hooks/useModal"; // Adjust path as needed
-import {Modal} from "@/components/ui/modal";
+import { useModal } from "@/hooks/useModal";
+import { Modal } from "@/components/ui/modal";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
@@ -22,6 +22,7 @@ const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const { selectedOption, setSelectedOption } = useGlobalContext();
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -34,6 +35,7 @@ const AppHeader: React.FC = () => {
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const options = [
@@ -44,19 +46,18 @@ const AppHeader: React.FC = () => {
     { value: "custom_date", label: "Custom Date" },
   ];
 
-   const { selectedOption, setSelectedOption } = useGlobalContext();
-
-   const handleSelectChange = (option: { value: string; label: string} | null) => {     
-    if(option) {
+  const handleSelectChange = (option: { value: string; label: string } | null) => {     
+    if (option) {
       setSelectedOption(option.value);
-        if (option.value === "custom_date") {
-          openModal();
-        }
-      }    
+      if (option.value === "custom_date") {
+        openModal();
+      }
+    }    
   };
 
   const handleSaveDates = (e: React.FormEvent) => {
     e.preventDefault();    
+    // Add logic to save custom dates if needed
     closeModal();
   };
 
@@ -65,8 +66,6 @@ const AppHeader: React.FC = () => {
   }
 
   useEffect(() => {
-    setSelectedOption("monthly");
-    
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
         event.preventDefault();
@@ -79,7 +78,7 @@ const AppHeader: React.FC = () => {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedOption,setSelectedOption]);
+  }, []);
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
@@ -202,18 +201,18 @@ const AppHeader: React.FC = () => {
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-          <div className="relative">
-           <Select 
-            options={options}
-            placeholder="Select Option"
-            onChange={handleSelectChange}
-            value={selectedOption}
-            className="dark:bg-dark-900"
-          />
+           <div className="relative">
+        <Select 
+          options={options}
+          placeholder="Select Option"
+          onChange={handleSelectChange}
+          value={selectedOption}
+          className="dark:bg-dark-900"
+        />
           <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-            <ChevronDownIcon/>
-          </span>
-         </div>
+          <ChevronDownIcon/>
+        </span>
+      </div>
           <div className="flex items-center gap-2 2xsm:gap-3">            
             <ThemeToggleButton />           
             <NotificationDropdown />            
