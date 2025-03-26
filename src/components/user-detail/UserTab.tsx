@@ -10,12 +10,109 @@ import {
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
 
+// Detailed interfaces matching the API response
+interface Address {
+  addressLine1: string;
+  addressLine2?: string;
+}
+
+interface UserGoal {
+  sipAmount: number;
+  goalAmount: number;
+  timePeriod: number;
+  interestRate: number;
+}
+
+interface UserDetails {
+  id: number;
+  firstName: string;
+  lastName: string;
+  referredBy: string | null;
+  referralCode: string;
+  deeplink: string | null;
+  callingCode: string;
+  mobileNumber: string;
+  email: string;
+  panStatus: string;
+  total_investment: number;
+  current_balance: number;
+  userRole: string;
+  country: string;
+  state: string;
+  city: string;
+  pincode: string;
+  gender: string;
+  dob: string;
+  address: Address;
+  userGoal: UserGoal;
+  // Add these missing properties
+  subscription_date: string;
+  main_subscription_status: number;
+}
+
+interface Subscription {
+  plan_id: number;
+  plan_name: string;
+}
+
+interface Transaction {
+  transactionId: string;
+  orderType: 'BUY' | 'SELL';
+  portfolioId: number;
+  totalAmount: number;
+  totalTradeQty: string;
+  createdAt: string;
+}
+
+interface StockDetails {
+  portfolioName: string;
+  portfolioId: number;
+  stockName: string;
+  capType: string;
+  stockType: string;
+  sector: number;
+  ticker: string;
+  ltp: string;
+  balanceQty: number;
+  totalQty: number;
+  averagePrice: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  investedValue: number;
+  currentValue: number;
+  stockId: number;
+}
+
+interface PortfolioDetails {
+  portfolioId: number;
+  portfolioName: string;
+  currentValue: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  stocks: StockDetails[];
+  totalInvestedValue: number;
+}
+
+interface StockOrder {
+  stockId: number;
+  buyQuantity: string;
+  sellQuantity: string;
+  quantityDifference: string;
+  totalValue: number;
+  avgValue: number;
+  netValue: number;
+  'stock.stockName': string;
+  'stock.ticker': string;
+}
+
 interface UserTabProps {
-  userDetails: any;
-  portfolioDetails: any[];
-  transactions: any[];
-  subscriptions: any[];
-  stockOrders: any[];
+  userDetails: UserDetails;
+  portfolioDetails: PortfolioDetails[];
+  transactions: Transaction[];
+  subscriptions: Subscription[];
+  stockOrders: StockOrder[];
 }
 
 export default function UserTab({
@@ -25,7 +122,7 @@ export default function UserTab({
   subscriptions,
   stockOrders
 }: UserTabProps) {
-  const [activeTab, setActiveTab] = useState('Portfolio');
+  const [activeTab, setActiveTab] = useState<string>('Portfolio');
 
   // Format currency values
   const formatCurrency = (value: number) => 
@@ -50,27 +147,27 @@ export default function UserTab({
             </div>
             <div className="order-3 xl:order-2 mb-4">
               <h4 className="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-                {userDetails?.firstName} {userDetails?.lastName}
+                {userDetails.firstName} {userDetails.lastName}
               </h4>
               <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left mb-2">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {userDetails?.userRole}
+                  {userDetails.userRole}
                 </p>
                 <div className="hidden h-3.5 w-px bg-gray-300 dark:bg-gray-700 xl:block"></div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {userDetails?.city}, {userDetails?.country}
+                  {userDetails.city}, {userDetails.country}
                 </p>
               </div>
               {/* Additional User Details */}
               <div className="mt-4 space-y-2">
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                  Email : {userDetails?.email}
+                  Email : {userDetails.email}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                  Phone : {userDetails?.callingCode} {userDetails?.mobileNumber}
+                  Phone : {userDetails.callingCode} {userDetails.mobileNumber}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">
-                  PAN Status : {userDetails?.panStatus}
+                  PAN Status : {userDetails.panStatus}
                 </p>
               </div>
             </div>
@@ -139,7 +236,6 @@ export default function UserTab({
                   </div>                  
                 </div>
               </div>
-             
             ))}
 
             {/* Transaction Tab */}
@@ -192,8 +288,8 @@ export default function UserTab({
                         {new Date(userDetails.subscription_date).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                        <Badge color={userDetails.main_subscription_status ? 'success' : 'error'}>
-                          {userDetails.main_subscription_status ? 'Active' : 'Inactive'}
+                        <Badge color={userDetails.main_subscription_status === 1 ? 'success' : 'error'}>
+                          {userDetails.main_subscription_status === 1 ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>
                     </TableRow>
