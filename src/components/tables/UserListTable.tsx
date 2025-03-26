@@ -85,13 +85,13 @@ export default function UserListTable({ users, error }: UserTableProps) {
                     </TableCell>
                     <TableCell>
                       <Link 
-                        href={`/user/${user.userId}`} // Update this URL pattern as needed
-                        className="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        href={`/user/${user.userId}`} 
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200"
                         role="button"
                         aria-label={`View details for ${user.userName}`}
                       >
                         View
-                      </Link>
+                      </Link>                      
                     </TableCell>
                   </TableRow>
                 ))}
