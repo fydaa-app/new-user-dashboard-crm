@@ -13,7 +13,7 @@ interface User {
   planName: string;
   managerName: string;
   onboardingDate: string;
-  netWorth: string;
+  netWorth: number;
 }
 
 async function fetchUsers(page: number): Promise<{ users: User[]; error: string | null }> {
