@@ -6,7 +6,6 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComingSoon from "@/components/common/ComingSoon";
 
 export default function SettingPage() {
-    
     return (
         <div>
             <PageBreadcrumb pageTitle="Settings" />
