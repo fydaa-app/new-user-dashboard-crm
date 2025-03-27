@@ -144,13 +144,13 @@ export default function MonthlySalesChart() {
           </h3>
         </div>
         <div className="col-span-12 xl:col-span-5">
-          <Select
-            options={chartOptions}
-            placeholder="Select Metric"
-            onChange={handleSelectChange}
-            value={chartOptions.find(opt => opt.value === selectedDataType) || null}
-            className="dark:bg-dark-900"
-          />
+        <Select
+        options={chartOptions}
+        placeholder="Select Metric"
+        onChange={handleSelectChange}
+        value={selectedDataType} 
+        className="dark:bg-dark-900"
+       />
         </div>
       </div>
 
