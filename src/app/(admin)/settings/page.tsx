@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComingSoon from "@/components/common/ComingSoon";
 
 export default function SettingPage() {
-    
     return (
         <div>
             <PageBreadcrumb pageTitle="Settings" />
