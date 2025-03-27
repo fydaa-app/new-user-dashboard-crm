@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
   {
     name: "Payouts",
     icon: <TableIcon />,
-    path: "/basic-tables",
+    path: "/payouts",
   },  
   {
     name: "Settings",

@@ -48,6 +48,11 @@ export default function RecentOrders() {
     fetchOrders();
   }, [selectedOption]);
 
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(value);
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -85,7 +90,7 @@ export default function RecentOrders() {
                   <TableCell className="py-3">{order.date}</TableCell>
                   <TableCell className="py-3">{order.userName}</TableCell>
                   <TableCell className="py-3">{order.planName}</TableCell>
-                  <TableCell className="py-3">Rs.{order.orderValue}</TableCell>
+                  <TableCell className="py-3">{formatCurrency(order.orderValue)}</TableCell>
                   <TableCell className="py-3">
                     <Badge
                       size="sm"

@@ -16,11 +16,15 @@ export interface UserTableProps {
     planName: string;
     managerName: string;
     onboardingDate: string;
-    netWorth: string;
+    netWorth: number;
   }[];
   error: string | null;
 }
-
+const formatCurrency = (value: number): string =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+  }).format(value);
 export default function UserListTable({ users, error }: UserTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -78,7 +82,7 @@ export default function UserListTable({ users, error }: UserTableProps) {
                       {user.managerName}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.netWorth}
+                      {formatCurrency(user.netWorth)}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(user.onboardingDate).toLocaleString()}
