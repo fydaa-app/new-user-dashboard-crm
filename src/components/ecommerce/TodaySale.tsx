@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { ExportIcon, SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon } from "@/icons";
+import { SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon } from "@/icons";
 
 interface DataProps {
   totalRevenue?: number;
