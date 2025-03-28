@@ -30,7 +30,7 @@ const TodaySaleWrapper = () => {
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption } = useGlobalContext();
+  const { selectedOption,customDates } = useGlobalContext();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -43,8 +43,16 @@ const TodaySaleWrapper = () => {
       }
 
       try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}?timeframe=${selectedOption || "monthly"}`,
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}?`;
+    
+        if (selectedOption === 'custom') {
+          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        const response = await fetch(url,
           {
             headers: {
               Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -82,7 +90,7 @@ const TodaySaleWrapper = () => {
     };
 
     fetchSalesData();
-  }, [selectedOption]);
+  }, [selectedOption,customDates]);
 
   return <TodaySale data={salesData} loading={loading} />;
 };

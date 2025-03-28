@@ -20,13 +20,22 @@ interface Order {
 
 export default function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption } = useGlobalContext();
+  const { selectedOption,customDates } = useGlobalContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RECENT_ORDERS_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RECENT_ORDERS_ENDPOINT}?`;
+    
+        if (selectedOption === 'custom') {
+          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
@@ -46,7 +55,7 @@ export default function RecentOrders() {
     };
 
     fetchOrders();
-  }, [selectedOption]);
+  }, [selectedOption,customDates]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
