@@ -11,7 +11,7 @@ import {
 export interface TransactionTableProps {
   transactions: {
     userName: string;
-    orderAmount: string;
+    orderAmount: number;
     transactionType: string;
     planName: string;
     managerName: string;
@@ -20,6 +20,12 @@ export interface TransactionTableProps {
   }[];
   error: string | null;
 }
+
+const formatCurrency = (value: number): string =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+  }).format(value);
 
 export default function TransactionTable({ transactions, error }: TransactionTableProps) {
   return (
@@ -32,22 +38,22 @@ export default function TransactionTable({ transactions, error }: TransactionTab
               {/* Table Header */}
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
                   </TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Manager Name
                   </TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Plan
                   </TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Transaction Type
                   </TableCell>
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Order Amount
                   </TableCell>                  
-                  <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Date
                   </TableCell>
                 </TableRow>
@@ -75,7 +81,7 @@ export default function TransactionTable({ transactions, error }: TransactionTab
                       {transaction.transactionType}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {transaction.orderAmount}
+                      {formatCurrency(transaction.orderAmount)}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(transaction.date).toLocaleString()}
