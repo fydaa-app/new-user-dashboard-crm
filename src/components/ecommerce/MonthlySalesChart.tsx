@@ -3,45 +3,91 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
+import Select from "@/components/form/Select";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
+type DataPoint = {
+  label: string;
+  revenue: number;
+  transactionCount: number;
+  userCount: number;
+};
+
+const chartOptions = [
+  { value: "revenue", label: "Revenue" },
+  { value: "transactionCount", label: "Transaction" },
+  { value: "userCount", label: "User" }    
+];
+
 export default function MonthlySalesChart() {
   const [series, setSeries] = useState<{ name: string; data: number[] }[]>([
     { name: "Sales", data: [] },
   ]);
-  const [categories, setCategories] = useState<string[]>([]);
-
+  const [categories, setCategories] = useState<string[]>([]);  
+  const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
+  const [selectedDataType, setSelectedDataType] = useState("revenue");
+  const { selectedOption } = useGlobalContext();
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_SALE_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_SALE_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
         });
 
-        const data: { dataPoints: { label: string; revenue: number }[] } = await response.json();
-
-        if (data.dataPoints) {
-          const labels = data.dataPoints.map((point) => point.label);
-          const salesData = data.dataPoints.map((point) => point.revenue); // Using `transactionCount` for the graph
-
-          setCategories(labels);
-          setSeries([{ name: "Sales", data: salesData }]);
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
         }
+
+        const data: { dataPoints: DataPoint[] } = await response.json();
+        setDataPoints(data.dataPoints || []);
+
       } catch (error) {
         console.error("Error fetching sales data:", error);
       }
     }
 
     fetchSalesData();
-  }, []);
+  }, [selectedOption]);
+
+  useEffect(() => {
+    if (dataPoints.length === 0) return;
+
+    const currentOption = chartOptions.find(option => option.value === selectedDataType);
+    const seriesName = currentOption?.label || "Sales";
+
+    const labels = dataPoints.map((point) => point.label);
+    const dataValues = dataPoints.map((point) => {
+      switch (selectedDataType) {
+        case "revenue":
+          return point.revenue;
+        case "transactionCount":
+          return point.transactionCount;
+        case "userCount":
+          return point.userCount;
+        default:
+          return 0;
+      }
+    });
+
+    setCategories(labels);
+    setSeries([{ name: seriesName, data: dataValues }]);
+  }, [dataPoints, selectedDataType]);
+
+  const handleSelectChange = (selected: { value: string; label: string } | null) => {
+    if (selected) {
+      setSelectedDataType(selected?.value || "revenue");
+    }
+  };
 
   const options: ApexOptions = {
     colors: ["#465fff"],
@@ -72,7 +118,15 @@ export default function MonthlySalesChart() {
       horizontalAlign: "left",
       fontFamily: "Outfit",
     },
-    yaxis: { title: { text: undefined } },
+    yaxis: { title: {
+        text: chartOptions.find(opt => opt.value === selectedDataType)?.label,
+        style: {
+          fontSize: "14px",
+          fontWeight: 600,
+          fontFamily: "Outfit, sans-serif",
+        }
+      } 
+    },
     grid: { yaxis: { lines: { show: true } } },
     fill: { opacity: 1 },
     tooltip: {
@@ -84,9 +138,20 @@ export default function MonthlySalesChart() {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Sales Report
-        </h3>
+        <div className="col-span-12 xl:col-span-7">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Sales Report
+          </h3>
+        </div>
+        <div className="col-span-12 xl:col-span-5">
+        <Select
+        options={chartOptions}
+        placeholder="Select Metric"
+        onChange={handleSelectChange}
+        value={selectedDataType} 
+        className="dark:bg-dark-900"
+       />
+        </div>
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">

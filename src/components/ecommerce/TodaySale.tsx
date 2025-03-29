@@ -1,12 +1,13 @@
 "use client";
 import React from "react";
-import { ExportIcon, SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon } from "@/icons";
+import { SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon } from "@/icons";
 
 interface DataProps {
   totalRevenue?: number;
-  totalTransactionsAmount?: number;
+  totalNoOfTransactions?: number;
   noOfPayments?: number;
   countOfUsers?: number;
+  assetsUnderManagement: number;
 }
 
 const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean }) => {
@@ -17,6 +18,11 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
   if (!data) {
     return <p>No sales data available.</p>;
   }
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(value);
 
   return (
     <div className="grid">
@@ -29,10 +35,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Sales Summary
             </span>
-          </div>
-          <button className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-            <ExportIcon /> Export
-          </button>
+          </div>         
         </div>
 
         <div className="flex items-end justify-between mt-5 sales-box-row">
@@ -47,7 +50,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <OrderIcon />
-              <h2 className="numbers-sale">{data.totalTransactionsAmount}</h2>
+              <h2 className="numbers-sale">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>
@@ -71,7 +74,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">RS.{data.totalTransactionsAmount}</h2>
+              <h2 className="numbers-sale">{formatCurrency(data.assetsUnderManagement)}</h2>
               <p className="total-sale-text">Asset Under Advisory</p>
               <span className="total-yes">+0% from yesterday</span>
             </div>

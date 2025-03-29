@@ -5,15 +5,24 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState ,useEffect,useRef} from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
+import { useModal } from "@/hooks/useModal";
+import { Modal } from "@/components/ui/modal";
+import Label from "@/components/form/Label";
+import Input from "@/components/form/input/InputField";
+import Button from "@/components/ui/button/Button";
 
 const AppHeader: React.FC = () => {
+  const { isOpen, openModal, closeModal } = useModal();
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const { selectedOption, setSelectedOption } = useGlobalContext();
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -26,6 +35,7 @@ const AppHeader: React.FC = () => {
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen(!isApplicationMenuOpen);
   };
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const options = [
@@ -36,13 +46,24 @@ const AppHeader: React.FC = () => {
     { value: "custom_date", label: "Custom Date" },
   ];
 
-   const { selectedOption, setSelectedOption } = useGlobalContext();
-
-   const handleSelectChange = (option: { value: string; label: string} | null) => {     
-    if(option) {
-      setSelectedOption(option.value)
-      }    
+  const handleSelectChange = (option: { value: string; label: string } | null) => {     
+    if (option) {
+      setSelectedOption(option.value);
+      if (option.value === "custom_date") {
+        openModal();
+      }
+    }    
   };
+
+  const handleSaveDates = (e: React.FormEvent) => {
+    e.preventDefault();    
+    // Add logic to save custom dates if needed
+    closeModal();
+  };
+
+  const handleSave = () => {   
+    closeModal();
+  }
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -51,7 +72,7 @@ const AppHeader: React.FC = () => {
         inputRef.current?.focus();
       }
     };
-
+    
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
@@ -142,7 +163,7 @@ const AppHeader: React.FC = () => {
           <div className="hidden lg:block">
             <form>
               <div className="relative">
-                <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
+                {/* <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                   <svg
                     className="fill-gray-500 dark:fill-gray-400"
                     width="20"
@@ -169,7 +190,7 @@ const AppHeader: React.FC = () => {
                 <button className="absolute right-2.5 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-xs -tracking-[0.2px] text-gray-500 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
                   <span> ⌘ </span>
                   <span> K </span>
-                </button>
+                </button> */}
               </div>
             </form>
           </div>
@@ -180,18 +201,18 @@ const AppHeader: React.FC = () => {
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-          <div className="relative">
-           <Select
-            options={options}
-            placeholder="Select Option"
-            onChange={handleSelectChange}
-            value={selectedOption}
-            className="dark:bg-dark-900"
-          />
+           <div className="relative">
+        <Select 
+          options={options}
+          placeholder="Select Option"
+          onChange={handleSelectChange}
+          value={selectedOption}
+          className="dark:bg-dark-900"
+        />
           <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-            <ChevronDownIcon/>
-          </span>
-         </div>
+          <ChevronDownIcon/>
+        </span>
+      </div>
           <div className="flex items-center gap-2 2xsm:gap-3">            
             <ThemeToggleButton />           
             <NotificationDropdown />            
@@ -199,6 +220,48 @@ const AppHeader: React.FC = () => {
             <UserDropdown /> 
         </div>
       </div>
+      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
+      <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
+        <div className="px-2 pr-14">
+          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+            Select Custom Date Range
+          </h4>
+          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+            Please choose your custom start and end dates.
+          </p>
+        </div>
+        <form className="flex flex-col" onSubmit={handleSaveDates}>
+          <div className="px-2 overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+              <div>
+                <Label>Start Date</Label>
+                <Input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label>End Date</Label>
+                <Input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+            <Button size="sm" variant="outline" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              Save Dates
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Modal>
     </header>
   );
 };

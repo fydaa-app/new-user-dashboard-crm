@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
+import { useGlobalContext } from "@/context/GlobalState";
 
 // Dynamically import ReactApexChart
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -15,18 +16,23 @@ export default function MonthlyTarget() {
     goal: 0,
     achieved: 0,
   });
-
+const { selectedOption } = useGlobalContext();
   // Fetch API data
   useEffect(() => {
     async function fetchData() {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
         });
+
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -39,7 +45,7 @@ export default function MonthlyTarget() {
     }
 
     fetchData();
-  }, []);
+  }, [selectedOption]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {
@@ -77,6 +83,11 @@ export default function MonthlyTarget() {
     labels: ["Progress"],
   };
 
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(value);
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
@@ -107,7 +118,7 @@ export default function MonthlyTarget() {
             Goal
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            ${progressData.goal}
+            {formatCurrency(progressData.goal)}
           </p>
         </div>
 
@@ -118,7 +129,7 @@ export default function MonthlyTarget() {
             Achieved
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            ${progressData.achieved}
+            {formatCurrency(progressData.achieved)}
           </p>
         </div>
       </div>

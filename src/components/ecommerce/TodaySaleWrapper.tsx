@@ -2,30 +2,35 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import TodaySale from "@/components/ecommerce/TodaySale";
+import { useGlobalContext } from "@/context/GlobalState";
 
 interface CardData {
   type: string;
   totalRevenue?: number;
-  totalTransactionsAmount?: number;
+  totalNoOfTransactions?: number;
   noOfPayments?: number;
   countOfUsers?: number;
+  assetsUnderManagement?:number;
 }
 
 interface TodaySalesData {
   totalRevenue: number;
-  totalTransactionsAmount: number;
+  totalNoOfTransactions: number;
   noOfPayments: number;
   countOfUsers: number;
+  assetsUnderManagement:number;
 }
 
 const TodaySaleWrapper = () => {
   const [salesData, setSalesData] = useState<TodaySalesData>({
     totalRevenue: 0,
-    totalTransactionsAmount: 0,
+    totalNoOfTransactions: 0,
     noOfPayments: 0,
     countOfUsers: 0,
+    assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
+  const { selectedOption } = useGlobalContext();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -39,7 +44,7 @@ const TodaySaleWrapper = () => {
 
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}`,
+          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}?timeframe=${selectedOption || "monthly"}`,
           {
             headers: {
               Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -47,20 +52,25 @@ const TodaySaleWrapper = () => {
           }
         );
 
+        if (response.status === 401) {
+          Cookies.remove('authToken'); 
+          window.location.href = "/signin";          
+        }
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data: CardData[] = await response.json();
 
-        // Map API response to required format
         const todaySalesData: TodaySalesData = {
           totalRevenue: data.find((item) => item.type === "Total Revenue")?.totalRevenue || 0,
-          totalTransactionsAmount: Number(
-            (data.find((item) => item.type === "Total Transactions")?.totalTransactionsAmount || 0).toFixed(2)
-          ),
+          totalNoOfTransactions: data.find((item) => item.type === "Total Transactions")?.totalNoOfTransactions || 0,
           noOfPayments: data.find((item) => item.type === "Total Payments")?.noOfPayments || 0,
           countOfUsers: data.find((item) => item.type === "New Users")?.countOfUsers || 0,
+          assetsUnderManagement: Number(
+            (data.find((item) => item.type === "Assets under Management")?.assetsUnderManagement || 0).toFixed(2)
+          ),
         };
 
         setSalesData(todaySalesData);
@@ -72,7 +82,7 @@ const TodaySaleWrapper = () => {
     };
 
     fetchSalesData();
-  }, []);
+  }, [selectedOption]);
 
   return <TodaySale data={salesData} loading={loading} />;
 };
