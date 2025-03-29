@@ -4,22 +4,24 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
+import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from 'js-cookie';
 
 interface User {
-    userId:number;
+  userId:number;
   userName: string;
   mobileNumber: string;
   planName: string;
   managerName: string;
   onboardingDate: string;
   netWorth: number;
+  status:string;
 }
 
-async function fetchUsers(page: number): Promise<{ users: User[]; error: string | null }> {
+async function fetchUsers(page: number,selectedOption:string): Promise<{ users: User[]; error: string | null }> {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?page=${page}`,
+            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?page=${page}&timeframe=${selectedOption || "yearly"}`,
             {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -48,15 +50,15 @@ export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
-
+    const { selectedOption } = useGlobalContext();
     useEffect(() => {
         async function loadUsers() {
-            const { users, error } = await fetchUsers(page);
+            const { users, error } = await fetchUsers(page,selectedOption);
             setUsers(users);
             setError(error);
         }
         loadUsers();
-    }, [page]); // Re-fetch users when the page changes
+    }, [page,selectedOption]);
 
     return (
         <div>

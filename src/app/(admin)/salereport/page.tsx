@@ -4,22 +4,23 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import SaleReportTable from "@/components/tables/SaleReport";
+import { useGlobalContext } from "@/context/GlobalState";
 
 interface SaleList {
     userId: string;
     userName: string;
     planName: string;
-    amount: string;
+    amount: number;
     paymentType: string;
     date: string;
     time: string;
     managerName:string;
 }
 
-async function fetchPayments(page: number): Promise<{ payments: SaleList[]; error: string | null }> {
+async function fetchPayments(page: number,selectedOption:string): Promise<{ payments: SaleList[]; error: string | null }> {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_PAYMENTS_LIST_ENDPOINT}?page=${page}`,
+            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_PAYMENTS_LIST_ENDPOINT}?page=${page}&timeframe=${selectedOption || "yearly"}`,
             {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -43,15 +44,16 @@ export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
+    const { selectedOption } = useGlobalContext();
 
     useEffect(() => {
         async function loadUsers() {
-            const { payments, error } = await fetchPayments(page);
+            const { payments, error } = await fetchPayments(page,selectedOption);
             setPayments(payments);
             setError(error);
         }
         loadUsers();
-    }, [page]); // Re-fetch users when the page changes
+    }, [page,selectedOption]); 
 
     return (
         <div>

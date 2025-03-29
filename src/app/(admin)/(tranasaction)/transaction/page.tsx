@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
+import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from 'js-cookie';
 
 interface Transaction {
   userName: string;
-  orderAmount: string;
+  orderAmount: number;
   transactionType: string;
   planName: string;
   managerName: string;
@@ -16,10 +17,10 @@ interface Transaction {
   time: string;
 }
 
-async function fetchTransactions(page: number): Promise<{ transactions: Transaction[]; error: string | null }> {
+async function fetchTransactions(page: number,selectedOption:string): Promise<{ transactions: Transaction[]; error: string | null }> {
     try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}`,
+            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}&timeframe=${selectedOption || "yearly"}`,
             {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -48,15 +49,16 @@ export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
+    const { selectedOption } = useGlobalContext();
 
     useEffect(() => {
         async function loadUsers() {
-            const { transactions, error } = await fetchTransactions(page);
+            const { transactions, error } = await fetchTransactions(page,selectedOption);
             setTransactions(transactions);
             setError(error);
         }
         loadUsers();
-    }, [page]); 
+    }, [page, selectedOption]); 
 
     return (
         <div>
