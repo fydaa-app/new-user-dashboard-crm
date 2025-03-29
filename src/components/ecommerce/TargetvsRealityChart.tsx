@@ -27,13 +27,22 @@ export default function TargetVsRealityChart() {
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption } = useGlobalContext();
+  const { selectedOption,customDates } = useGlobalContext();
   
   useEffect(() => {
     const fetchData = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?timeframe=${selectedOption || "monthly"}`,
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?`;
+    
+        if (selectedOption === 'custom') {
+          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        const response = await fetch(url,
           {
             headers: {
               Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -67,7 +76,7 @@ export default function TargetVsRealityChart() {
     };
 
     fetchData();
-  }, [selectedOption]);
+  }, [selectedOption,customDates]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],
