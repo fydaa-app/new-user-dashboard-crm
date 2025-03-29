@@ -16,14 +16,22 @@ export default function MonthlyTarget() {
     goal: 0,
     achieved: 0,
   });
-const { selectedOption } = useGlobalContext();
+const { selectedOption,customDates } = useGlobalContext();
   // Fetch API data
   useEffect(() => {
     async function fetchData() {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?timeframe=${selectedOption || "monthly"}`, {
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?`;
+    
+        if (selectedOption === 'custom') {
+          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
@@ -45,7 +53,7 @@ const { selectedOption } = useGlobalContext();
     }
 
     fetchData();
-  }, [selectedOption]);
+  }, [selectedOption,customDates]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {

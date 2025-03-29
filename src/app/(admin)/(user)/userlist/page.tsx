@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
@@ -18,11 +18,17 @@ interface User {
   status:string;
 }
 
-async function fetchUsers(page: number,selectedOption:string): Promise<{ users: User[]; error: string | null }> {
+async function fetchUsers(page: number,selectedOption:string, customDates: { start: string; end: string }): Promise<{ users: User[]; error: string | null }> {
     try {
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?page=${page}&timeframe=${selectedOption || "yearly"}`,
-            {
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?page=${page}`;
+    
+        if (selectedOption === 'custom') {
+          url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `&timeframe=${selectedOption || "yearly"}`;
+        }
+
+        const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
                 }
@@ -50,15 +56,21 @@ export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption } = useGlobalContext();
+    const { selectedOption, customDates } = useGlobalContext();
+
+    const fetchData = useCallback(async () => {
+        const { users, error } = await fetchUsers(page, selectedOption, customDates);
+        setUsers(users);
+        setError(error);
+    }, [page, selectedOption, customDates]);
+
     useEffect(() => {
-        async function loadUsers() {
-            const { users, error } = await fetchUsers(page,selectedOption);
-            setUsers(users);
-            setError(error);
-        }
-        loadUsers();
-    }, [page,selectedOption]);
+        fetchData();
+    }, [fetchData]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [selectedOption, customDates]);
 
     return (
         <div>

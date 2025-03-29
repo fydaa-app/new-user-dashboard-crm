@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
@@ -17,11 +17,18 @@ interface Transaction {
   time: string;
 }
 
-async function fetchTransactions(page: number,selectedOption:string): Promise<{ transactions: Transaction[]; error: string | null }> {
+async function fetchTransactions(page: number,selectedOption:string, customDates: { start: string; end: string }): Promise<{ transactions: Transaction[]; error: string | null }> {
     try {
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}&timeframe=${selectedOption || "yearly"}`,
-            {
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}`;
+    
+        if (selectedOption === 'custom') {
+          url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `&timeframe=${selectedOption || "yearly"}`;
+        }
+
+        const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
                 }
@@ -49,16 +56,21 @@ export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [page, setPage] = useState(1);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption } = useGlobalContext();
+    const { selectedOption,customDates } = useGlobalContext();
 
-    useEffect(() => {
-        async function loadUsers() {
-            const { transactions, error } = await fetchTransactions(page,selectedOption);
+    const fetchData = useCallback(async () => {
+            const { transactions, error } = await fetchTransactions(page, selectedOption, customDates);
             setTransactions(transactions);
             setError(error);
-        }
-        loadUsers();
-    }, [page, selectedOption]); 
+        }, [page, selectedOption, customDates]);
+    
+        useEffect(() => {
+            fetchData();
+        }, [fetchData]);
+    
+        useEffect(() => {
+            setPage(1);
+        }, [selectedOption, customDates]);
 
     return (
         <div>
