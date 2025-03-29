@@ -1,14 +1,12 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation"; // Import useRouter for navigation
 import { deleteCookie } from "cookies-next"; // Import deleteCookie to handle cookie deletion
 import { useSidebar } from "../context/SidebarContext";
 import {
-  ChevronDownIcon,
   GridIcon,
-  HorizontaLDots,
   PieChartIcon,
   TableIcon,
   UserCircleIcon,
