@@ -896,4 +896,8 @@ img.leaderboard-icon {
   .table-box-main {
       min-width: 200%;
   }
+  .sales-box-row .col-span-4 {
+    width: 100%;
+    margin: 10px 0;
+  }
 }

@@ -91,11 +91,6 @@ const { selectedOption,customDates } = useGlobalContext();
     labels: ["Progress"],
   };
 
-  const formatCurrency = (value: number): string =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-    }).format(value);
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="px-5 pt-5 bg-white shadow-default rounded-2xl pb-11 dark:bg-gray-900 sm:px-6 sm:pt-6">
@@ -126,7 +121,7 @@ const { selectedOption,customDates } = useGlobalContext();
             Goal
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(progressData.goal)}
+            {progressData.goal}
           </p>
         </div>
 
@@ -137,7 +132,7 @@ const { selectedOption,customDates } = useGlobalContext();
             Achieved
           </p>
           <p className="flex items-center justify-center gap-1 text-base font-semibold text-gray-800 dark:text-white/90 sm:text-lg">
-            {formatCurrency(progressData.achieved)}
+            {progressData.achieved}
           </p>
         </div>
       </div>
