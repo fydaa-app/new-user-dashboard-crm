@@ -38,7 +38,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           </div>         
         </div>
 
-        <div className="flex items-end justify-between mt-5 sales-box-row">
+        <div className="xl:flex items-end justify-between mt-5 sales-box-row">
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
@@ -49,7 +49,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           </div>
           <div className="col-span-4">
             <div className="box-total-sales">
-              <OrderIcon />
+              <OrderIcon /> 
               <h2 className="numbers-sale">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
               <span className="total-yes">+0% from yesterday</span>

@@ -52,7 +52,7 @@ export default function SaleReportTable({ payments, error }: UserTableProps) {
                    Manager Name
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
-                   NetWorth
+                   Fee
                   </TableCell>                  
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                    Date
