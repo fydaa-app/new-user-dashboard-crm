@@ -91,7 +91,9 @@ export default function TransactionTable({ transactions, error }: TransactionTab
               </TableBody>
             </Table>
           ) : (
-            !error && <p>No users found.</p>
+            !error && <div className="m-4">
+            <p>No Transactions found.</p>
+          </div>
           )}
         </div>
       </div>

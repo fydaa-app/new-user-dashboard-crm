@@ -92,7 +92,9 @@ export default function SaleReportTable({ payments, error }: UserTableProps) {
               </TableBody>
             </Table>
           ) : (
-            !error && <p>No users found.</p>
+            !error && <div className="m-4">
+            <p>No Payments found.</p>
+          </div>
           )}
         </div>
       </div>

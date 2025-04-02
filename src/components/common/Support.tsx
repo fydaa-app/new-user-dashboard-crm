@@ -8,7 +8,7 @@ const RelationshipTeam = () => {
             <div className="team-cards">
               <div className="card relationship">
                 <div className="card-header">
-                  <div className="card-header-logo"><Image src="/images/user/unnamed.webp" alt="Logo"  width={50} height={50}/></div>
+                  <div className="card-header-logo"><Image src="/images/logo/icon.png" alt="Logo"  width={50} height={50}/></div>
                   <h3>Relationship Manager</h3>
                 </div>
                 <div className="card-body">
@@ -55,7 +55,7 @@ const RelationshipTeam = () => {
 
               <div className="card tech-support">
                 <div className="card-header">
-                  <div className="card-header-logo"><Image src="/images/user/unnamed.webp" alt="Logo" width={50} height={50} /></div>
+                  <div className="card-header-logo"><Image src="/images/logo/icon.png" alt="Logo" width={50} height={50} /></div>
                   <h3>Tech Support Executive</h3>
                 </div>
                 <div className="card-body">

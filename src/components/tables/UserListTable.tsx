@@ -8,6 +8,9 @@ import {
   TableRow,
 } from "../ui/table";
 import Link from "next/link";
+import Badge from "../ui/badge/Badge";
+import { EyeIcon } from "@/icons";
+
 export interface UserTableProps {
   users: {
     userId:number;
@@ -30,6 +33,7 @@ export default function UserListTable({ users, error }: UserTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
+
         <div className="min-w-[1102px]">
           {error && <p style={{ color: "red" }}>{error}</p>}
           {!error && users.length > 0 ? (
@@ -91,8 +95,10 @@ export default function UserListTable({ users, error }: UserTableProps) {
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(user.onboardingDate).toLocaleString()}
                     </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {user.status}
+                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">                     
+                      <Badge color={user.status === 'Active' ? 'success' : 'error'}>
+                        {user.status}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       <Link 
@@ -101,7 +107,7 @@ export default function UserListTable({ users, error }: UserTableProps) {
                         role="button"
                         aria-label={`View details for ${user.userName}`}
                       >
-                        View
+                        <EyeIcon />
                       </Link>                      
                     </TableCell>
                   </TableRow>
@@ -109,7 +115,10 @@ export default function UserListTable({ users, error }: UserTableProps) {
               </TableBody>
             </Table>
           ) : (
-            !error && <p>No users found.</p>
+            !error &&
+            <div className="m-4">
+              <p>No users found.</p>
+            </div>             
           )}
         </div>
       </div>
