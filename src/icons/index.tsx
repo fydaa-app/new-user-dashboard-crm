@@ -59,7 +59,6 @@ import SalesIcon from "./sales.svg";
 import LeaderboardIcon from "./leaderboard.svg";
 import SettingIcon from "./setting.svg";
 import ShoppingCartIcon from "./shopping-cart.svg";
-
 export {
   DownloadIcon,
   BellIcon,

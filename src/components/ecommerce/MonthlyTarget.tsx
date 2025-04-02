@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import RevenueUserToggle  from "../ui/button/RevenueUserToggle";
 
 // Dynamically import ReactApexChart
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -17,13 +18,14 @@ export default function MonthlyTarget() {
     achieved: 0,
   });
 const { selectedOption,customDates } = useGlobalContext();
+const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   // Fetch API data
   useEffect(() => {
     async function fetchData() {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
-        
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?`;
+         
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_ENDPOINT}?metricType=${currentView}&`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -53,7 +55,7 @@ const { selectedOption,customDates } = useGlobalContext();
     }
 
     fetchData();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates, currentView]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {
@@ -103,6 +105,13 @@ const { selectedOption,customDates } = useGlobalContext();
               Target you’ve set for each month
             </p>
           </div>
+          <RevenueUserToggle 
+            initialView={currentView}
+            onChange={(view) => {
+              setCurrentView(view);
+            }}
+            className="ml-4"
+          />
         </div>
         <div className="relative">
           <div className="max-h-[330px]">

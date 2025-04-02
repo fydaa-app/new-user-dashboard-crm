@@ -4,6 +4,7 @@ import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import RevenueUserToggle  from "../ui/button/RevenueUserToggle";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -28,13 +29,14 @@ export default function TargetVsRealityChart() {
   ]);
   const [categories, setCategories] = useState<string[]>([]);
   const { selectedOption,customDates } = useGlobalContext();
+  const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   
   useEffect(() => {
     const fetchData = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?metricType=${currentView}&`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -76,7 +78,7 @@ export default function TargetVsRealityChart() {
     };
 
     fetchData();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates,currentView]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],
@@ -119,6 +121,13 @@ export default function TargetVsRealityChart() {
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Target vs Reality
         </h3>
+        <RevenueUserToggle 
+            initialView={currentView}
+            onChange={(view) => {
+              setCurrentView(view);
+            }}
+            className="ml-4"
+          />
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">

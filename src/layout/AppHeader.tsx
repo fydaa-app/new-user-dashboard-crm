@@ -44,6 +44,7 @@ const AppHeader: React.FC = () => {
     { value: "weekly", label: "Weekly" },
     { value: "monthly", label: "Monthly" },
     { value: "yearly", label: "Yearly" },
+    { value: "till_date", label: "Till Date" },
     { value: "custom", label: "Custom Date" },
   ];
 

@@ -1,21 +1,41 @@
 "use client";
 import React from "react";
+
 type PaginationProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 };
+
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
 }) => {
-  const pagesAroundCurrent = Array.from(
-    { length: Math.min(3, totalPages) },
-    (_, i) => i + Math.max(currentPage - 1, 1)
-  );
+  // Calculate the range of pages to show around the current page
+  const getVisiblePages = () => {
+    const visiblePages = [];
+    const maxVisible = 3; // Number of pages to show around current
+    
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    const end = Math.min(totalPages, start + maxVisible - 1);
+    
+    // Adjust if we're at the end
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      visiblePages.push(i);
+    }
+    
+    return visiblePages;
+  };
+
+  const visiblePages = getVisiblePages();
+
   return (
-    <div className="flex items-center ">
+    <div className="flex items-center">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
@@ -24,8 +44,8 @@ const Pagination: React.FC<PaginationProps> = ({
         Previous
       </button>
       <div className="flex items-center gap-2">
-        {currentPage > 3 && <span className="px-2">...</span>}
-        {pagesAroundCurrent.map((page) => (
+        {visiblePages[0] > 1 && <span className="px-2">...</span>}
+        {visiblePages.map((page) => (
           <button
             key={page}
             onClick={() => onPageChange(page)}
@@ -38,7 +58,7 @@ const Pagination: React.FC<PaginationProps> = ({
             {page}
           </button>
         ))}
-        {currentPage < totalPages - 2 && <span className="px-2">...</span>}
+        {visiblePages[visiblePages.length - 1] < totalPages && <span className="px-2">...</span>}
       </div>
       <button
         onClick={() => onPageChange(currentPage + 1)}
@@ -50,4 +70,5 @@ const Pagination: React.FC<PaginationProps> = ({
     </div>
   );
 };
+
 export default Pagination;
