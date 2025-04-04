@@ -35,9 +35,9 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ leaderboardData, activeCriter
       case 2:
         return "/images/icons/badge_silver-DFF-h3F9.svg";
       case 3:
-        return "/images/icons/badge_bronze.svg";
+        return "/images/icons/badge_silver-DFF-h3F9.svg";
       default:
-        return "/images/icons/badge_default.svg";
+        return "/images/icons/badge_silver-DFF-h3F9.svg";
     }
   };
 

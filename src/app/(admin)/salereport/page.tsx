@@ -6,6 +6,7 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import SaleReportTable from "@/components/tables/SaleReport";
 import { useGlobalContext } from "@/context/GlobalState";
 import Pagination from "@/components/tables/Pagination";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface SaleList {
     userId: string;
@@ -18,7 +19,12 @@ interface SaleList {
     managerName:string;
 }
 
-async function fetchPayments(page: number,selectedOption:string, customDates: { start: string; end: string }):
+async function fetchPayments(
+    page: number, 
+    selectedOption: string, 
+    customDates: { start: string; end: string },
+    searchQuery: string = ""
+):
      Promise<{ 
         payments: SaleList[]; 
         error: string | null;
@@ -33,6 +39,10 @@ async function fetchPayments(page: number,selectedOption:string, customDates: { 
           url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
           url += `&timeframe=${selectedOption || "yearly"}`;
+        }
+
+        if (searchQuery) {
+            url += `&search=${encodeURIComponent(searchQuery)}`;
         }
 
         const response = await fetch(url, {
@@ -61,10 +71,21 @@ export default function UserTablesPage() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
+
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const query = searchParams.get('search') || "";
+        setSearchQuery(query);
+        }, [searchParams]);
 
      const fetchData = useCallback(async () => {
         try {
-            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, customDates);
+            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, customDates, searchQuery);
             setPayments(payments);
             setError(error);
             
@@ -78,7 +99,7 @@ export default function UserTablesPage() {
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates]);
+    }, [page, selectedOption, customDates, searchQuery]);
         
     useEffect(() => {
         fetchData();
@@ -86,28 +107,43 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates]);
+    }, [selectedOption, customDates, searchQuery]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
     };
 
-    const inputRef = useRef<HTMLInputElement>(null);
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSearching(true);
+        
+        // Update URL with search query
+        const params = new URLSearchParams();
+        if (searchQuery) {
+            params.set('search', searchQuery);
+        } else {
+            params.delete('search');
+        }
+        
+        router.push(`?${params.toString()}`, { scroll: false });
+        
+        // Reset to first page when searching
+        setPage(1);
+    };
     
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
             if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-            event.preventDefault();
-            inputRef.current?.focus();
+                event.preventDefault();
+                inputRef.current?.focus();
             }
         };
-    
-        document.addEventListener("keydown", handleKeyDown);
-    
+        
+    useEffect(() => {
+            document.addEventListener("keydown", handleKeyDown);
         return () => {
             document.removeEventListener("keydown", handleKeyDown);
         };
-        }, []);
+    }, []);
     
     return (
         <div>
@@ -115,8 +151,8 @@ export default function UserTablesPage() {
             <div className="space-y-6">
                 <ComponentCard title="Payment List">
                     <div>
-                        <form>
-                            <div className="relative">
+                        <form onSubmit={handleSearch}>
+                            <div className="relative search-box">
                                 <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                                 <svg
                                     className="fill-gray-500 dark:fill-gray-400"
@@ -134,12 +170,22 @@ export default function UserTablesPage() {
                                     />
                                 </svg>
                                 </span>
-                                <input
+                                    <input
                                     ref={inputRef}
                                     type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="Search or type command..."
-                                    className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
-                                />
+                                    className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-full"
+                                    />
+                                {isSearching && (
+                                <span className="absolute -translate-y-1/2 right-4 top-1/2">
+                                    <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                </span>
+                                )}
                             </div>
                         </form>
                     </div>
