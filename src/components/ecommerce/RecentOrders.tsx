@@ -48,7 +48,7 @@ export default function RecentOrders() {
           throw new Error("Failed to fetch orders");
         }        
         const data = await response.json();
-        setOrders(data.orders || []);
+        setOrders(data.transactions || []);
       } catch (error) {
         console.error("Error fetching orders:", error);
       }

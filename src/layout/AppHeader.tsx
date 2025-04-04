@@ -53,6 +53,8 @@ const AppHeader: React.FC = () => {
       setSelectedOption(option.value);
       if (option.value === "custom") {
         openModal();
+      }else{
+        setCustomDates({ start: "", end: "" });
       }
     }    
   };
@@ -90,7 +92,6 @@ const AppHeader: React.FC = () => {
       setEndDate(customDates.end);
     }
   }, [isOpen, customDates]);
-
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">

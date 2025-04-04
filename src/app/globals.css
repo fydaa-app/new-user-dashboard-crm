@@ -586,6 +586,12 @@ layer(base);
   @apply border-brand-500 bg-brand-500 dark:border-brand-500;
 }
 
+.search-box{
+  max-width: 30%;
+  width: 100%;
+  margin-left: auto;
+}
+
 .task {
   transition: all 0.2s ease; /* Smooth transition for visual effects */
 }

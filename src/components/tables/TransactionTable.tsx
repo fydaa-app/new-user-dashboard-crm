@@ -7,6 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import Badge from "../ui/badge/Badge";
 
 export interface TransactionTableProps {
   transactions: {
@@ -78,7 +79,9 @@ export default function TransactionTable({ transactions, error }: TransactionTab
                       {transaction.planName}
                     </TableCell>                    
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {transaction.transactionType}
+                      <Badge color={transaction.transactionType === 'BUY' ? 'success' : 'error'}>
+                        {transaction.transactionType}
+                      </Badge>
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {formatCurrency(transaction.orderAmount)}

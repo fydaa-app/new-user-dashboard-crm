@@ -34,8 +34,8 @@ const RevenueUserToggle: React.FC<RevenueUserToggleProps> = ({
         aria-pressed={activeView === 'user'}
       >
         <span
-          className={`inline-block w-4 h-4 transform transition-transform duration-200 rounded-full bg-white shadow-md ${
-            activeView === 'user' ? 'translate-x-6' : 'translate-x-1'
+          className={`inline-block w-4 h-4 transform transition-transform duration-200 rounded-full bg-indigo-600 shadow-md ${
+            activeView === 'user' ? 'translate-x-6 ' : 'translate-x-1'
           }`}
         />
       </button>
