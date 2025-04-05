@@ -70,7 +70,10 @@ export default function TargetVsRealityChart() {
             { name: "Target", data: targetData },
             { name: "Reality", data: realityData },
           ]);
-          setCategories(categories);
+
+          if(selectedOption != "till_date"){
+            setCategories(categories);
+          }             
         }
       } catch (error) {
         console.error("Error fetching data:", error);
