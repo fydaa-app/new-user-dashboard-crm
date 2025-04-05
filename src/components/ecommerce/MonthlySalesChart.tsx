@@ -86,10 +86,12 @@ export default function MonthlySalesChart() {
           return 0;
       }
     });
-
-    setCategories(labels);
+   
+    if(selectedOption != "till_date"){
+      setCategories(labels);
+    }    
     setSeries([{ name: seriesName, data: dataValues }]);
-  }, [dataPoints, selectedDataType]);
+  }, [dataPoints, selectedDataType,selectedOption]);
 
   const handleSelectChange = (selected: { value: string; label: string } | null) => {
     if (selected) {
@@ -116,7 +118,7 @@ export default function MonthlySalesChart() {
     dataLabels: { enabled: false },
     stroke: { show: true, width: 4, colors: ["transparent"] },
     xaxis: {
-      categories: categories, // Dynamic categories
+      categories: categories, 
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
