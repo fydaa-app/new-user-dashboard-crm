@@ -91,7 +91,7 @@ export default function MonthlySalesChart() {
       setCategories(labels);
     }    
     setSeries([{ name: seriesName, data: dataValues }]);
-  }, [dataPoints, selectedDataType]);
+  }, [dataPoints, selectedDataType,selectedOption]);
 
   const handleSelectChange = (selected: { value: string; label: string } | null) => {
     if (selected) {
