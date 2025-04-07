@@ -36,11 +36,13 @@ async function validateToken(token: string): Promise<ValidationResult> {
   }
 }
 
+
+type Props = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
 export default async function ResetPasswordPage({
   searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}:Props) {
   const token = Array.isArray(searchParams.token) 
     ? searchParams.token[0] 
     : searchParams.token;
