@@ -1,5 +1,4 @@
-// src/app/(full-width-pages)/(auth)/resetpassword/page.tsx
-
+// app/reset-password/page.tsx
 import ResetPasswordForm from "@/components/auth/ResetPassword";
 import { Metadata } from "next";
 
@@ -14,40 +13,39 @@ interface ValidationResult {
 }
 
 async function validateToken(token: string): Promise<ValidationResult> {
+ 
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-        cache: "no-store",
-      }
-    );
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token }),
+      cache: 'no-store' // Important for token validation
+    });
 
     if (!response.ok) {
       return { isValid: false, email: null };
     }
+    
 
     return await response.json();
   } catch (error) {
-    console.error("Token validation error:", error);
+    console.error('Token validation error:', error);
     return { isValid: false, email: null };
   }
 }
 
-// ✅ Inline typing instead of using a custom PageProps
+
+type Props = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
 export default async function ResetPasswordPage({
   searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const token = Array.isArray(searchParams.token)
-    ? searchParams.token[0]
+}:Props) {
+  const token = Array.isArray(searchParams.token) 
+    ? searchParams.token[0] 
     : searchParams.token;
-
   let isValidToken = false;
   let email: string | undefined = undefined;
 
@@ -58,8 +56,8 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <ResetPasswordForm
-      isValidToken={isValidToken}
+    <ResetPasswordForm 
+      isValidToken={isValidToken} 
       email={email}
       token={token}
     />
