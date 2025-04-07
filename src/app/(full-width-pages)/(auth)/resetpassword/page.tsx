@@ -1,4 +1,5 @@
-// app/(full-width-pages)/(auth)/resetpassword/page.tsx
+// src/app/(full-width-pages)/(auth)/resetpassword/page.tsx
+
 import ResetPasswordForm from "@/components/auth/ResetPassword";
 import { Metadata } from "next";
 
@@ -14,14 +15,17 @@ interface ValidationResult {
 
 async function validateToken(token: string): Promise<ValidationResult> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token }),
-      cache: "no-store",
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token }),
+        cache: "no-store",
+      }
+    );
 
     if (!response.ok) {
       return { isValid: false, email: null };
@@ -34,11 +38,12 @@ async function validateToken(token: string): Promise<ValidationResult> {
   }
 }
 
-type PageProps = {
-  searchParams: Record<string, string | string[] | undefined>;
-};
-
-export default async function ResetPasswordPage({ searchParams }: PageProps) {
+// ✅ Inline typing instead of using a custom PageProps
+export default async function ResetPasswordPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const token = Array.isArray(searchParams.token)
     ? searchParams.token[0]
     : searchParams.token;
