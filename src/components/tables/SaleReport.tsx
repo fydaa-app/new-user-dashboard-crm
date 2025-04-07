@@ -33,7 +33,7 @@ export default function SaleReportTable({ payments, error }: UserTableProps) {
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1102px]">
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && payments.length > 0 ? (
             <Table>
               {/* Table Header */}

@@ -18,6 +18,7 @@ export interface TransactionTableProps {
     managerName: string;
     date: string;
     time: string;
+    mobileNumber:number;
   }[];
   error: string | null;
 }
@@ -33,7 +34,7 @@ export default function TransactionTable({ transactions, error }: TransactionTab
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
         <div className="min-w-[1102px]">
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && transactions.length > 0 ? (
             <Table>
               {/* Table Header */}
@@ -41,6 +42,9 @@ export default function TransactionTable({ transactions, error }: TransactionTab
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Mobile Number
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Manager Name
@@ -71,6 +75,9 @@ export default function TransactionTable({ transactions, error }: TransactionTab
                           </span>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {transaction.mobileNumber}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {transaction.managerName}

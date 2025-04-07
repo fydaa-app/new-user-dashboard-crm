@@ -3,7 +3,7 @@ import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label"; 
 import { EyeCloseIcon, EyeIcon } from "@/icons";
-// import Link from "next/link";
+import Link from "next/link";
 import React, { useState, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
@@ -194,12 +194,12 @@ export default function SignInForm() {
                       Keep me logged in
                     </span>
                   </div>
-                  {/* <Link
-                    href="/full-width-pages/auth/reset-password"
+                  <Link
+                    href="/forgotpassword"
                     className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
                   >
                     Forgot password?
-                  </Link> */}
+                  </Link>
                 </div>
                 <div>
                   <button

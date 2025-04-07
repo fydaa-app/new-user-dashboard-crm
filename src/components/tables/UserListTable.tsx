@@ -35,7 +35,7 @@ export default function UserListTable({ users, error }: UserTableProps) {
       <div className="max-w-full overflow-x-auto">
 
         <div className="min-w-[1102px]">
-          {error && <p style={{ color: "red" }}>{error}</p>}
+          {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && users.length > 0 ? (
             <Table>
               {/* Table Header */}
