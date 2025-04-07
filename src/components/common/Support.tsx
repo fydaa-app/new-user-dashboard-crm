@@ -23,7 +23,7 @@ const RelationshipTeam = () => {
                         </g>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Name:</strong> ABCD</div>
+                    <div className="right-card-i"><strong>Name:</strong> Rajat Tomar</div>
                   </div>
                   <div className="icon-with-texts">
                     <div className="card-small-icons">
@@ -32,7 +32,7 @@ const RelationshipTeam = () => {
                         <path d="M13.25 21.59c2.88 5.66 7.51 10.29 13.18 13.17l4.4-4.41c.55-.55 1.34-.71 2.03-.49 2.24.74 4.65 1.14 7.14 1.14 1.11 0 2 .89 2 2v7c0 1.11-.89 2-2 2-18.78 0-34-15.22-34-34 0-1.11.9-2 2-2h7c1.11 0 2 .89 2 2 0 2.49.4 4.9 1.14 7.14.22.69.06 1.48-.49 2.03l-4.4 4.42z"/>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Contact:</strong> +91 XXXXX XXXXX</div>
+                    <div className="right-card-i"><strong>Contact:</strong> +91 8077746386</div>
                   </div>
                   <div className="icon-with-texts">
                     <div className="card-small-icons">
@@ -40,15 +40,7 @@ const RelationshipTeam = () => {
                         <path d="M256 352c-16.53 0-33.06-5.422-47.16-16.41L0 173.2V400C0 426.5 21.49 448 48 448h416c26.51 0 48-21.49 48-48V173.2l-208.8 162.5C289.1 346.6 272.5 352 256 352zM16.29 145.3l212.2 165.1c16.19 12.6 38.87 12.6 55.06 0l212.2-165.1C505.1 137.3 512 125 512 112C512 85.49 490.5 64 464 64h-416C21.49 64 0 85.49 0 112C0 125 6.01 137.3 16.29 145.3z"/>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Email:</strong> abc@xyz.com</div>
-                  </div>
-                  <div className="icon-with-texts">
-                    <div className="card-small-icons">
-                      <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M256 352c-16.53 0-33.06-5.422-47.16-16.41L0 173.2V400C0 426.5 21.49 448 48 448h416c26.51 0 48-21.49 48-48V173.2l-208.8 162.5C289.1 346.6 272.5 352 256 352zM16.29 145.3l212.2 165.1c16.19 12.6 38.87 12.6 55.06 0l212.2-165.1C505.1 137.3 512 125 512 112C512 85.49 490.5 64 464 64h-416C21.49 64 0 85.49 0 112C0 125 6.01 137.3 16.29 145.3z"/>
-                      </svg>
-                    </div>
-                    <div className="right-card-i"><strong>Responsibilities:</strong> Handling franchise relationships, assistance & support.</div>
+                    <div className="right-card-i"><strong>Email:</strong> rajat.tomar@fydaa.com</div>
                   </div>
                 </div>
               </div>
@@ -70,7 +62,7 @@ const RelationshipTeam = () => {
                         </g>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Name:</strong> ABCD</div>
+                    <div className="right-card-i"><strong>Name:</strong> Abhinav Tomar</div>
                   </div>
                   <div className="icon-with-texts">
                     <div className="card-small-icons">
@@ -79,7 +71,7 @@ const RelationshipTeam = () => {
                         <path d="M13.25 21.59c2.88 5.66 7.51 10.29 13.18 13.17l4.4-4.41c.55-.55 1.34-.71 2.03-.49 2.24.74 4.65 1.14 7.14 1.14 1.11 0 2 .89 2 2v7c0 1.11-.89 2-2 2-18.78 0-34-15.22-34-34 0-1.11.9-2 2-2h7c1.11 0 2 .89 2 2 0 2.49.4 4.9 1.14 7.14.22.69.06 1.48-.49 2.03l-4.4 4.42z"/>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Contact:</strong> +91 XXXXX XXXXX</div>
+                    <div className="right-card-i"><strong>Contact:</strong> +91 79062 02285</div>
                   </div>
                   <div className="icon-with-texts">
                     <div className="card-small-icons">
@@ -87,20 +79,7 @@ const RelationshipTeam = () => {
                         <path d="M256 352c-16.53 0-33.06-5.422-47.16-16.41L0 173.2V400C0 426.5 21.49 448 48 448h416c26.51 0 48-21.49 48-48V173.2l-208.8 162.5C289.1 346.6 272.5 352 256 352zM16.29 145.3l212.2 165.1c16.19 12.6 38.87 12.6 55.06 0l212.2-165.1C505.1 137.3 512 125 512 112C512 85.49 490.5 64 464 64h-416C21.49 64 0 85.49 0 112C0 125 6.01 137.3 16.29 145.3z"/>
                       </svg>
                     </div>
-                    <div className="right-card-i"><strong>Email:</strong> abc@xyz.com</div>
-                  </div>
-                  <div className="icon-with-texts">
-                    <div className="card-small-icons">
-                      <svg version="1.1" viewBox="0 0 24 24" xmlSpace="preserve" xmlns="http://www.w3.org/2000/svg">
-                        <g id="icons">
-                          <g id="user">
-                            <ellipse cx="12" cy="8" rx="5" ry="6"/>
-                            <path d="M21.8,19.1c-0.9-1.8-2.6-3.3-4.8-4.2c-0.6-0.2-1.3-0.2-1.8,0.1c-1,0.6-2,0.9-3.2,0.9s-2.2-0.3-3.2-0.9 C8.3,14.8,7.6,14.7,7,15c-2.2,0.9-3.9,2.4-4.8,4.2C1.5,20.5,2.6,22,4.1,22h15.8C21.4,22,22.5,20.5,21.8,19.1z"/>
-                          </g>
-                        </g>
-                      </svg>
-                    </div>
-                    <div className="right-card-i"><strong>Responsibilities:</strong> Handling franchise relationships, assistance & support.</div>
+                    <div className="right-card-i"><strong>Email:</strong> abhinav.tomar@fydaa.com</div>
                   </div>
                 </div>
               </div>
@@ -119,7 +98,7 @@ const RelationshipTeam = () => {
                     <h4>Write to us:</h4>
                   </div>
                   <p>Drop us a line and we&rsquo;ll get back to you as fast as we can.</p>
-                  <p>Email: <a href="mailto:support@xyz.com">support@xyz.com</a></p>
+                  <p>Email: <a href="mailto:support@xyz.com">support@fydaa.com</a></p>
                 </div>
                 <div className="support-card">
                   <div className="support-card-icons">

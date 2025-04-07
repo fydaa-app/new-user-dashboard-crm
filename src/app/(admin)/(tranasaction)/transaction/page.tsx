@@ -17,6 +17,7 @@ interface Transaction {
   managerName: string;
   date: string;
   time: string;
+  mobileNumber: number;
 }
 
 async function fetchTransactions(
