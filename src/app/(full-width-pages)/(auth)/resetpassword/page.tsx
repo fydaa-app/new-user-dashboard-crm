@@ -38,8 +38,8 @@ async function validateToken(token: string): Promise<ValidationResult> {
 
 export default async function ResetPasswordPage({
   searchParams,
-}: {
-  searchParams: { token?: string | string[]; email?: string | string[] };
+}: { 
+  searchParams: { token?: string | string[] | undefined }
 }) {
   const token = Array.isArray(searchParams.token) 
     ? searchParams.token[0] 
