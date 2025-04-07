@@ -39,7 +39,7 @@ async function validateToken(token: string): Promise<ValidationResult> {
 export default async function ResetPasswordPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: { token?: string | string[]; email?: string | string[] };
 }) {
   const token = Array.isArray(searchParams.token) 
     ? searchParams.token[0] 
