@@ -1,6 +1,6 @@
 // app/reset-password/page.tsx
-import ResetPasswordForm from "@/components/auth/ResetPassword";
 import { Metadata } from "next";
+import ResetPasswordForm from "@/components/auth/ResetPassword";
 
 export const metadata: Metadata = {
   title: "Reset Password | Fydaa",
@@ -13,7 +13,6 @@ interface ValidationResult {
 }
 
 async function validateToken(token: string): Promise<ValidationResult> {
- 
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`, {
       method: 'POST',
@@ -21,13 +20,12 @@ async function validateToken(token: string): Promise<ValidationResult> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ token }),
-      cache: 'no-store' // Important for token validation
+      cache: 'no-store',
     });
 
     if (!response.ok) {
       return { isValid: false, email: null };
     }
-    
 
     return await response.json();
   } catch (error) {
@@ -36,16 +34,16 @@ async function validateToken(token: string): Promise<ValidationResult> {
   }
 }
 
-
-type Props = {
-  searchParams: Record<string, string | string[] | undefined>;
-};
+// ✅ No need for separate Props type
 export default async function ResetPasswordPage({
   searchParams,
-}:Props) {
-  const token = Array.isArray(searchParams.token) 
-    ? searchParams.token[0] 
-    : searchParams.token;
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const token = Array.isArray(searchParams?.token)
+    ? searchParams?.token[0]
+    : searchParams?.token;
+
   let isValidToken = false;
   let email: string | undefined = undefined;
 
@@ -56,8 +54,8 @@ export default async function ResetPasswordPage({
   }
 
   return (
-    <ResetPasswordForm 
-      isValidToken={isValidToken} 
+    <ResetPasswordForm
+      isValidToken={isValidToken}
       email={email}
       token={token}
     />
