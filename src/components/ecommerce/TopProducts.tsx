@@ -14,7 +14,7 @@ export default function TopProducts() {
   const [topPlans, setTopPlans] = useState<TopPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption,customDates } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
 
   useEffect(() => {
     const fetchTopPlans = async () => {
@@ -28,7 +28,9 @@ export default function TopProducts() {
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
-
+        if (selectedEmployee) {
+          url += `&employeeId=${selectedEmployee}`;
+        }
 
         const response = await fetch(url, {
           headers: {
@@ -53,7 +55,7 @@ export default function TopProducts() {
     };
 
     fetchTopPlans();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates,selectedEmployee]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">

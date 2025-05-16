@@ -17,7 +17,7 @@ export default function MonthlyTarget() {
     goal: 0,
     achieved: 0,
   });
-const { selectedOption,customDates } = useGlobalContext();
+const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
 const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   // Fetch API data
   useEffect(() => {
@@ -31,6 +31,10 @@ const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        if (selectedEmployee) {
+          url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url, {
@@ -55,7 +59,7 @@ const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
     }
 
     fetchData();
-  }, [selectedOption,customDates, currentView]);
+  }, [selectedOption,customDates, currentView,selectedEmployee]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {

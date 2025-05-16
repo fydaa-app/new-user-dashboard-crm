@@ -30,7 +30,7 @@ const TodaySaleWrapper = () => {
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption,customDates } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -50,6 +50,9 @@ const TodaySaleWrapper = () => {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
+        }
+        if (selectedEmployee) {
+          url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url,
@@ -90,7 +93,7 @@ const TodaySaleWrapper = () => {
     };
 
     fetchSalesData();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates,selectedEmployee]);
 
   return <TodaySale data={salesData} loading={loading} />;
 };

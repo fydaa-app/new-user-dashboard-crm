@@ -23,6 +23,7 @@ interface Transaction {
 async function fetchTransactions(
     page: number,
     selectedOption:string, 
+    selectedEmployee:string = "",
     customDates: { start: string; end: string },
     searchQuery: string = ""
 ):
@@ -44,6 +45,10 @@ async function fetchTransactions(
 
         if (searchQuery) {
             url += `&search=${encodeURIComponent(searchQuery)}`;
+        }
+
+        if (selectedEmployee) {
+            url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url, {
@@ -73,7 +78,7 @@ async function fetchTransactions(
 export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption,customDates } = useGlobalContext();
+    const { selectedOption,customDates ,selectedEmployee } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalTransactions, setTotalTransactions] = useState(0);
@@ -91,7 +96,7 @@ export default function TransactionTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, customDates, searchQuery);
+            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee,customDates, searchQuery);
             setTransactions(transactions);
             setError(error);
             
@@ -107,7 +112,7 @@ export default function TransactionTablesPage() {
             setIsSearching(false);
         }
 
-    }, [page, selectedOption, customDates, searchQuery]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee]);
     
         useEffect(() => {
             fetchData();
