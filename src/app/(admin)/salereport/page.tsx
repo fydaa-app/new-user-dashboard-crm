@@ -22,6 +22,7 @@ interface SaleList {
 async function fetchPayments(
     page: number, 
     selectedOption: string, 
+    selectedEmployee:string = "",
     customDates: { start: string; end: string },
     searchQuery: string = ""
 ):
@@ -45,6 +46,9 @@ async function fetchPayments(
             url += `&search=${encodeURIComponent(searchQuery)}`;
         }
 
+        if (selectedEmployee) {
+            url += `&employeeId=${selectedEmployee}`;
+        }
         const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -67,7 +71,7 @@ async function fetchPayments(
 export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption,customDates } = useGlobalContext();
+    const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -85,7 +89,7 @@ export default function UserTablesPage() {
 
      const fetchData = useCallback(async () => {
         try {
-            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, customDates, searchQuery);
+            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption,selectedEmployee, customDates, searchQuery);
             setPayments(payments);
             setError(error);
             
@@ -99,7 +103,7 @@ export default function UserTablesPage() {
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates, searchQuery]);
+    }, [page, selectedOption, customDates, searchQuery,selectedEmployee]);
         
     useEffect(() => {
         fetchData();

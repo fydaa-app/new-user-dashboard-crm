@@ -21,6 +21,7 @@ interface User {
 async function fetchUsers(
     page: number, 
     selectedOption: string, 
+    selectedEmployee: string ="",
     customDates: { start: string; end: string },
     searchQuery: string = ""
 ): 
@@ -41,6 +42,9 @@ async function fetchUsers(
 
         if (searchQuery) {
             url += `&search=${encodeURIComponent(searchQuery)}`;
+        }
+        if (selectedEmployee) {
+            url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url, {
@@ -70,7 +74,7 @@ async function fetchUsers(
 export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates } = useGlobalContext();
+    const { selectedOption, customDates,selectedEmployee } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -88,7 +92,7 @@ export default function UserTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, customDates, searchQuery);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption,selectedEmployee, customDates, searchQuery);
             setUsers(users);
             setError(error);
             
@@ -101,7 +105,7 @@ export default function UserTablesPage() {
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery]);
+    }, [page, selectedOption, customDates, searchQuery,selectedEmployee]);
 
     useEffect(() => {
         fetchData();
@@ -109,7 +113,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery]);
+    }, [selectedOption, customDates, searchQuery,selectedEmployee]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

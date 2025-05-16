@@ -7,6 +7,10 @@ interface GlobalContextProps {
   customDates: { start: string; end: string };
   setCustomDates: (dates: { start: string; end: string }) => void;
   validateDates: (start: string, end: string) => boolean;
+  selectedDesignation: string | undefined;
+  setSelectedDesignation: (value: string | undefined) => void;
+  selectedEmployee: string | undefined;
+  setSelectedEmployee: (value: string | undefined) => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
@@ -31,6 +35,23 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
     return { start: "", end: "" };
+  });
+
+  // Designation and employee states
+  const [selectedDesignation, setSelectedDesignationState] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selectedDesignation");      
+      return stored ? stored : undefined;
+    }
+    return undefined;
+  });
+
+  const [selectedEmployee, setSelectedEmployeeState] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selectedEmployee");
+      return stored ? stored : undefined;
+    }
+    return undefined;
   });
 
   const setSelectedOption = useCallback((value: string) => {
@@ -67,6 +88,36 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     setSelectedOption("custom");
   }, [validateDates, setSelectedOption]);
 
+  const setSelectedDesignation = useCallback((value: string | undefined) => {
+    setSelectedDesignationState(prev => {
+      if (value !== prev) {
+        if (value !== undefined) {
+          localStorage.setItem("selectedDesignation", value);
+        } else {
+          localStorage.removeItem("selectedDesignation");
+        }
+        return value;
+      }
+      return prev;
+    });
+    // Reset employee when designation changes
+    setSelectedEmployee(undefined);
+  }, []);
+
+  const setSelectedEmployee = useCallback((value: string | undefined) => {
+    setSelectedEmployeeState(prev => {
+      if (value !== prev) {
+        if (value !== undefined) {
+          localStorage.setItem("selectedEmployee", value);
+        } else {
+          localStorage.removeItem("selectedEmployee");
+        }
+        return value;
+      }
+      return prev;
+    });
+  }, []);
+
   // Sync initial state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
@@ -81,6 +132,12 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
           setCustomDatesState({ start: "", end: "" });
         }
       }
+      if (e.key === "selectedDesignation") {
+        setSelectedDesignationState(e.newValue || undefined);
+      }
+      if (e.key === "selectedEmployee") {
+        setSelectedEmployeeState(e.newValue || undefined);
+      }
     };
 
     window.addEventListener("storage", handleStorage);
@@ -94,7 +151,11 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setSelectedOption,
         customDates,
         setCustomDates,
-        validateDates
+        validateDates,
+        selectedDesignation,
+        setSelectedDesignation,
+        selectedEmployee,
+        setSelectedEmployee
       }}
     >
       {children}

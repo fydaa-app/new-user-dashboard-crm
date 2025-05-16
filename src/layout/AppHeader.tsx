@@ -14,16 +14,133 @@ import { Modal } from "@/components/ui/modal";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
+import Cookies from 'js-cookie';
+
+interface DesignationItem {
+  level: number;
+  hierarchyName: string;
+}
+
+interface EmployeeItem {
+  id: number;
+  name: string;
+}
 
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const [designations, setDesignations] = useState<{value: string, label: string}[]>([]);
+  const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
+  const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const { 
+    isMobileOpen, 
+    toggleSidebar, 
+    toggleMobileSidebar 
+  } = useSidebar();
 
-  const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
-  const { selectedOption, setSelectedOption } = useGlobalContext();
-  const { customDates, setCustomDates, validateDates } = useGlobalContext();
+  const { 
+    selectedOption, 
+    setSelectedOption,
+    customDates, 
+    setCustomDates, 
+    validateDates,
+    selectedDesignation,
+    setSelectedDesignation,
+    selectedEmployee,
+    setSelectedEmployee
+  } = useGlobalContext();
+
+  // Fetch designations on component mount
+  useEffect(() => {
+    const fetchDesignations = async () => {
+      setIsLoadingDesignations(true);
+      try {
+
+        const url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_DESIGNATION_LIST_ENDPOINT}`;    
+        const response = await fetch(url, {
+                headers: {
+                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
+                }
+            }
+        );
+        if (response.status === 401) {
+            Cookies.remove('authToken'); 
+            window.location.href = "/signin";          
+        }
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch");
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+          const designationOptions = data.data.map((item: DesignationItem) => ({
+            value: item.level.toString(),
+            label: item.hierarchyName
+          }));
+          setDesignations(designationOptions);
+        }
+      } catch (error) {
+        console.error("Failed to fetch designations:", error);
+      } finally {
+        setIsLoadingDesignations(false);
+      }
+    };
+
+    fetchDesignations();
+  }, []);
+
+  // Fetch employees when designation changes
+  useEffect(() => {
+    if (selectedDesignation) {
+      // Clear the selected employee whenever designation changes
+      setSelectedEmployee("");
+      
+      const fetchEmployees = async () => {
+        setIsLoadingEmployees(true);
+        try {
+          const url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_ROLE_WISE_EMPLOYEE_LIST_ENDPOINT}?role=${selectedDesignation}`;    
+          const response = await fetch(url, {
+                  headers: {
+                      Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
+                  }
+              }
+          );
+          if (response.status === 401) {
+              Cookies.remove('authToken'); 
+              window.location.href = "/signin";          
+          }
+
+          if (!response.ok) {
+              throw new Error("Failed to fetch");
+          }
+
+          const data = await response.json();
+
+          if (data.success) {
+            const employeeOptions = data.data.map((item: EmployeeItem) => ({
+              value: item.id.toString(),
+              label: item.name
+            }));
+            setEmployees(employeeOptions);
+          }
+        } catch (error) {
+          console.error("Failed to fetch employees:", error);
+        } finally {
+          setIsLoadingEmployees(false);
+        }
+      };
+
+      fetchEmployees();
+    } else {
+      setEmployees([]);
+      setSelectedEmployee("");
+    }
+  }, [selectedDesignation]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -53,10 +170,18 @@ const AppHeader: React.FC = () => {
       setSelectedOption(option.value);
       if (option.value === "custom") {
         openModal();
-      }else{
+      } else {
         setCustomDates({ start: "", end: "" });
       }
     }    
+  };
+
+  const handleDesignationChange = (option: { value: string; label: string } | null) => {
+    setSelectedDesignation(option?.value || "");
+  };
+
+  const handleEmployeeChange = (option: { value: string; label: string } | null) => {
+    setSelectedEmployee(option?.value || "");
   };
 
   const handleSaveDates = (e: React.FormEvent) => {
@@ -92,6 +217,7 @@ const AppHeader: React.FC = () => {
       setEndDate(customDates.end);
     }
   }, [isOpen, customDates]);
+
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
       <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
@@ -172,71 +298,98 @@ const AppHeader: React.FC = () => {
             </svg>
           </button>
         </div>
-        
+      
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-           <div className="relative">
-        <Select 
-          options={options}
-          placeholder="Select Option"
-          onChange={handleSelectChange}
-          value={selectedOption}
-          className="dark:bg-dark-900"
-        />
-          <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-          <ChevronDownIcon/>
-        </span>
-      </div>
+          <div className="relative">
+            <Select 
+              options={designations}
+              placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
+              onChange={handleDesignationChange}
+              value={selectedDesignation}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+          </div>
+          <div className="relative">
+            <Select 
+              options={employees}
+              placeholder={
+                !selectedDesignation ? "Select designation first" : 
+                isLoadingEmployees ? "Loading employees..." : "Select Employee"
+              }
+              onChange={handleEmployeeChange}
+              value={selectedEmployee}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+          </div>
+          <div className="relative">
+            <Select 
+              options={options}
+              placeholder="Select Option"
+              onChange={handleSelectChange}
+              value={selectedOption}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+          </div>
           <div className="flex items-center gap-2 2xsm:gap-3">            
             <ThemeToggleButton />           
             <NotificationDropdown />            
           </div>
-            <UserDropdown /> 
+          <UserDropdown /> 
         </div>
       </div>
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-      <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
-        <div className="px-2 pr-14">
-          <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-            Select Custom Date Range
-          </h4>
-          <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-            Please choose your custom start and end dates.
-          </p>
-        </div>
-        <form className="flex flex-col" onSubmit={handleSaveDates}>
-          <div className="px-2 overflow-y-auto custom-scrollbar">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-              <div>
-                <Label>Start Date</Label>
-                <Input 
-                  type="date" 
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label>End Date</Label>
-                <Input 
-                  type="date" 
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
+        <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
+          <div className="px-2 pr-14">
+            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
+              Select Custom Date Range
+            </h4>
+            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
+              Please choose your custom start and end dates.
+            </p>
+          </div>
+          <form className="flex flex-col" onSubmit={handleSaveDates}>
+            <div className="px-2 overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                <div>
+                  <Label>Start Date</Label>
+                  <Input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label>End Date</Label>
+                  <Input 
+                    type="date" 
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-            <Button size="sm" variant="outline" onClick={closeModal}>
-              Cancel
-            </Button>            
-            <Button size="sm" type="submit">Save Dates</Button>
-          </div>
-        </form>
-      </div>
-    </Modal>
+            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+              <Button size="sm" variant="outline" onClick={closeModal}>
+                Cancel
+              </Button>            
+              <Button size="sm" type="submit">Save Dates</Button>
+            </div>
+          </form>
+        </div>
+      </Modal>
     </header>
   );
 };

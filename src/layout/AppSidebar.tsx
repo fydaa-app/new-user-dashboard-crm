@@ -160,12 +160,31 @@ const AppSidebar: React.FC = () => {
     >
       <div className="py-8 flex">
         <Link href="/">
-          <Image
-            src="/images/logo/logo2.png"
-            alt="Logo"
-            width={150}
-            height={40}
-          />
+          {isExpanded || isHovered || isMobileOpen ? (
+            <>
+              <Image
+                className="dark:hidden"
+                src="/images/logo/logo2.png"
+                alt="Logo"
+                width={150}
+                height={40}
+              />
+              <Image
+                className="hidden dark:block"
+                src="/images/logo/logo.png"
+                alt="Logo"
+                width={150}
+                height={40}
+              />
+            </>
+          ) : (
+            <Image
+              src="/images/logo/icon.png"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
+          )}
         </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">

@@ -92,6 +92,8 @@ export default function SignInForm() {
         
         // Store employee data in cookies
         setCookie("employeeData", JSON.stringify(data.employee), cookieOptions);
+
+        
         
         // Update auth context
         login(data.token, data.employee);

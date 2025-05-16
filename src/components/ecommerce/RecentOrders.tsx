@@ -20,7 +20,7 @@ interface Order {
 
 export default function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption,customDates } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -33,6 +33,10 @@ export default function RecentOrders() {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        if (selectedEmployee) {
+          url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url, {
@@ -55,7 +59,7 @@ export default function RecentOrders() {
     };
 
     fetchOrders();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates,selectedEmployee]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {

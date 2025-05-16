@@ -31,7 +31,7 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption,customDates } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
@@ -43,6 +43,10 @@ export default function MonthlySalesChart() {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        if (selectedEmployee) {
+          url += `&employeeId=${selectedEmployee}`;
         }
 
         const response = await fetch(url,{
@@ -65,7 +69,7 @@ export default function MonthlySalesChart() {
     }
 
     fetchSalesData();
-  }, [selectedOption,customDates]);
+  }, [selectedOption,customDates,selectedEmployee]);
 
   useEffect(() => {
     if (dataPoints.length === 0) return;

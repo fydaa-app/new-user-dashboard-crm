@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { getCookie, deleteCookie } from 'cookies-next';
 import { useRouter, usePathname } from 'next/navigation';
-
 // Define types
 interface Employee {
   id: number;
@@ -37,6 +36,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setToken(null);
     deleteCookie('authToken');
     localStorage.removeItem('userInfo');
+    localStorage.removeItem("selectedDesignation");
+    localStorage.removeItem("selectedEmployee");
     router.push('/signin');
   }, [router]);
 
@@ -69,13 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setIsLoading(false);
     }
-  }, [pathname, router, handleLogout]); // ✅ handleLogout now has a stable reference
+  }, [pathname, router, handleLogout]);
 
   // Login function
   const login = (newToken: string, userData: Employee) => {
     setToken(newToken);
     setUser(userData);
     localStorage.setItem('userInfo', JSON.stringify(userData));
+    localStorage.setItem("selectedDesignation", userData.role.toString());
+    localStorage.setItem("selectedEmployee", userData.id.toString());
+    
     router.push('/');
   };
 
