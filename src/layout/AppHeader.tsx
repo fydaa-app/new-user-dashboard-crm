@@ -83,6 +83,7 @@ const AppHeader: React.FC = () => {
             label: item.hierarchyName
           }));
           setDesignations(designationOptions);
+          // Don't automatically select the first option
         }
       } catch (error) {
         console.error("Failed to fetch designations:", error);
@@ -127,6 +128,7 @@ const AppHeader: React.FC = () => {
               label: item.name
             }));
             setEmployees(employeeOptions);
+            // Don't automatically select the first employee
           }
         } catch (error) {
           console.error("Failed to fetch employees:", error);
@@ -177,6 +179,8 @@ const AppHeader: React.FC = () => {
   };
 
   const handleDesignationChange = (option: { value: string; label: string } | null) => {
+    // Only set the designation if user actually selected something
+    // Don't auto-select if option is null
     setSelectedDesignation(option?.value || "");
   };
 
@@ -309,7 +313,7 @@ const AppHeader: React.FC = () => {
               options={designations}
               placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
               onChange={handleDesignationChange}
-              value={selectedDesignation}
+              value={selectedDesignation || null} // Pass null when empty to show placeholder
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -324,7 +328,7 @@ const AppHeader: React.FC = () => {
                 isLoadingEmployees ? "Loading employees..." : "Select Employee"
               }
               onChange={handleEmployeeChange}
-              value={selectedEmployee}
+              value={selectedEmployee || null} // Pass null when empty to show placeholder
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -336,7 +340,7 @@ const AppHeader: React.FC = () => {
               options={options}
               placeholder="Select Option"
               onChange={handleSelectChange}
-              value={selectedOption}
+              value={selectedOption || null} // Pass null when empty to show placeholder
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
