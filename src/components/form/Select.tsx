@@ -8,10 +8,10 @@ interface Option {
 interface SelectProps {
   options: Option[];
   placeholder?: string;
-  onChange: (option: Option) => void;
+  onChange: (option: Option | null) => void; // Allow null to be passed
   className?: string;
   defaultValue?: string;
-  value?: string;
+  value?: string | null; // Allow null values
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -22,19 +22,33 @@ const Select: React.FC<SelectProps> = ({
   defaultValue,
   value,
 }) => {
-  // Manage the selected value internally
-  const [selectedValue, setSelectedValue] = useState<string>(value || defaultValue || "");
+  // Initialize with empty string only if no value is provided
+  const [selectedValue, setSelectedValue] = useState<string>(() => {
+    if (value !== undefined && value !== null) {
+      return value;
+    }
+    if (defaultValue !== undefined) {
+      return defaultValue;
+    }
+    return "";
+  });
   
   // Update internal state when the external value prop changes
   useEffect(() => {
     if (value !== undefined) {
-      setSelectedValue(value);
+      setSelectedValue(value || ""); // Convert null to empty string for select element
     }
   }, [value]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newValue = e.target.value;
     setSelectedValue(newValue);
+    
+    // If empty value (placeholder selected), pass null
+    if (newValue === "") {
+      onChange(null);
+      return;
+    }
     
     // Find the selected option and pass the entire option object to onChange
     const selectedOption = options.find((option) => option.value === newValue);
@@ -53,10 +67,9 @@ const Select: React.FC<SelectProps> = ({
       value={selectedValue}
       onChange={handleChange}
     >
-      {/* Placeholder option */}
+      {/* Placeholder option - not disabled so user can select it to clear selection */}
       <option
         value=""
-        disabled
         className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
       >
         {placeholder}
