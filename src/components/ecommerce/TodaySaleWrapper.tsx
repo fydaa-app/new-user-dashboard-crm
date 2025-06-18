@@ -9,7 +9,9 @@ interface CardData {
   totalRevenue?: number;
   totalNoOfTransactions?: number;
   noOfPayments?: number;
-  countOfUsers?: number;
+  activeUsers?: number;
+  newUsers?: number;
+  totalUsers?: number;
   assetsUnderManagement?:number;
 }
 
@@ -17,7 +19,9 @@ interface TodaySalesData {
   totalRevenue: number;
   totalNoOfTransactions: number;
   noOfPayments: number;
-  countOfUsers: number;
+  activeUsers: number;
+  newUsers: number;
+  totalUsers: number;
   assetsUnderManagement:number;
 }
 
@@ -26,7 +30,9 @@ const TodaySaleWrapper = () => {
     totalRevenue: 0,
     totalNoOfTransactions: 0,
     noOfPayments: 0,
-    countOfUsers: 0,
+    activeUsers: 0,
+    newUsers: 0,
+    totalUsers: 0,
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
@@ -78,7 +84,9 @@ const TodaySaleWrapper = () => {
           totalRevenue: data.find((item) => item.type === "Total Revenue")?.totalRevenue || 0,
           totalNoOfTransactions: data.find((item) => item.type === "Total Transactions")?.totalNoOfTransactions || 0,
           noOfPayments: data.find((item) => item.type === "Total Payments")?.noOfPayments || 0,
-          countOfUsers: data.find((item) => item.type === "New Users")?.countOfUsers || 0,
+          newUsers: data.find((item) => item.type === "New Users")?.newUsers || 0,
+          activeUsers: data.find((item) => item.type === "Active Users")?.activeUsers || 0,
+          totalUsers: data.find((item) => item.type === "Total Users")?.totalUsers || 0,
           assetsUnderManagement: Number(
             (data.find((item) => item.type === "Assets under Management")?.assetsUnderManagement || 0).toFixed(2)
           ),

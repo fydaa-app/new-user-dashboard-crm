@@ -6,7 +6,9 @@ interface DataProps {
   totalRevenue?: number;
   totalNoOfTransactions?: number;
   noOfPayments?: number;
-  countOfUsers?: number;
+  activeUsers?: number;
+  newUsers?: number;
+  totalUsers?: number;
   assetsUnderManagement: number;
 }
 
@@ -44,7 +46,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <SalesIcon />
               <h2 className="numbers-sale">{data.totalRevenue}</h2>
               <p className="total-sale-text">Total Revenue</p>
-              <span className="total-yes">+0% from yesterday</span>
+              <span className="total-yes"></span>
             </div>
           </div>
           <div className="col-span-4">
@@ -52,7 +54,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <OrderIcon /> 
               <h2 className="numbers-sale">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
-              <span className="total-yes">+0% from yesterday</span>
+              <span className="total-yes"></span>
             </div>
           </div>
           <div className="col-span-4">
@@ -60,15 +62,17 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <DiscIcon />
               <h2 className="numbers-sale">{data.noOfPayments}</h2>
               <p className="total-sale-text">Total Payments</p>
-              <span className="total-yes">+0% from yesterday</span>
+              <span className="total-yes"></span>
             </div>
           </div>
           <div className="col-span-4">
             <div className="box-total-sales">
               <NewCustomerIcon />
-              <h2 className="numbers-sale">{data.countOfUsers}</h2>
-              <p className="total-sale-text">New Users</p>
-              <span className="total-yes">+0% from yesterday</span>
+              <h2 className="numbers-sale">{data.totalUsers}</h2>
+              <p className="total-sale-text">Total Users</p>
+              <div className="justify-between flex items-center">
+                            <span className="total-yes ">Active user : {data.activeUsers}</span><span className="total-yes ">New user : {data.newUsers} </span>
+              </div>              
             </div>
           </div>
           <div className="col-span-4">
@@ -76,7 +80,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <SalesIcon />
               <h2 className="numbers-sale">{formatCurrency(data.assetsUnderManagement)}</h2>
               <p className="total-sale-text">Asset Under Advisory</p>
-              <span className="total-yes">+0% from yesterday</span>
+              <span className="total-yes"></span>
             </div>
           </div>
         </div>
