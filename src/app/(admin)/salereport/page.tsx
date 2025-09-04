@@ -24,7 +24,8 @@ async function fetchPayments(
     selectedOption: string, 
     selectedEmployee:string = "",
     customDates: { start: string; end: string },
-    searchQuery: string = ""
+    searchQuery: string = "",
+    appType: string = ""
 ):
      Promise<{ 
         payments: SaleList[]; 
@@ -34,7 +35,13 @@ async function fetchPayments(
      }> {
     try {
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_PAYMENTS_LIST_ENDPOINT}?page=${page}`;
+        // Use different endpoint based on app type
+        let endpoint = process.env.NEXT_PUBLIC_PAYMENTS_LIST_ENDPOINT;
+        if (appType === "Fydaa") {
+            endpoint = "/referrals/payments-list-mf";
+        }
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
     
         if (selectedOption === 'custom') {
           url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -71,7 +78,7 @@ async function fetchPayments(
 export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, appType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -89,7 +96,7 @@ export default function UserTablesPage() {
 
      const fetchData = useCallback(async () => {
         try {
-            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption,selectedEmployee, customDates, searchQuery);
+            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
             setPayments(payments);
             setError(error);
             
@@ -103,7 +110,7 @@ export default function UserTablesPage() {
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates, searchQuery,selectedEmployee]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
         
     useEffect(() => {
         fetchData();

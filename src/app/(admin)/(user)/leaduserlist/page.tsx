@@ -23,7 +23,8 @@ async function fetchUsers(
     selectedOption: string, 
     selectedEmployee: string ="",
     customDates: { start: string; end: string },
-    searchQuery: string = ""
+    searchQuery: string = "",
+    appType: string = ""
 ): 
     Promise<{ 
         users: User[]; 
@@ -32,7 +33,13 @@ async function fetchUsers(
         limit?: number;
     }> {
     try {
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_LEAD_USER_LIST_ENDPOINT}?page=${page}`;
+        // Use different endpoint based on app type
+        let endpoint = process.env.NEXT_PUBLIC_LEAD_USER_LIST_ENDPOINT;
+        if (appType === "Fydaa") {
+            endpoint = "/referrals/lead-user-list-mf";
+        }
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
     
         if (selectedOption === 'custom') {
           url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -74,7 +81,7 @@ async function fetchUsers(
 export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates,selectedEmployee } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, appType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -92,7 +99,7 @@ export default function UserTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption,selectedEmployee, customDates, searchQuery);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
             setUsers(users);
             setError(error);
             
@@ -105,7 +112,7 @@ export default function UserTablesPage() {
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery,selectedEmployee]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
 
     useEffect(() => {
         fetchData();

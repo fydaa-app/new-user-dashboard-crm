@@ -11,6 +11,8 @@ interface GlobalContextProps {
   setSelectedDesignation: (value: string | undefined) => void;
   selectedEmployee: string | undefined;
   setSelectedEmployee: (value: string | undefined) => void;
+  appType: string;
+  setAppType: (value: string) => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
@@ -52,6 +54,14 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       return stored ? stored : undefined;
     }
     return undefined;
+  });
+
+  // App type with localStorage persistence
+  const [appType, setAppTypeState] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("appType") || "Fydaa";
+    }
+    return "Fydaa";
   });
 
   const setSelectedOption = useCallback((value: string) => {
@@ -118,6 +128,16 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const setAppType = useCallback((value: string) => {
+    setAppTypeState(prev => {
+      if (value !== prev) {
+        localStorage.setItem("appType", value);
+        return value;
+      }
+      return prev;
+    });
+  }, []);
+
   // Sync initial state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
@@ -138,6 +158,9 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       if (e.key === "selectedEmployee") {
         setSelectedEmployeeState(e.newValue || undefined);
       }
+      if (e.key === "appType") {
+        setAppTypeState(e.newValue || "Fydaa");
+      }
     };
 
     window.addEventListener("storage", handleStorage);
@@ -155,7 +178,9 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         selectedDesignation,
         setSelectedDesignation,
         selectedEmployee,
-        setSelectedEmployee
+        setSelectedEmployee,
+        appType,
+        setAppType
       }}
     >
       {children}
