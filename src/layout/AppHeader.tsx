@@ -50,7 +50,9 @@ const AppHeader: React.FC = () => {
     selectedDesignation,
     setSelectedDesignation,
     selectedEmployee,
-    setSelectedEmployee
+    setSelectedEmployee,
+    appType,
+    setAppType
   } = useGlobalContext();
 
   // Fetch designations on component mount
@@ -58,7 +60,6 @@ const AppHeader: React.FC = () => {
     const fetchDesignations = async () => {
       setIsLoadingDesignations(true);
       try {
-
         const url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_DESIGNATION_LIST_ENDPOINT}`;    
         const response = await fetch(url, {
                 headers: {
@@ -83,7 +84,6 @@ const AppHeader: React.FC = () => {
             label: item.hierarchyName
           }));
           setDesignations(designationOptions);
-          // Don't automatically select the first option
         }
       } catch (error) {
         console.error("Failed to fetch designations:", error);
@@ -98,7 +98,6 @@ const AppHeader: React.FC = () => {
   // Fetch employees when designation changes
   useEffect(() => {
     if (selectedDesignation) {
-      // Clear the selected employee whenever designation changes
       setSelectedEmployee("");
       
       const fetchEmployees = async () => {
@@ -128,7 +127,6 @@ const AppHeader: React.FC = () => {
               label: item.name
             }));
             setEmployees(employeeOptions);
-            // Don't automatically select the first employee
           }
         } catch (error) {
           console.error("Failed to fetch employees:", error);
@@ -167,6 +165,11 @@ const AppHeader: React.FC = () => {
     { value: "custom", label: "Custom Date" },
   ];
 
+  const appTypeOptions = [
+    { value: "Fydaa", label: "Fydaa" },
+    { value: "Savestment", label: "Savestment" },
+  ];
+
   const handleSelectChange = (option: { value: string; label: string } | null) => {     
     if (option) {
       setSelectedOption(option.value);
@@ -179,13 +182,17 @@ const AppHeader: React.FC = () => {
   };
 
   const handleDesignationChange = (option: { value: string; label: string } | null) => {
-    // Only set the designation if user actually selected something
-    // Don't auto-select if option is null
     setSelectedDesignation(option?.value || "");
   };
 
   const handleEmployeeChange = (option: { value: string; label: string } | null) => {
     setSelectedEmployee(option?.value || "");
+  };
+
+  const handleAppTypeChange = (option: { value: string; label: string } | null) => {
+    if (option) {
+      setAppType(option.value);
+    }
   };
 
   const handleSaveDates = (e: React.FormEvent) => {
@@ -262,7 +269,6 @@ const AppHeader: React.FC = () => {
                 />
               </svg>
             )}
-            {/* Cross Icon */}
           </button>
 
           <Link href="/" className="lg:hidden">
@@ -308,19 +314,31 @@ const AppHeader: React.FC = () => {
             isApplicationMenuOpen ? "flex" : "hidden"
           } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
         >
-          <div className="relative">
+          <div className="relative w-48">
             <Select 
-              options={designations}
-              placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
-              onChange={handleDesignationChange}
-              value={selectedDesignation || null} // Pass null when empty to show placeholder
+              options={appTypeOptions}
+              placeholder="Select App Type"
+              onChange={handleAppTypeChange}
+              value={appType || null}
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
               <ChevronDownIcon/>
             </span>
           </div>
-          <div className="relative">
+          <div className="relative w-48">
+            <Select 
+              options={designations}
+              placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
+              onChange={handleDesignationChange}
+              value={selectedDesignation || null}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+          </div>
+          <div className="relative w-48">
             <Select 
               options={employees}
               placeholder={
@@ -328,19 +346,19 @@ const AppHeader: React.FC = () => {
                 isLoadingEmployees ? "Loading employees..." : "Select Employee"
               }
               onChange={handleEmployeeChange}
-              value={selectedEmployee || null} // Pass null when empty to show placeholder
+              value={selectedEmployee || null}
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
               <ChevronDownIcon/>
             </span>
           </div>
-          <div className="relative">
+          <div className="relative w-48">
             <Select 
               options={options}
               placeholder="Select Option"
               onChange={handleSelectChange}
-              value={selectedOption || null} // Pass null when empty to show placeholder
+              value={selectedOption || null}
               className="dark:bg-dark-900"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">

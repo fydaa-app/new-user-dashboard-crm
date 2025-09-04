@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Leaderboard from "@/components/leaderboard/leaderboard";
+import LeaderboardMf from "@/components/leaderboard/leaderboardMf";
 import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from "js-cookie";
 import { useSearchParams } from "next/navigation";
@@ -13,7 +14,7 @@ interface LeaderboardData {
 }
 
 export default function LeaderboardPage() {
-  const { selectedEmployee } = useGlobalContext();
+  const { selectedEmployee, appType } = useGlobalContext();
   const searchParams = useSearchParams();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData>({
     leaderboard: [],
@@ -28,8 +29,15 @@ export default function LeaderboardPage() {
       try {
         setLoading(true);
         const authToken = Cookies.get("authToken") || "";
+        
+        // Use different endpoint based on app type
+        let endpoint = process.env.NEXT_PUBLIC_LEADERBOARD_LIST_ENDPOINT;
+        if (appType === "Fydaa") {
+          endpoint = "/referrals/leaderboard-list-mf";
+        }
+        
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_LEADERBOARD_LIST_ENDPOINT}?criteria=${criteria}&employeeId=${selectedEmployee}`,
+          `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?criteria=${criteria}&employeeId=${selectedEmployee}`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -64,7 +72,7 @@ export default function LeaderboardPage() {
     };
 
     fetchData();
-  }, [criteria, selectedEmployee]);
+  }, [criteria, selectedEmployee, appType]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -75,10 +83,17 @@ export default function LeaderboardPage() {
       <PageBreadcrumb pageTitle="LeaderBoard" />
       <div className="space-y-6">
         <ComponentCard title="LeaderBoard">
-          <Leaderboard
-            leaderboardData={leaderboardData}
-            activeCriteria={criteria}
-          />
+          {appType === "Fydaa" ? (
+            <LeaderboardMf
+              leaderboardData={leaderboardData}
+              activeCriteria={criteria}
+            />
+          ) : (
+            <Leaderboard
+              leaderboardData={leaderboardData}
+              activeCriteria={criteria}
+            />
+          )}
         </ComponentCard>
       </div>
     </div>

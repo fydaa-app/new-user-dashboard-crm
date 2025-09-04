@@ -25,7 +25,8 @@ async function fetchTransactions(
     selectedOption:string, 
     selectedEmployee:string = "",
     customDates: { start: string; end: string },
-    searchQuery: string = ""
+    searchQuery: string = "",
+    appType: string = ""
 ):
     Promise<{ 
         transactions: Transaction[]; 
@@ -35,7 +36,13 @@ async function fetchTransactions(
     }> {
     try {
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?page=${page}`;
+        // Use different endpoint based on app type
+        let endpoint = process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT;
+        if (appType === "Fydaa") {
+            endpoint = "/referrals/transactions-list-mf";
+        }
+
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
     
         if (selectedOption === 'custom') {
           url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -79,6 +86,7 @@ export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [error, setError] = useState<string | null>(null);
     const { selectedOption,customDates ,selectedEmployee } = useGlobalContext();
+    const { appType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalTransactions, setTotalTransactions] = useState(0);
@@ -96,7 +104,7 @@ export default function TransactionTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee,customDates, searchQuery);
+            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
             setTransactions(transactions);
             setError(error);
             
@@ -112,7 +120,7 @@ export default function TransactionTablesPage() {
             setIsSearching(false);
         }
 
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
     
         useEffect(() => {
             fetchData();
