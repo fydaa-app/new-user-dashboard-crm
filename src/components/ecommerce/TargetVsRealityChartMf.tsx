@@ -36,7 +36,7 @@ export default function TargetVsRealityChartMf() {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TARGET_REALITY_CHART_ENDPOINT}?metricType=${currentView}&`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/target-reality-mf?metricType=${currentView}&`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
