@@ -6,7 +6,7 @@ import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 import TargetVsRealityChart from "@/components/ecommerce/TargetvsRealityChart";
-import TopGoals from "@/components/ecommerce/TopGoals";
+// import TopGoals from "@/components/ecommerce/TopGoals";
 import TopPackages from "@/components/ecommerce/TopPackages";
 import TodaySaleWrapper from "@/components/ecommerce/TodaySaleWrapper";
 import TodaySaleWrapperMf from "@/components/ecommerce/TodaySaleWrapperMf";
@@ -84,11 +84,11 @@ export default function Ecommerce() {
         </div>        
       </div>
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
        <div className="h-96 overflow-y-auto">
           <TopGoals />
         </div>
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
         <TargetVsRealityChart />
