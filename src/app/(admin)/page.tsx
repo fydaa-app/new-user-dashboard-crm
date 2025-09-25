@@ -1,22 +1,22 @@
 "use client";
 
 import React from "react";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
+// import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
 import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
-import DemographicCard from "@/components/ecommerce/DemographicCard";
-import TargetVsRealityChart from "@/components/ecommerce/TargetvsRealityChart";
+// import DemographicCard from "@/components/ecommerce/DemographicCard";
+// import TargetVsRealityChart from "@/components/ecommerce/TargetvsRealityChart";
 // import TopGoals from "@/components/ecommerce/TopGoals";
-import TopPackages from "@/components/ecommerce/TopPackages";
+// import TopPackages from "@/components/ecommerce/TopPackages";
 import TodaySaleWrapper from "@/components/ecommerce/TodaySaleWrapper";
 import TodaySaleWrapperMf from "@/components/ecommerce/TodaySaleWrapperMf";
 import MonthlySalesChartMf from "@/components/ecommerce/MonthlySalesChartMf";
-import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
+// import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
 import { useGlobalContext } from "@/context/GlobalState";
 import RecentOrdersMf from "@/components/ecommerce/RecentOrdersMf";
-import TargetVsRealityChartMf from "@/components/ecommerce/TargetVsRealityChartMf";
-import MonthlyTargetMf from "@/components/ecommerce/MonthlyTargetMf";
+// import TargetVsRealityChartMf from "@/components/ecommerce/TargetVsRealityChartMf";
+// import MonthlyTargetMf from "@/components/ecommerce/MonthlyTargetMf";
 
 export default function Ecommerce() {
   const { appType } = useGlobalContext();
@@ -28,7 +28,7 @@ export default function Ecommerce() {
         <TodaySaleWrapperMf />
       </div>
       
-      <div className="col-span-12 xl:col-span-7">
+      <div className="col-span-12 xl:col-span-6">
         <MonthlySalesChartMf />
       </div>
       
@@ -36,11 +36,11 @@ export default function Ecommerce() {
         <MonthlyTargetMf />
       </div> */}
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
         <div className="h-96 overflow-y-auto">
           <TopPackagesMf />
         </div>        
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
        <div className="h-96 overflow-y-auto">
@@ -56,7 +56,7 @@ export default function Ecommerce() {
         <DemographicCard />
       </div> */}
 
-      <div className="col-span-12 xl:col-span-6">
+      <div className="col-span-12 xl:col-span-12">
         <RecentOrdersMf />
       </div>
            
@@ -70,7 +70,7 @@ export default function Ecommerce() {
         <TodaySaleWrapper />
       </div>
       
-      <div className="col-span-12 xl:col-span-7">
+      <div className="col-span-12 xl:col-span-6">
         <MonthlySalesChart />
       </div>
       
@@ -78,11 +78,11 @@ export default function Ecommerce() {
         <MonthlyTarget />
       </div> */}
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
         <div className="h-96 overflow-y-auto">
           <TopPackages />
         </div>        
-      </div>
+      </div> */}
 
       {/* <div className="col-span-12 xl:col-span-6">
        <div className="h-96 overflow-y-auto">

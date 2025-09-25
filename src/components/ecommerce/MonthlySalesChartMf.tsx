@@ -61,6 +61,7 @@ export default function MonthlySalesChart() {
         }
 
         const data: { dataPoints: DataPoint[] } = await response.json();
+       
         setDataPoints(data.dataPoints || []);
 
       } catch (error) {
