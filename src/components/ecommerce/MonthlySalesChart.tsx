@@ -61,6 +61,7 @@ export default function MonthlySalesChart() {
         }
 
         const data: { dataPoints: DataPoint[] } = await response.json();
+         console.log("Fetched sales data:", data);
         setDataPoints(data.dataPoints || []);
 
       } catch (error) {
@@ -81,7 +82,7 @@ export default function MonthlySalesChart() {
     const dataValues = dataPoints.map((point) => {
       switch (selectedDataType) {
         case "revenue":
-          return point.revenue;
+          return parseFloat(point.revenue.toFixed(2));
         case "transactionCount":
           return point.transactionCount;
         case "userCount":
@@ -93,6 +94,7 @@ export default function MonthlySalesChart() {
    
     if(selectedOption != "till_date"){
       setCategories(labels);
+      
     }    
     setSeries([{ name: seriesName, data: dataValues }]);
   }, [dataPoints, selectedDataType,selectedOption]);
