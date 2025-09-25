@@ -93,6 +93,7 @@ export default function MonthlySalesChart() {
    
     if(selectedOption != "till_date"){
       setCategories(labels);
+      
     }    
     setSeries([{ name: seriesName, data: dataValues }]);
   }, [dataPoints, selectedDataType,selectedOption]);

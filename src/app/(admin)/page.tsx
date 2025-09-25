@@ -32,9 +32,9 @@ export default function Ecommerce() {
         <MonthlySalesChartMf />
       </div>
       
-      <div className="col-span-12 xl:col-span-5">
+      {/* <div className="col-span-12 xl:col-span-5">
         <MonthlyTargetMf />
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
         <div className="h-96 overflow-y-auto">
@@ -48,13 +48,13 @@ export default function Ecommerce() {
         </div>
       </div>
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
         <TargetVsRealityChartMf />
-      </div>
+      </div> */}
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
         <DemographicCard />
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
         <RecentOrdersMf />
@@ -74,9 +74,9 @@ export default function Ecommerce() {
         <MonthlySalesChart />
       </div>
       
-      <div className="col-span-12 xl:col-span-5">
+      {/* <div className="col-span-12 xl:col-span-5">
         <MonthlyTarget />
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
         <div className="h-96 overflow-y-auto">
@@ -90,13 +90,13 @@ export default function Ecommerce() {
         </div>
       </div> */}
 
-      <div className="col-span-12 xl:col-span-6">
+      {/* <div className="col-span-12 xl:col-span-6">
         <TargetVsRealityChart />
       </div>
 
       <div className="col-span-12 xl:col-span-6">
         <DemographicCard />
-      </div>
+      </div> */}
 
       <div className="col-span-12 xl:col-span-6">
         <RecentOrders />
