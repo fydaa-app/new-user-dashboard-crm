@@ -10,8 +10,9 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 // import TopPackages from "@/components/ecommerce/TopPackages";
 import TodaySaleWrapper from "@/components/ecommerce/TodaySaleWrapper";
 import TodaySaleWrapperMf from "@/components/ecommerce/TodaySaleWrapperMf";
+import SipWrapper from "@/components/ecommerce/SipWrapper";
 import MonthlySalesChartMf from "@/components/ecommerce/MonthlySalesChartMf";
-// import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
+import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
 import { useGlobalContext } from "@/context/GlobalState";
 import RecentOrdersMf from "@/components/ecommerce/RecentOrdersMf";
@@ -24,22 +25,20 @@ export default function Ecommerce() {
   if (appType === "Fydaa") {
     return (
        <div className="grid grid-cols-12 gap-4 md:gap-6">
-      <div className="col-span-12">
-        <TodaySaleWrapperMf />
-      </div>
+        <div className="col-span-12">
+          <TodaySaleWrapperMf />
+        </div>
+
+        <div className="col-span-12">
+          <SipWrapper />
+        </div>
       
-      <div className="col-span-12 xl:col-span-6">
-        <MonthlySalesChartMf />
-      </div>
+        <div className="col-span-12 xl:col-span-6">
+          <MonthlySalesChartMf />
+        </div>
       
       {/* <div className="col-span-12 xl:col-span-5">
         <MonthlyTargetMf />
-      </div> */}
-
-      {/* <div className="col-span-12 xl:col-span-6">
-        <div className="h-96 overflow-y-auto">
-          <TopPackagesMf />
-        </div>        
       </div> */}
 
       <div className="col-span-12 xl:col-span-6">
@@ -47,6 +46,14 @@ export default function Ecommerce() {
           <TopGoalsMf />
         </div>
       </div>
+
+      <div className="col-span-12 xl:col-span-6">
+        <div className="h-96 overflow-y-auto">
+          <TopPackagesMf />
+        </div>        
+      </div>
+
+      
 
       {/* <div className="col-span-12 xl:col-span-6">
         <TargetVsRealityChartMf />
@@ -56,8 +63,10 @@ export default function Ecommerce() {
         <DemographicCard />
       </div> */}
 
-      <div className="col-span-12 xl:col-span-12">
-        <RecentOrdersMf />
+      <div className="col-span-12 xl:col-span-6">
+        <div className="h-96 overflow-y-auto">
+          <RecentOrdersMf />
+        </div>        
       </div>
            
     </div>

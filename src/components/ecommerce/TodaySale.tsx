@@ -7,7 +7,7 @@ interface DataProps {
   totalNoOfTransactions?: number;
   noOfPayments?: number;
   activeUsers?: number;
-  newUsers?: number;
+  inactiveUsers?: number;
   totalUsers?: number;
   assetsUnderManagement: number;
 }
@@ -71,7 +71,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <h2 className="numbers-sale">{data.totalUsers}</h2>
               <p className="total-sale-text">Total Users</p>
               <div className="justify-between flex items-center">
-                            <span className="total-yes ">Active user : {data.activeUsers}</span><span className="total-yes ">New user : {data.newUsers} </span>
+                            <span className="total-yes ">Active user : {data.activeUsers}</span><span className="total-yes ">Inactive user : {data.inactiveUsers} </span>
               </div>              
             </div>
           </div>

@@ -10,7 +10,7 @@ interface CardData {
   totalNoOfTransactions?: number;
   noOfPayments?: number;
   activeUsers?: number;
-  newUsers?: number;
+  inactiveUsers?: number;
   totalUsers?: number;
   assetsUnderManagement?:number;
 }
@@ -20,7 +20,7 @@ interface TodaySalesData {
   totalNoOfTransactions: number;
   noOfPayments: number;
   activeUsers: number;
-  newUsers: number;
+  inactiveUsers: number;
   totalUsers: number;
   assetsUnderManagement:number;
 }
@@ -31,7 +31,7 @@ const TodaySaleWrapper = () => {
     totalNoOfTransactions: 0,
     noOfPayments: 0,
     activeUsers: 0,
-    newUsers: 0,
+    inactiveUsers: 0,
     totalUsers: 0,
     assetsUnderManagement:0,
   });
@@ -84,7 +84,7 @@ const TodaySaleWrapper = () => {
           totalRevenue: data.find((item) => item.type === "Total Revenue")?.totalRevenue || 0,
           totalNoOfTransactions: data.find((item) => item.type === "Total Transactions")?.totalNoOfTransactions || 0,
           noOfPayments: data.find((item) => item.type === "Total Payments")?.noOfPayments || 0,
-          newUsers: data.find((item) => item.type === "New Users")?.newUsers || 0,
+          inactiveUsers: data.find((item) => item.type === "InActive Users")?.inactiveUsers || 0,
           activeUsers: data.find((item) => item.type === "Active Users")?.activeUsers || 0,
           totalUsers: data.find((item) => item.type === "Total Users")?.totalUsers || 0,
           assetsUnderManagement: Number(
