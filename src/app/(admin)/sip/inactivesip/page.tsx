@@ -14,6 +14,7 @@ interface Sip {
   userId: number;
   userName: string;
   userMobileNumber: string;
+  userOnboardingDate: Date;
   sipName: string;
   userSipName: string;
   sipAmount: number;

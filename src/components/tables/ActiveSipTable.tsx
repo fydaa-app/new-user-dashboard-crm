@@ -14,6 +14,7 @@ export interface ActiveSipTableProps {
     userId: number;
     userName: string;
     userMobileNumber: string;
+    userOnboardingDate: Date;
     sipName: string;
     userSipName: string;
     sipAmount: number;
@@ -57,6 +58,9 @@ export default function ActiveSipTable({ sips, error }: ActiveSipTableProps) {
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Onboarding Date
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
@@ -92,6 +96,9 @@ export default function ActiveSipTable({ sips, error }: ActiveSipTableProps) {
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {sips.map((sip, index) => (
                   <TableRow key={index}>
+                    <TableCell className="px-5 py-4 sm:px-6 text-start">
+                      {formatDate(sip.userOnboardingDate)}
+                    </TableCell>
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <div className="flex items-center gap-3">
                         <div>

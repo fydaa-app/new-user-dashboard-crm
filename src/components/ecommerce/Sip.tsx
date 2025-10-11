@@ -8,6 +8,7 @@ interface DataProps {
   totalCompletedSips?: number;
   totalInProgressSips?: number;
   totalPartiallyExitedSips?: number;
+  totalInvestedSips?: number;
 }
 
 const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) => {
@@ -38,23 +39,15 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
             <div className="box-total-sales">
               <SalesIcon />
               <h2 className="numbers-sale">{data.totalActiveSips || 0}</h2>
-              <p className="total-sale-text"><a href="/sip/activesip">Total Active SIPs</a></p>
+              <p className="total-sale-text"><a href="/sip/activesip">Total Active SIPs Mandate</a></p>
               <span className="total-yes"></span>
             </div>
           </div>
           <div className="col-span-4">
             <div className="box-total-sales">
-              <OrderIcon /> 
-              <h2 className="numbers-sale">{data.totalInActiveSips || 0}</h2>
-              <p className="total-sale-text"><a href="/sip/inactivesip">Total Inactive SIPs</a></p>
-              <span className="total-yes"></span>
-            </div>
-          </div>
-          <div className="col-span-4">
-            <div className="box-total-sales">
-              <DiscIcon />
-              <h2 className="numbers-sale">{data.totalCompletedSips || 0}</h2>
-              <p className="total-sale-text"><a href="/sip/completedsip">Total Completed SIPs</a></p>
+              <SalesIcon />
+              <h2 className="numbers-sale">{data.totalInvestedSips || 0}</h2>
+              <p className="total-sale-text"><a href="/sip/investedsip">Total Invested Sips</a></p>
               <span className="total-yes"></span>
             </div>
           </div>
@@ -68,9 +61,25 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           </div>
           <div className="col-span-4">
             <div className="box-total-sales">
+              <OrderIcon /> 
+              <h2 className="numbers-sale">{data.totalInActiveSips || 0}</h2>
+              <p className="total-sale-text"><a href="/sip/inactivesip">Total Inactive SIPs</a></p>
+              <span className="total-yes"></span>
+            </div>
+          </div>
+          <div className="col-span-4">
+            <div className="box-total-sales">
               <SalesIcon />
               <h2 className="numbers-sale">{data.totalPartiallyExitedSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/partiallyexitsip">Partially Exited SIPs</a></p>
+              <span className="total-yes"></span>
+            </div>
+          </div>
+          <div className="col-span-4">
+            <div className="box-total-sales">
+              <DiscIcon />
+              <h2 className="numbers-sale">{data.totalCompletedSips || 0}</h2>
+              <p className="total-sale-text"><a href="/sip/completedsip">Total Completed SIPs</a></p>
               <span className="total-yes"></span>
             </div>
           </div>

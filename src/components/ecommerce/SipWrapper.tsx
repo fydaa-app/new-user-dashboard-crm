@@ -11,6 +11,7 @@ interface CardData {
   totalcompletedsip?: number;
   totalinprogresssip?: number;
   totalpartiallyexitsip?: number;
+  totalinvestedsip?: number;
 }
 
 interface SipData {
@@ -19,6 +20,7 @@ interface SipData {
   totalCompletedSips: number;
   totalInProgressSips: number;
   totalPartiallyExitedSips: number;
+  totalInvestedSips: number;
 }
 
 const SipWrapper = () => {
@@ -28,6 +30,7 @@ const SipWrapper = () => {
     totalCompletedSips: 0,
     totalInProgressSips: 0,
     totalPartiallyExitedSips: 0,
+    totalInvestedSips: 0,
   });
   const [loading, setLoading] = useState(true);
   const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
@@ -77,6 +80,8 @@ const SipWrapper = () => {
           totalCompletedSips: data.find((item) => item.type === "Total Completed Sips")?.totalcompletedsip || 0,
           totalInProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
           totalPartiallyExitedSips: data.find((item) => item.type === "Partially Exited Sips")?.totalpartiallyexitsip || 0,
+          totalInvestedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
+
         };
 
         setSipData(sipSummaryData);
