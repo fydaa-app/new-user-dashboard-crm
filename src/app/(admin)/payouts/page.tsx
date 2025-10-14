@@ -3,7 +3,7 @@
 import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import ComingSoon from "@/components/common/ComingSoon";
+import ComingSoon from "@/components/common/Payouts";
 
 export default function SupportPage() {
     
