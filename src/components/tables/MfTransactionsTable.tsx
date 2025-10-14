@@ -68,6 +68,8 @@ const getStatusColor = (status: string): 'success' | 'warning' | 'error' => {
       return 'warning';
     case 'FAILED':
       return 'error';
+    case 'IN_PROCESS':
+      return 'warning';
     default:
       return 'warning';
   }

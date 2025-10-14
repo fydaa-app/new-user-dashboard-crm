@@ -275,6 +275,7 @@ export default function TransactionsListPage() {
                                 <option value="FULLY_SUCCESSFUL">Fully Successful</option>
                                 <option value="PARTIALLY_SUCCESSFUL">Partially Successful</option>
                                 <option value="FAILED">Failed</option>
+                                <option value="IN_PROCESS">In Process</option>
                             </select>
                         </div>
                     </div>

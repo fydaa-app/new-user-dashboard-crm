@@ -22,6 +22,11 @@ interface SummaryData {
     amount: number;
     processedAmount: number;
   };
+  inProcess: {
+    count: number;
+    amount: number;
+    processedAmount: number;
+  };
   overallStats: {
     totalAmount: number;
     totalProcessedAmount: number;
@@ -42,6 +47,7 @@ interface SummaryData {
   stateBreakdown: {
     successful: number;
     failed: number;
+    submitted: number;
   };
   gatewayBreakdown: Record<string, number>;
   typeBreakdown: {
