@@ -16,7 +16,7 @@ export default function PayoutsPage() {
 
   useEffect(() => {
     if (!isLoading && !canAccess) {
-      router.replace("/"); // Redirect to dashboard if not authorized
+      router.replace("/");
     }
   }, [isLoading, canAccess, router]);
 
@@ -28,16 +28,16 @@ export default function PayoutsPage() {
     );
   }
 
-  // Don't render anything if user can't access (prevents flash)
   if (!canAccess) {
     return null;
   }
+  
   return (
     <div>
       <PageBreadcrumb pageTitle="Payouts" />
       <div className="space-y-6">
         <ComponentCard title="Payouts">
-          <Payouts />
+          <Payouts userRole={user?.role} />
         </ComponentCard>
       </div>
     </div>
