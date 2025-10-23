@@ -1,4 +1,5 @@
 import GridShape from "@/components/common/GridShape";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 interface PayoutsProps {
@@ -8,15 +9,18 @@ interface PayoutsProps {
 export default function Payouts({ userRole }: PayoutsProps) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const router = useRouter();
+
   const handleClick = async () => {
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      console.log('Processing withdrawal...');
+      router.push('/payouts/withdraw');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   const isPartner = userRole === '5';
 
