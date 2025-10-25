@@ -22,16 +22,9 @@ export default function Payouts({ userRole }: PayoutsProps) {
   const isAdmin = userRole === "0";
 
   useEffect(() => {
-    if (isPartner) {
+    // Both admin and partner use the same API - backend differentiates based on token
+    if (isPartner || isAdmin) {
       fetchPartnerEarnings().then(setEarnings);
-    }
-    // For admin, set dummy data (will be replaced with real API later)
-    if (isAdmin) {
-      setEarnings({
-        totalEarnings: 0,
-        availableAmount: 0,
-        withdrawableAmount: 0
-      });
     }
   }, [isPartner, isAdmin]);
 
@@ -45,8 +38,8 @@ export default function Payouts({ userRole }: PayoutsProps) {
     return null;
   }
 
-  // Only show loading for partner (admin gets instant dummy data)
-  if (!earnings && isPartner) {
+  // Show loading while fetching data
+  if (!earnings) {
     return (
       <div className="flex h-[400px] items-center justify-center w-full">
         <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
