@@ -1,35 +1,65 @@
+// src/components/common/Payouts.tsx
+
 import GridShape from "@/components/common/GridShape";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { fetchPartnerEarnings } from "@/services/payoutService";
 
 interface PayoutsProps {
   userRole?: string;
 }
 
 export default function Payouts({ userRole }: PayoutsProps) {
+  const [earnings, setEarnings] = useState<{
+    totalEarnings: number;
+    availableAmount: number;
+    withdrawableAmount: number;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
+  const isPartner = userRole === "5";
+  const isAdmin = userRole === "0";
 
-  const handleClick = async () => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      router.push('/payouts/withdraw');
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    if (isPartner) {
+      fetchPartnerEarnings().then(setEarnings);
     }
+    // For admin, set dummy data (will be replaced with real API later)
+    if (isAdmin) {
+      setEarnings({
+        totalEarnings: 0,
+        availableAmount: 0,
+        withdrawableAmount: 0
+      });
+    }
+  }, [isPartner, isAdmin]);
+
+  const handleWithdrawClick = () => {
+    setIsLoading(true);
+    router.push("/payouts/withdraw");
   };
 
+  // Show for both admin and partner
+  if (!isPartner && !isAdmin) {
+    return null;
+  }
 
-  const isPartner = userRole === '5';
+  // Only show loading for partner (admin gets instant dummy data)
+  if (!earnings && isPartner) {
+    return (
+      <div className="flex h-[400px] items-center justify-center w-full">
+        <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex flex-col items-center justify-start min-h-screen p-6 overflow-hidden z-1">
       <GridShape />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8 ">
-        {/* Box 1 - Balance Earned */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
+        {/* Balance Earned */}
         <div className="bg-[#EA580C] rounded-lg p-6 shadow-lg opacity-80">
           <div className="flex flex-col items-start gap-4">
             <div className="text-white">
@@ -39,12 +69,14 @@ export default function Payouts({ userRole }: PayoutsProps) {
             </div>
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Earned</p>
-              <p className="text-white text-2xl font-bold">₹</p>
+              <p className="text-white text-2xl font-bold">
+                {earnings?.availableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Box 2 - Balance Withdrawable */}
+        {/* Balance Withdrawable */}
         <div className="bg-[#2563EB] rounded-lg p-6 shadow-lg opacity-80">
           <div className="flex flex-col items-start gap-4">
             <div className="text-white">
@@ -54,12 +86,14 @@ export default function Payouts({ userRole }: PayoutsProps) {
             </div>
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Withdrawable</p>
-              <p className="text-white text-2xl font-bold">₹</p>
+              <p className="text-white text-2xl font-bold">
+                {earnings?.withdrawableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Box 3 - Lifetime Earning */}
+        {/* Lifetime Earning */}
         <div className="bg-[#EC4899] rounded-lg p-6 shadow-lg opacity-80">
           <div className="flex flex-col items-start gap-4">
             <div className="text-white">
@@ -69,17 +103,19 @@ export default function Payouts({ userRole }: PayoutsProps) {
             </div>
             <div>
               <p className="text-white text-sm font-medium mb-2">Lifetime Earning</p>
-              <p className="text-white text-2xl font-bold">₹</p>
+              <p className="text-white text-2xl font-bold">
+                {earnings?.totalEarnings.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Withdraw Button - Only visible to partners */}
+      {/* Withdraw Button - Only for partners */}
       {isPartner && (
         <div className="w-full flex justify-end">
           <button
-            onClick={handleClick}
+            onClick={handleWithdrawClick}
             disabled={isLoading}
             className="
               flex items-center justify-center gap-2 
@@ -88,7 +124,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
               font-semibold py-3 px-6 rounded-lg shadow-lg 
               hover:text-gray-200 dark:hover:text-gray-800
               hover:shadow-xl 
-              disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none 
+              disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none 
               transition-all duration-200 transform 
               hover:scale-105 active:scale-95 
               focus:outline-none focus:ring-4 focus:ring-gray-300
@@ -98,11 +134,11 @@ export default function Payouts({ userRole }: PayoutsProps) {
           >
             {isLoading ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-gray" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span>Processing...</span>
+                <span>Loading...</span>
               </>
             ) : (
               <span>Withdraw Balance</span>
