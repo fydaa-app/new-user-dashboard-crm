@@ -153,7 +153,7 @@ export default function WithdrawPage() {
           text: response.error || 'Failed to setup withdrawal account'
         });
       }
-    } catch (error) {
+    } catch {
       setMessage({
         type: 'error',
         text: 'An unexpected error occurred'

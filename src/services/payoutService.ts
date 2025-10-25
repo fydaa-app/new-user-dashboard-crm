@@ -103,7 +103,7 @@ export const checkWithdrawalAccountStatus = async (): Promise<boolean> => {
  */
 export const setupWithdrawalAccount = async (
   accountData: WithdrawalAccountSetup
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
     const token = getAuthToken();
     
@@ -154,7 +154,7 @@ export const setupWithdrawalAccount = async (
  */
 export const withdrawDirect = async (
   amount: number
-): Promise<ApiResponse<any>> => {
+): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
     const token = getAuthToken();
     
@@ -203,7 +203,7 @@ export const withdrawDirect = async (
 /**
  * Calculate earnings (trigger calculation)
  */
-export const calculateEarnings = async (): Promise<ApiResponse<any>> => {
+export const calculateEarnings = async (): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
     const token = getAuthToken();
     
