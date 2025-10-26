@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation"; // Import useRouter for navigation
 import { deleteCookie } from "cookies-next"; // Import deleteCookie to handle cookie deletion
 import { useSidebar } from "../context/SidebarContext";
+import { useAuth } from "../context/AuthContext";
 import {
   GridIcon,
   PieChartIcon,
@@ -89,6 +90,22 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
   const router = useRouter(); // Initialize useRouter for navigation
+
+  const { user, isLoading } = useAuth();
+  // Filter nav items based on role (same logic as designations)
+  const filteredNavItems = React.useMemo(() => {
+    if (isLoading) {
+      return navItems; // Show all while loading
+    }
+    return navItems.filter((item) => {
+      if (item.name === "Payouts") {
+        // Only show for admin (role: 0) and partner (role: 5)
+        return user?.role === '0' || user?.role === '5';
+      }
+      return true;
+    });
+  }, [isLoading, user?.role]);
+  
 
   const handleSignOut = () => {
     // Delete cookies
@@ -188,7 +205,7 @@ const AppSidebar: React.FC = () => {
         </Link>
       </div>
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">{renderMenuItems(navItems)}</nav>
+        <nav className="mb-6">{renderMenuItems(filteredNavItems)}</nav>
       </div>
     </aside>
   );
