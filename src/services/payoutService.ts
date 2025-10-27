@@ -42,8 +42,9 @@ interface WithdrawalAccountSetup {
 
 /**
  * Fetch partner earnings data
+ * @param employeeId - Optional employee ID to fetch specific partner's earnings (admin view)
  */
-export const fetchPartnerEarnings = async (): Promise<{
+export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
   totalEarnings: number;
   availableAmount: number;
   withdrawableAmount: number;
@@ -52,7 +53,13 @@ export const fetchPartnerEarnings = async (): Promise<{
     const token = getAuthToken();
     if (!token) return null;
 
-    const res = await fetch(`${API_URL}/referrals/partner/earnings`, {
+    // Build URL with optional employeeId parameter
+    let url = `${API_URL}/referrals/partner/earnings`;
+    if (employeeId) {
+      url += `?employeeId=${employeeId}`;
+    }
+
+    const res = await fetch(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

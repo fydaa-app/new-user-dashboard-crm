@@ -4,6 +4,7 @@ import GridShape from "@/components/common/GridShape";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { fetchPartnerEarnings } from "@/services/payoutService";
+import { useGlobalContext } from "@/context/GlobalState";
 
 interface PayoutsProps {
   userRole?: string;
@@ -14,19 +15,73 @@ export default function Payouts({ userRole }: PayoutsProps) {
     totalEarnings: number;
     availableAmount: number;
     withdrawableAmount: number;
-  } | null>(null);
+  }>({
+    totalEarnings: 0,
+    availableAmount: 0,
+    withdrawableAmount: 0,
+  });
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingEarnings, setIsFetchingEarnings] = useState(false);
 
   const router = useRouter();
   const isPartner = userRole === "5";
   const isAdmin = userRole === "0";
 
+  // Access selected employee from global context
+  const { selectedEmployee } = useGlobalContext();
+
   useEffect(() => {
-    // Both admin and partner use the same API - backend differentiates based on token
-    if (isPartner || isAdmin) {
-      fetchPartnerEarnings().then(setEarnings);
-    }
-  }, [isPartner, isAdmin]);
+    const fetchEarnings = async () => {
+      // Partner viewing their own earnings
+      if (isPartner) {
+        setIsFetchingEarnings(true);
+        const data = await fetchPartnerEarnings();
+        if (data) {
+          setEarnings(data);
+        }
+        setIsFetchingEarnings(false);
+      }
+      
+      // Admin viewing partner earnings
+      if (isAdmin) {
+        // If an employee is selected, fetch their earnings
+        if (selectedEmployee) {
+          setIsFetchingEarnings(true);
+          
+          // TODO: Uncomment when backend API endpoint is ready to accept employeeId parameter
+          // const data = await fetchPartnerEarnings(selectedEmployee);
+          // if (data) {
+          //   setEarnings(data);
+          // }
+          
+          // TEMPORARY: Mock data for demonstration
+          // Remove this and uncomment above when API is ready
+          console.log(`Fetching earnings for employee ID: ${selectedEmployee}`);
+          // Simulated API call - replace with actual API call
+          setTimeout(() => {
+            // This is mock data - replace with actual API response
+            setEarnings({
+              totalEarnings: 0, // Will be populated by API
+              availableAmount: 0, // Will be populated by API
+              withdrawableAmount: 0, // Will be populated by API
+            });
+            setIsFetchingEarnings(false);
+          }, 500);
+          
+        } else {
+          // No employee selected - show default 0 values
+          setEarnings({
+            totalEarnings: 0,
+            availableAmount: 0,
+            withdrawableAmount: 0,
+          });
+          setIsFetchingEarnings(false);
+        }
+      }
+    };
+
+    fetchEarnings();
+  }, [isPartner, isAdmin, selectedEmployee]);
 
   const handleWithdrawClick = () => {
     setIsLoading(true);
@@ -39,7 +94,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
   }
 
   // Show loading while fetching data
-  if (!earnings) {
+  if (isFetchingEarnings) {
     return (
       <div className="flex h-[400px] items-center justify-center w-full">
         <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
@@ -50,6 +105,24 @@ export default function Payouts({ userRole }: PayoutsProps) {
   return (
     <div className="relative flex flex-col items-center justify-start min-h-screen p-6 overflow-hidden z-1">
       <GridShape />
+
+      {/* Admin info banner when no employee selected */}
+      {/* {isAdmin && !selectedEmployee && (
+        <div className="w-full mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            <strong>Admin View:</strong> Select a partner from the header (Designation: Partner → Employee) to view their earnings.
+          </p>
+        </div>
+      )} */}
+
+      {/* Admin info banner when employee selected */}
+      {/* {isAdmin && selectedEmployee && (
+        <div className="w-full mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <p className="text-sm text-green-700 dark:text-green-300">
+            <strong>Viewing:</strong> Partner earnings for Employee ID: {selectedEmployee}
+          </p>
+        </div>
+      )} */}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full mb-8">
         {/* Balance Earned */}
@@ -63,7 +136,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Earned</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.availableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.availableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
@@ -80,7 +153,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Withdrawable</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.withdrawableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.withdrawableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
@@ -97,7 +170,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Lifetime Earning</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.totalEarnings.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.totalEarnings.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
