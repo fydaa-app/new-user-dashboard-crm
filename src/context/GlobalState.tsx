@@ -78,25 +78,51 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     if (!start || !end) return false;
     return new Date(start) <= new Date(end);
   }, []);
+  
 
-  const setCustomDates = useCallback((dates: { start: string; end: string }) => {
-    if (!validateDates(dates.start, dates.end)) {
-      console.error("Invalid date range: Start date must be before end date");
-      return;
-    }
+  // Below : rejecting date updates before both dates are properly set (Revert to this commented block if the below code-fix causes Issues.)
 
+  // const setCustomDates = useCallback((dates: { start: string; end: string }) => {
+  //   if (!validateDates(dates.start, dates.end)) {
+  //     console.error("Invalid date range: Start date must be before end date");
+  //     return;
+  //   }
+
+  //   setCustomDatesState(prev => {
+  //     const newDates = { 
+  //       start: dates.start || prev.start, 
+  //       end: dates.end || prev.end 
+  //     };
+      
+  //     localStorage.setItem("customDates", JSON.stringify(newDates));
+  //     return newDates;
+  //   });
+
+  //   setSelectedOption("custom");
+  // }, [validateDates, setSelectedOption]);
+
+    const setCustomDates = useCallback((dates: { start: string; end: string }) => {
     setCustomDatesState(prev => {
       const newDates = { 
         start: dates.start || prev.start, 
         end: dates.end || prev.end 
       };
       
+      // Silently accept updates, only validate before using the dates
       localStorage.setItem("customDates", JSON.stringify(newDates));
       return newDates;
     });
 
-    setSelectedOption("custom");
+    // Only log error and switch mode if both dates are present AND invalid
+    if (dates.start && dates.end) {
+      if (validateDates(dates.start, dates.end)) {
+        setSelectedOption("custom");
+      } else {
+        console.error("Invalid date range: Start date must be before end date");
+      }
+    }
   }, [validateDates, setSelectedOption]);
+
 
   const setSelectedDesignation = useCallback((value: string | undefined) => {
     setSelectedDesignationState(prev => {

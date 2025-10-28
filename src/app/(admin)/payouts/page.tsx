@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import Payouts from "@/components/common/Payouts";
+import Payouts from "@/components/payout/Payouts";
 
 export default function PayoutsPage() {
   const router = useRouter();
