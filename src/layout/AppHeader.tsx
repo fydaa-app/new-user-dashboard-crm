@@ -55,6 +55,20 @@ const AppHeader: React.FC = () => {
     setAppType
   } = useGlobalContext();
 
+  // Get user role from token
+  const token = Cookies.get('authToken');
+  let userRole = '';
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      userRole = payload.role || payload.roleId || '';
+    } catch (error) {
+      console.error('Failed to decode token:', error);
+    }
+  }
+  const isPartner = userRole === "5";
+
+
   // Fetch designations on component mount
   useEffect(() => {
     const fetchDesignations = async () => {
@@ -326,33 +340,37 @@ const AppHeader: React.FC = () => {
               <ChevronDownIcon/>
             </span>
           </div>
-          <div className="relative w-48">
-            <Select 
-              options={designations}
-              placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
-              onChange={handleDesignationChange}
-              value={selectedDesignation || null}
-              className="dark:bg-dark-900"
-            />
-            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <ChevronDownIcon/>
-            </span>
-          </div>
-          <div className="relative w-48">
-            <Select 
-              options={employees}
-              placeholder={
-                !selectedDesignation ? "Select designation first" : 
-                isLoadingEmployees ? "Loading employees..." : "Select Employee"
-              }
-              onChange={handleEmployeeChange}
-              value={selectedEmployee || null}
-              className="dark:bg-dark-900"
-            />
-            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <ChevronDownIcon/>
-            </span>
-          </div>
+          {!isPartner && (
+            <div className="relative w-48">
+              <Select 
+                options={designations}
+                placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
+                onChange={handleDesignationChange}
+                value={selectedDesignation || null}
+                className="dark:bg-dark-900"
+              />
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                <ChevronDownIcon/>
+              </span>
+            </div>
+          )}
+          {!isPartner && (
+            <div className="relative w-48">
+              <Select 
+                options={employees}
+                placeholder={
+                  !selectedDesignation ? "Select designation first" : 
+                  isLoadingEmployees ? "Loading employees..." : "Select Employee"
+                }
+                onChange={handleEmployeeChange}
+                value={selectedEmployee || null}
+                className="dark:bg-dark-900"
+              />
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                <ChevronDownIcon/>
+              </span>
+            </div>
+          )}
           <div className="relative w-48">
             <Select 
               options={options}

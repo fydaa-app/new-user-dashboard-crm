@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { fetchPartnerEarnings, fetchPartnerPayoutList } from "@/services/payoutService";
 import PayoutListTable, { PayoutListItem } from "../tables/PayoutListTable";
+import Pagination from "../tables/Pagination";
 
 
 interface PayoutsProps {
@@ -26,15 +27,10 @@ export default function Payouts({ userRole }: PayoutsProps) {
   // State for admin's payout list view
   const [payoutList, setPayoutList] = useState<PayoutListItem[]>([]);
   const [payoutError, setPayoutError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<{
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  } | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPartners, setTotalPartners] = useState(0);
+
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingData, setIsFetchingData] = useState(false);
@@ -59,9 +55,14 @@ export default function Payouts({ userRole }: PayoutsProps) {
       if (isAdmin) {
         const { payouts, pagination: paginationData, error } = await fetchPartnerPayoutList(currentPage, 10);
         setPayoutList(payouts);
-        setPagination(paginationData);
         setPayoutError(error);
+        
+        if (paginationData) {
+          setTotalPages(paginationData.totalPages);
+          setTotalPartners(paginationData.totalItems);
+        }
       }
+
 
       setIsFetchingData(false);
     };
@@ -86,14 +87,19 @@ export default function Payouts({ userRole }: PayoutsProps) {
   // Admin View: Show Payout List Table
   if (isAdmin) {
     return (
-      <div className="relative min-h-screen">
+      <div className="space-y-4">
         <PayoutListTable 
           payouts={payoutList} 
           error={payoutError} 
           isLoading={isFetchingData}
-          pagination={pagination}
-          onPageChange={handlePageChange}
         />
+        {totalPartners > 0 && !isFetchingData && (
+          <Pagination 
+            currentPage={currentPage} 
+            totalPages={totalPages} 
+            onPageChange={handlePageChange} 
+          />
+        )}
       </div>
     );
   }

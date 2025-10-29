@@ -21,16 +21,8 @@ export interface PayoutListTableProps {
   payouts: PayoutListItem[];
   error: string | null;
   isLoading: boolean;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  } | null;
-  onPageChange: (page: number) => void;
 }
+
 
 const formatCurrency = (value: number): string =>
   new Intl.NumberFormat("en-IN", {
@@ -41,9 +33,7 @@ const formatCurrency = (value: number): string =>
 export default function PayoutListTable({ 
   payouts, 
   error, 
-  isLoading,
-  pagination,
-  onPageChange 
+  isLoading
 }: PayoutListTableProps) {
   return (
     <div className="space-y-4">
@@ -130,73 +120,7 @@ export default function PayoutListTable({
       </div>
 
       {/* Pagination Controls */}
-      {pagination && pagination.totalPages > 1 && !isLoading && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/[0.05] rounded-xl">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-700 dark:text-gray-300">
-              Page <span className="font-medium">{pagination.currentPage}</span> of{" "}
-              <span className="font-medium">{pagination.totalPages}</span>
-            </span>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              ({pagination.totalItems} total partners)
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onPageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPreviousPage}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
-            >
-              Previous
-            </button>
-            
-            {/* Page numbers */}
-            <div className="flex gap-1">
-              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                .filter(page => {
-                  // Show first page, last page, current page, and pages around current
-                  return (
-                    page === 1 ||
-                    page === pagination.totalPages ||
-                    Math.abs(page - pagination.currentPage) <= 1
-                  );
-                })
-                .map((page, index, array) => {
-                  // Add ellipsis if there's a gap
-                  const prevPage = array[index - 1];
-                  const showEllipsis = prevPage && page - prevPage > 1;
-                  
-                  return (
-                    <React.Fragment key={page}>
-                      {showEllipsis && (
-                        <span className="px-3 py-2 text-gray-500">...</span>
-                      )}
-                      <button
-                        onClick={() => onPageChange(page)}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                          page === pagination.currentPage
-                            ? "bg-blue-600 text-white"
-                            : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    </React.Fragment>
-                  );
-                })}
-            </div>
-            
-            <button
-              onClick={() => onPageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 }
