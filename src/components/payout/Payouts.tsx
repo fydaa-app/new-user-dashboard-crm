@@ -1,32 +1,77 @@
-// src/components/common/Payouts.tsx
+// src/components/payout/Payouts.tsx
 
 import GridShape from "@/components/common/GridShape";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import { fetchPartnerEarnings } from "@/services/payoutService";
+import { fetchPartnerEarnings, fetchPartnerPayoutList } from "@/services/payoutService";
+import PayoutListTable, { PayoutListItem } from "../tables/PayoutListTable";
+
 
 interface PayoutsProps {
   userRole?: string;
 }
 
 export default function Payouts({ userRole }: PayoutsProps) {
+  // State for partner's own earnings (partner view)
   const [earnings, setEarnings] = useState<{
     totalEarnings: number;
     availableAmount: number;
     withdrawableAmount: number;
+  }>({
+    totalEarnings: 0,
+    availableAmount: 0,
+    withdrawableAmount: 0,
+  });
+
+  // State for admin's payout list view
+  const [payoutList, setPayoutList] = useState<PayoutListItem[]>([]);
+  const [payoutError, setPayoutError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<{
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingData, setIsFetchingData] = useState(false);
 
   const router = useRouter();
   const isPartner = userRole === "5";
   const isAdmin = userRole === "0";
 
   useEffect(() => {
-    // Both admin and partner use the same API - backend differentiates based on token
-    if (isPartner || isAdmin) {
-      fetchPartnerEarnings().then(setEarnings);
-    }
-  }, [isPartner, isAdmin]);
+    const fetchData = async () => {
+      setIsFetchingData(true);
+
+      // Partner viewing their own earnings
+      if (isPartner) {
+        const data = await fetchPartnerEarnings();
+        if (data) {
+          setEarnings(data);
+        }
+      }
+
+      // Admin viewing all partners' payout list
+      if (isAdmin) {
+        const { payouts, pagination: paginationData, error } = await fetchPartnerPayoutList(currentPage, 10);
+        setPayoutList(payouts);
+        setPagination(paginationData);
+        setPayoutError(error);
+      }
+
+      setIsFetchingData(false);
+    };
+
+    fetchData();
+  }, [isPartner, isAdmin, currentPage]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const handleWithdrawClick = () => {
     setIsLoading(true);
@@ -38,8 +83,24 @@ export default function Payouts({ userRole }: PayoutsProps) {
     return null;
   }
 
+  // Admin View: Show Payout List Table
+  if (isAdmin) {
+    return (
+      <div className="relative min-h-screen">
+        <PayoutListTable 
+          payouts={payoutList} 
+          error={payoutError} 
+          isLoading={isFetchingData}
+          pagination={pagination}
+          onPageChange={handlePageChange}
+        />
+      </div>
+    );
+  }
+
+  // Partner View: Show Cards and Withdraw Button
   // Show loading while fetching data
-  if (!earnings) {
+  if (isFetchingData) {
     return (
       <div className="flex h-[400px] items-center justify-center w-full">
         <div className="w-16 h-16 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
@@ -63,7 +124,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Earned</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.availableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.availableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
@@ -80,7 +141,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Balance Withdrawable</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.withdrawableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.withdrawableAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
@@ -97,7 +158,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
             <div>
               <p className="text-white text-sm font-medium mb-2">Lifetime Earning</p>
               <p className="text-white text-2xl font-bold">
-                {earnings?.totalEarnings.toLocaleString("en-IN", { style: "currency", currency: "INR" }) || "₹0.00"}
+                {earnings?.totalEarnings.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
               </p>
             </div>
           </div>
@@ -105,40 +166,38 @@ export default function Payouts({ userRole }: PayoutsProps) {
       </div>
 
       {/* Withdraw Button - Only for partners */}
-      {isPartner && (
-        <div className="w-full flex justify-end">
-          <button
-            onClick={handleWithdrawClick}
-            disabled={isLoading}
-            className="
-              flex items-center justify-center gap-2 
-              bg-black text-white 
-              dark:bg-white dark:text-black
-              font-semibold py-3 px-6 rounded-lg shadow-lg 
-              hover:text-gray-200 dark:hover:text-gray-800
-              hover:shadow-xl 
-              disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none 
-              transition-all duration-200 transform 
-              hover:scale-105 active:scale-95 
-              focus:outline-none focus:ring-4 focus:ring-gray-300
-              dark:focus:ring-gray-700
-              min-w-[400px]
-            "
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>Loading...</span>
-              </>
-            ) : (
-              <span>Withdraw Balance</span>
-            )}
-          </button>
-        </div>
-      )}
+      <div className="w-full flex justify-end">
+        <button
+          onClick={handleWithdrawClick}
+          disabled={isLoading}
+          className="
+            flex items-center justify-center gap-2 
+            bg-black text-white 
+            dark:bg-white dark:text-black
+            font-semibold py-3 px-6 rounded-lg shadow-lg 
+            hover:text-gray-200 dark:hover:text-gray-800
+            hover:shadow-xl 
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none 
+            transition-all duration-200 transform 
+            hover:scale-105 active:scale-95 
+            focus:outline-none focus:ring-4 focus:ring-gray-300
+            dark:focus:ring-gray-700
+            min-w-[400px]
+          "
+        >
+          {isLoading ? (
+            <>
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading...</span>
+            </>
+          ) : (
+            <span>Withdraw Balance</span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

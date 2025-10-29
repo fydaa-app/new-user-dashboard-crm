@@ -40,10 +40,61 @@ interface WithdrawalAccountSetup {
   details: BankAccountDetails | UpiDetails;
 }
 
+interface PartnerPayoutApiResponse {
+  success: boolean;
+  data: {
+    partners: {
+      partnerId: number;
+      name: string;
+      email: string;
+      mobileNumber: string;
+      role: string;
+      onboardingDate: string;
+      earnings: {
+        totalEarnings: number;
+        availableAmount: number;
+        withdrawableAmount: number;
+        withdrawnAmount: number;
+      };
+      stats: {
+        totalUsers: number;
+        activeUsers: number;
+        inactiveUsers: number;
+      };
+      withdrawalSetup: {
+        isSetup: boolean;
+        accountType: string | null;
+      };
+    }[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+      hasNextPage: boolean;
+      hasPreviousPage: boolean;
+    };
+    summary: {
+      totalPartners: number;
+      totalActivePartners: number;
+      totalInactivePartners: number;
+    };
+  };
+}
+
+interface PartnerPayoutListItem {
+  partnerId: number;
+  partnerName: string;
+  balanceEarned: number;
+  balanceWithdrawable: number;
+  lifetimeEarning: number;
+  onboardingDate: string;
+}
 /**
  * Fetch partner earnings data
+ * @param employeeId - Optional employee ID to fetch specific partner's earnings (admin view)
  */
-export const fetchPartnerEarnings = async (): Promise<{
+export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
   totalEarnings: number;
   availableAmount: number;
   withdrawableAmount: number;
@@ -52,7 +103,13 @@ export const fetchPartnerEarnings = async (): Promise<{
     const token = getAuthToken();
     if (!token) return null;
 
-    const res = await fetch(`${API_URL}/referrals/partner/earnings`, {
+    // Build URL with optional employeeId parameter
+    let url = `${API_URL}/referrals/partner/earnings`;
+    if (employeeId) {
+      url += `?employeeId=${employeeId}`;
+    }
+
+    const res = await fetch(url, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -243,6 +300,84 @@ export const calculateEarnings = async (): Promise<ApiResponse<Record<string, un
     return {
       success: false,
       error: 'Network error occurred'
+    };
+  }
+};
+
+
+export const fetchPartnerPayoutList = async (
+  page: number = 1,
+  limit: number = 10
+): Promise<{
+  payouts: PartnerPayoutListItem[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  } | null;
+  error: string | null;
+}> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      return { 
+        payouts: [], 
+        pagination: null,
+        error: "Authentication token not found" 
+      };
+    }
+
+    // ========== API CALL ==========
+    const endpoint = process.env.NEXT_PUBLIC_ADMIN_PARTNERS_LIST_ENDPOINT || '/referrals/admin/partners';
+    const res = await fetch(
+      `${API_URL}${endpoint}?page=${page}&limit=${limit}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      return { 
+        payouts: [], 
+        pagination: null,
+        error: errorData.message || "Failed to fetch payout list" 
+      };
+    }
+
+    const response: PartnerPayoutApiResponse = await res.json();
+    
+    // Transform API response to match our interface
+    const transformedPayouts: PartnerPayoutListItem[] = response.data.partners.map(partner => ({
+      partnerId: partner.partnerId,
+      partnerName: partner.name,
+      balanceEarned: partner.earnings.availableAmount,
+      balanceWithdrawable: partner.earnings.withdrawableAmount,
+      lifetimeEarning: partner.earnings.totalEarnings,
+      onboardingDate: partner.onboardingDate,
+    }));
+
+    return {
+      payouts: transformedPayouts,
+      pagination: response.data.pagination,
+      error: null
+    };
+    // ========== END API CALL ==========
+
+  } catch (e) {
+    console.error("Error fetching partner payout list:", e);
+    return {
+      payouts: [],
+      pagination: null,
+      error: "Network error occurred while fetching payout list"
     };
   }
 };

@@ -3,7 +3,7 @@
 import React from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import Payouts from "@/components/common/Payouts";
+import Payouts from "@/components/payout/Payouts";
 
 export default function SettingPage() {
     return (
