@@ -70,9 +70,10 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
               <NewCustomerIcon />
               <h2 className="numbers-sale">{data.totalUsers}</h2>
               <p className="total-sale-text">Total Users</p>
-              <div className="justify-between flex items-center">
+              <span className="total-yes"></span>
+              {/* <div className="justify-between flex items-center">
                             <span className="total-yes ">Active user : {data.activeUsers}</span><span className="total-yes ">Inactive user : {data.inactiveUsers} </span>
-              </div>              
+              </div>               */}
             </div>
           </div>
           <div className="col-span-4">
