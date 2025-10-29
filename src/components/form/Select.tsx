@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface Option {
   value: string;
@@ -8,10 +8,10 @@ interface Option {
 interface SelectProps {
   options: Option[];
   placeholder?: string;
-  onChange: (option: Option | null) => void; // Allow null to be passed
+  onChange: (option: Option | null) => void;
   className?: string;
   defaultValue?: string;
-  value?: string | null; // Allow null values
+  value?: string | null;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -22,69 +22,87 @@ const Select: React.FC<SelectProps> = ({
   defaultValue,
   value,
 }) => {
-  // Initialize with empty string only if no value is provided
   const [selectedValue, setSelectedValue] = useState<string>(() => {
-    if (value !== undefined && value !== null) {
-      return value;
-    }
-    if (defaultValue !== undefined) {
-      return defaultValue;
-    }
+    if (value !== undefined && value !== null) return value;
+    if (defaultValue !== undefined) return defaultValue;
     return "";
   });
-  
-  // Update internal state when the external value prop changes
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (value !== undefined) {
-      setSelectedValue(value || ""); // Convert null to empty string for select element
+      setSelectedValue(value || "");
     }
   }, [value]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newValue = e.target.value;
-    setSelectedValue(newValue);
-    
-    // If empty value (placeholder selected), pass null
-    if (newValue === "") {
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (option: Option | null) => {
+    if (option) {
+      setSelectedValue(option.value);
+      onChange(option);
+    } else {
+      setSelectedValue("");
       onChange(null);
-      return;
     }
-    
-    // Find the selected option and pass the entire option object to onChange
-    const selectedOption = options.find((option) => option.value === newValue);
-    if (selectedOption) {
-      onChange(selectedOption);
-    }
+    setIsOpen(false);
   };
 
+  const selectedOption = options.find((opt) => opt.value === selectedValue);
+  const displayText = selectedOption ? selectedOption.label : placeholder;
+
   return (
-    <select
-      className={`h-11 w-full appearance-none rounded-lg border border-gray-300 px-4 py-2.5 pr-11 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
-        selectedValue
-          ? "text-gray-800 dark:text-white/90"
-          : "text-gray-400 dark:text-gray-400"
-      } ${className}`}
-      value={selectedValue}
-      onChange={handleChange}
-    >
-      {/* Placeholder option - not disabled so user can select it to clear selection */}
-      <option
-        value=""
-        className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+    <div ref={dropdownRef} className={`relative ${className}`}>
+      {/* Select Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`h-11 w-full appearance-none rounded-lg border border-gray-300 px-4 py-2.5 pr-11 text-sm text-left shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${
+          selectedValue
+            ? "text-gray-800 dark:text-white/90"
+            : "text-gray-400 dark:text-gray-400"
+        }`}
       >
-        {placeholder}
-      </option>
-      {/* Map over options */}
-      {options.map((option) => (
-        <option
-          key={option.value}
-          value={option.value}
-          className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-        >
-          {option.label}
-        </option>
-      ))}
-    </select>
+        {displayText}
+      </button>
+
+      {/* Dropdown Options */}
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto">
+          {/* Placeholder option */}
+          <div
+            onClick={() => handleSelect(null)}
+            className="px-4 py-2.5 text-sm text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400 first:rounded-t-lg"
+          >
+            {placeholder}
+          </div>
+          {/* Regular options */}
+          {options.map((option) => (
+            <div
+              key={option.value}
+              onClick={() => handleSelect(option)}
+              className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 last:rounded-b-lg ${
+                option.value === selectedValue
+                  ? "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white/90 font-medium"
+                  : "text-gray-700 dark:text-gray-400"
+              }`}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
