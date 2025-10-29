@@ -44,7 +44,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">{data.totalRevenue}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalRevenue}</h2>
               <p className="total-sale-text">Total Revenue</p>
               <span className="total-yes"></span>
             </div>
@@ -52,7 +52,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <OrderIcon /> 
-              <h2 className="numbers-sale">{data.totalNoOfTransactions}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
               <span className="total-yes"></span>
             </div>
@@ -60,7 +60,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <DiscIcon />
-              <h2 className="numbers-sale">{data.noOfPayments}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.noOfPayments}</h2>
               <p className="total-sale-text">Total Payments</p>
               <span className="total-yes"></span>
             </div>
@@ -68,7 +68,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <NewCustomerIcon />
-              <h2 className="numbers-sale">{data.totalUsers}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalUsers}</h2>
               <p className="total-sale-text">Total Users</p>
               <span className="total-yes"></span>
               {/* <div className="justify-between flex items-center">
@@ -79,7 +79,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">{formatCurrency(data.assetsUnderManagement)}</h2>
+              <h2 className="numbers-sale text-gray-900">{formatCurrency(data.assetsUnderManagement)}</h2>
               <p className="total-sale-text">Asset Under Advisory</p>
               <span className="total-yes"></span>
             </div>

@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) { 
   return (
     <html lang="en">
-      <body className={outfit.className}>
+      <body className={`${outfit.className} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <ThemeProvider>
           <SidebarProvider>
             <AuthProvider>
