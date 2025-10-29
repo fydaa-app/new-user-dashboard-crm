@@ -38,7 +38,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">{data.totalActiveSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalActiveSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/activesip">Total Active SIPs Mandate</a></p>
               <span className="total-yes"></span>
             </div>
@@ -46,7 +46,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">{data.totalInvestedSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalInvestedSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/investedsip">Total Invested Sips</a></p>
               <span className="total-yes"></span>
             </div>
@@ -54,7 +54,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <NewCustomerIcon />
-              <h2 className="numbers-sale">{data.totalInProgressSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalInProgressSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/inprogresssip">Total In-Progress SIPs</a></p>
               <span className="total-yes"></span>
             </div>
@@ -62,7 +62,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <OrderIcon /> 
-              <h2 className="numbers-sale">{data.totalInActiveSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalInActiveSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/inactivesip">Total Inactive SIPs</a></p>
               <span className="total-yes"></span>
             </div>
@@ -70,7 +70,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <SalesIcon />
-              <h2 className="numbers-sale">{data.totalPartiallyExitedSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalPartiallyExitedSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/partiallyexitsip">Partially Exited SIPs</a></p>
               <span className="total-yes"></span>
             </div>
@@ -78,7 +78,7 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
           <div className="col-span-4">
             <div className="box-total-sales">
               <DiscIcon />
-              <h2 className="numbers-sale">{data.totalCompletedSips || 0}</h2>
+              <h2 className="numbers-sale text-gray-900">{data.totalCompletedSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/completedsip">Total Completed SIPs</a></p>
               <span className="total-yes"></span>
             </div>
