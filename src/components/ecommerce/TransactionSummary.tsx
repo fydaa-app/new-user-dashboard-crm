@@ -5,7 +5,7 @@ import {
   XCircleIcon, 
   ExclamationTriangleIcon,
   ChartBarIcon,
-  CurrencyDollarIcon,
+  CurrencyRupeeIcon,
   ClockIcon
 } from "@heroicons/react/24/outline";
 
@@ -253,7 +253,7 @@ const TransactionSummary = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-4 border border-indigo-200 dark:border-indigo-800">
             <div className="flex items-center gap-2 mb-2">
-              <CurrencyDollarIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <CurrencyRupeeIcon className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               <h4 className="font-semibold text-gray-800 dark:text-white">
                 Total Amount
               </h4>
@@ -265,7 +265,7 @@ const TransactionSummary = ({
 
           <div className="rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 p-4 border border-teal-200 dark:border-teal-800">
             <div className="flex items-center gap-2 mb-2">
-              <CurrencyDollarIcon className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+              <CurrencyRupeeIcon className="w-5 h-5 text-teal-600 dark:text-teal-400" />
               <h4 className="font-semibold text-gray-800 dark:text-white">
                 Total Processed
               </h4>
