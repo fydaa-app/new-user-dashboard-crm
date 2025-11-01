@@ -9,6 +9,7 @@ interface DataProps {
   totalInProgressSips?: number;
   totalPartiallyExitedSips?: number;
   totalInvestedSips?: number;
+  totalCancelledSips?: number;
 }
 
 const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) => {
@@ -80,6 +81,14 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <DiscIcon />
               <h2 className="numbers-sale text-gray-900">{data.totalCompletedSips || 0}</h2>
               <p className="total-sale-text"><a href="/sip/completedsip">Total Completed SIPs</a></p>
+              <span className="total-yes"></span>
+            </div>
+          </div>
+          <div className="col-span-4">
+            <div className="box-total-sales">
+              <OrderIcon />
+              <h2 className="numbers-sale text-gray-900">{data.totalCancelledSips || 0}</h2>
+              <p className="total-sale-text"><a href="/sip/cancelledsip">Cancelled SIPs</a></p>
               <span className="total-yes"></span>
             </div>
           </div>
