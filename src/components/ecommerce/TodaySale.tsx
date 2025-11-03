@@ -40,9 +40,9 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
           </div>         
         </div>
 
-        <div className="xl:flex items-end justify-between mt-5 sales-box-row">
+        <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
           <div className="col-span-4">
-            <div className="box-total-sales">
+            <div className="box-total-sales h-full">
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">{data.totalRevenue}</h2>
               <p className="total-sale-text">Total Revenue</p>
@@ -50,7 +50,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
             </div>
           </div>
           <div className="col-span-4">
-            <div className="box-total-sales">
+            <div className="box-total-sales h-full">
               <OrderIcon /> 
               <h2 className="numbers-sale text-gray-900">{data.totalNoOfTransactions}</h2>
               <p className="total-sale-text">Total Transactions</p>
@@ -58,7 +58,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
             </div>
           </div>
           <div className="col-span-4">
-            <div className="box-total-sales">
+            <div className="box-total-sales h-full">
               <DiscIcon />
               <h2 className="numbers-sale text-gray-900">{data.noOfPayments}</h2>
               <p className="total-sale-text">Total Payments</p>
@@ -66,7 +66,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
             </div>
           </div>
           <div className="col-span-4">
-            <div className="box-total-sales">
+            <div className="box-total-sales h-full">
               <NewCustomerIcon />
               <h2 className="numbers-sale text-gray-900">{data.totalUsers}</h2>
               <p className="total-sale-text">Total Users</p>
@@ -77,7 +77,7 @@ const TodaySale = ({ data, loading }: { data: DataProps | null; loading: boolean
             </div>
           </div>
           <div className="col-span-4">
-            <div className="box-total-sales">
+            <div className="box-total-sales h-full">
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">{formatCurrency(data.assetsUnderManagement)}</h2>
               <p className="total-sale-text">Asset Under Advisory</p>
