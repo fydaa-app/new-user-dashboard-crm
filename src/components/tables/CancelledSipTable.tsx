@@ -14,6 +14,7 @@ export interface CancelledSipTableProps {
     sipId: number;
     userId: number;
     userName: string;
+    referredByName: string;
     userMobileNumber: string;
     userOnboardingDate: Date;
     sipName: string;
@@ -68,6 +69,9 @@ export default function CancelledSipTable({ sips, error }: CancelledSipTableProp
                     User Name
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Referred By
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Mobile
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
@@ -111,6 +115,9 @@ export default function CancelledSipTable({ sips, error }: CancelledSipTableProp
                           </span>
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {sip.referredByName || '-'}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {sip.userMobileNumber}
