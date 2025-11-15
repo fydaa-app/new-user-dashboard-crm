@@ -112,23 +112,12 @@ interface UserTabProps {
 }
 
 export async function fetchUserTabData(userId: number) {
-  console.log("🔵 [UserTab] fetchUserTabData called with userId:", userId);
-  console.log("🔵 [UserTab] fetchUserTabData - userId type:", typeof userId);
-  
   const authToken = document.cookie
     .split("; ")
     .find((row) => row.startsWith(process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME + "="))
     ?.split("=")[1];
 
-  console.log("🔵 [UserTab] fetchUserTabData - Auth cookie name:", process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME);
-  console.log("🔵 [UserTab] fetchUserTabData - All cookies:", document.cookie);
-  console.log("🔵 [UserTab] fetchUserTabData - Auth token found:", !!authToken);
-  console.log("🔵 [UserTab] fetchUserTabData - Auth token length:", authToken?.length || 0);
-
-  if (!authToken) {
-    console.error("❌ [UserTab] fetchUserTabData - User auth token not found");
-    throw new Error("User auth token not found");
-  }
+  if (!authToken) throw new Error("User auth token not found");
 
   const headers = {
     Authorization: `Bearer ${authToken}`,
@@ -138,32 +127,6 @@ export async function fetchUserTabData(userId: number) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const stockApiUrl = process.env.NEXT_PUBLIC_STOCK_API_URL || "";
 
-  console.log("🔵 [UserTab] fetchUserTabData - API URLs:");
-  console.log("  - apiUrl:", apiUrl);
-  console.log("  - stockApiUrl:", stockApiUrl);
-  console.log("🔵 [UserTab] fetchUserTabData - Environment variables:");
-  console.log("  - NEXT_PUBLIC_USER_DETAILS_ENDPOINT:", process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT);
-  console.log("  - NEXT_PUBLIC_PORTFOLIO_ENDPOINT:", process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT);
-  console.log("  - NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT:", process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT);
-  console.log("  - NEXT_PUBLIC_USER_LIST_ENDPOINT:", process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT);
-  console.log("  - NEXT_PUBLIC_STOCK_LIST_ENDPOINT:", process.env.NEXT_PUBLIC_STOCK_LIST_ENDPOINT);
-
-  const userDetailsUrl = `${apiUrl}${process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT}/${userId}`;
-  const portfolioUrl = `${stockApiUrl}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}?userId=${userId}`;
-  const transactionsUrl = `${apiUrl}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?userId=${userId}`;
-  const subscriptionsUrl = `${apiUrl}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?userId=${userId}`;
-  const stockOrdersUrl = `${stockApiUrl}${process.env.NEXT_PUBLIC_STOCK_LIST_ENDPOINT}?userId=${userId}`;
-
-  console.log("🔵 [UserTab] fetchUserTabData - Fetch URLs:");
-  console.log("  - userDetailsUrl:", userDetailsUrl);
-  console.log("  - portfolioUrl:", portfolioUrl);
-  console.log("  - transactionsUrl:", transactionsUrl);
-  console.log("  - subscriptionsUrl:", subscriptionsUrl);
-  console.log("  - stockOrdersUrl:", stockOrdersUrl);
-
-  console.log("🔵 [UserTab] fetchUserTabData - Starting Promise.all fetch...");
-  const startTime = Date.now();
-
   const [
     userDetailsRes,
     portfolioRes,
@@ -172,108 +135,29 @@ export async function fetchUserTabData(userId: number) {
     stockOrdersRes,
     xirrRes,
   ] = await Promise.all([
-    fetch(userDetailsUrl, { headers }).then(async (res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - userDetailsRes status:", res.status, res.statusText);
-      console.log("🔵 [UserTab] fetchUserTabData - userDetailsRes headers:", Object.fromEntries(res.headers.entries()));
-      return res;
-    }),
-    fetch(portfolioUrl, { headers }).then(async (res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - portfolioRes status:", res.status, res.statusText);
-      console.log("🔵 [UserTab] fetchUserTabData - portfolioRes headers:", Object.fromEntries(res.headers.entries()));
-      return res;
-    }),
-    fetch(transactionsUrl, { headers }).then(async (res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - transactionsRes status:", res.status, res.statusText);
-      console.log("🔵 [UserTab] fetchUserTabData - transactionsRes headers:", Object.fromEntries(res.headers.entries()));
-      return res;
-    }),
-    fetch(subscriptionsUrl, { headers }).then(async (res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - subscriptionsRes status:", res.status, res.statusText);
-      console.log("🔵 [UserTab] fetchUserTabData - subscriptionsRes headers:", Object.fromEntries(res.headers.entries()));
-      return res;
-    }),
-    fetch(stockOrdersUrl, { headers }).then(async (res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - stockOrdersRes status:", res.status, res.statusText);
-      console.log("🔵 [UserTab] fetchUserTabData - stockOrdersRes headers:", Object.fromEntries(res.headers.entries()));
-      return res;
-    }),
-    xirrService.getUserXIRR(userId).then((res) => {
-      console.log("🔵 [UserTab] fetchUserTabData - xirrRes:", res);
-      return res;
-    }).catch((error) => {
-      console.error("❌ [UserTab] fetchUserTabData - xirrService error:", error);
-      return null;
-    }),
+    fetch(`${apiUrl}${process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT}/${userId}`, { headers }),
+    fetch(`${stockApiUrl}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}?userId=${userId}`, { headers }),
+    fetch(`${apiUrl}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?userId=${userId}`, { headers }),
+    fetch(`${apiUrl}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?userId=${userId}`, { headers }), // Replace with real subs endpoint if exists
+    fetch(`${stockApiUrl}${process.env.NEXT_PUBLIC_STOCK_LIST_ENDPOINT}?userId=${userId}`, { headers }),
+    xirrService.getUserXIRR(userId),
   ]);
 
-  const fetchTime = Date.now() - startTime;
-  console.log("🔵 [UserTab] fetchUserTabData - All fetches completed in", fetchTime, "ms");
+  if (!userDetailsRes.ok) throw new Error("Failed to fetch user details");
+  if (!portfolioRes.ok) throw new Error("Failed to fetch portfolio details");
+  if (!transactionsRes.ok) throw new Error("Failed to fetch transactions");
+  if (!subscriptionsRes.ok) throw new Error("Failed to fetch subscriptions");
+  if (!stockOrdersRes.ok) throw new Error("Failed to fetch stock orders");
 
-  console.log("🔵 [UserTab] fetchUserTabData - Response statuses:");
-  console.log("  - userDetailsRes.ok:", userDetailsRes.ok, "status:", userDetailsRes.status);
-  console.log("  - portfolioRes.ok:", portfolioRes.ok, "status:", portfolioRes.status);
-  console.log("  - transactionsRes.ok:", transactionsRes.ok, "status:", transactionsRes.status);
-  console.log("  - subscriptionsRes.ok:", subscriptionsRes.ok, "status:", subscriptionsRes.status);
-  console.log("  - stockOrdersRes.ok:", stockOrdersRes.ok, "status:", stockOrdersRes.status);
-
-  if (!userDetailsRes.ok) {
-    const errorText = await userDetailsRes.text();
-    console.error("❌ [UserTab] fetchUserTabData - Failed to fetch user details");
-    console.error("  - Status:", userDetailsRes.status, userDetailsRes.statusText);
-    console.error("  - Response:", errorText);
-    throw new Error("Failed to fetch user details");
-  }
-  if (!portfolioRes.ok) {
-    const errorText = await portfolioRes.text();
-    console.error("❌ [UserTab] fetchUserTabData - Failed to fetch portfolio details");
-    console.error("  - Status:", portfolioRes.status, portfolioRes.statusText);
-    console.error("  - Response:", errorText);
-    throw new Error("Failed to fetch portfolio details");
-  }
-  if (!transactionsRes.ok) {
-    const errorText = await transactionsRes.text();
-    console.error("❌ [UserTab] fetchUserTabData - Failed to fetch transactions");
-    console.error("  - Status:", transactionsRes.status, transactionsRes.statusText);
-    console.error("  - Response:", errorText);
-    throw new Error("Failed to fetch transactions");
-  }
-  if (!subscriptionsRes.ok) {
-    const errorText = await subscriptionsRes.text();
-    console.error("❌ [UserTab] fetchUserTabData - Failed to fetch subscriptions");
-    console.error("  - Status:", subscriptionsRes.status, subscriptionsRes.statusText);
-    console.error("  - Response:", errorText);
-    throw new Error("Failed to fetch subscriptions");
-  }
-  if (!stockOrdersRes.ok) {
-    const errorText = await stockOrdersRes.text();
-    console.error("❌ [UserTab] fetchUserTabData - Failed to fetch stock orders");
-    console.error("  - Status:", stockOrdersRes.status, stockOrdersRes.statusText);
-    console.error("  - Response:", errorText);
-    throw new Error("Failed to fetch stock orders");
-  }
-
-  console.log("🔵 [UserTab] fetchUserTabData - Parsing JSON responses...");
   const userDetails = await userDetailsRes.json();
   const portfolioDetails = await portfolioRes.json();
   const transactions = await transactionsRes.json();
   const subscriptions = await subscriptionsRes.json();
   const stockOrders = await stockOrdersRes.json();
 
-  console.log("🔵 [UserTab] fetchUserTabData - Parsed data:");
-  console.log("  - userDetails:", userDetails);
-  console.log("  - portfolioDetails:", portfolioDetails);
-  console.log("  - portfolioDetails length:", Array.isArray(portfolioDetails) ? portfolioDetails.length : "not an array");
-  console.log("  - transactions:", transactions);
-  console.log("  - transactions length:", Array.isArray(transactions) ? transactions.length : "not an array");
-  console.log("  - subscriptions:", subscriptions);
-  console.log("  - subscriptions length:", Array.isArray(subscriptions) ? subscriptions.length : "not an array");
-  console.log("  - stockOrders:", stockOrders);
-  console.log("  - stockOrders length:", Array.isArray(stockOrders) ? stockOrders.length : "not an array");
-
   const xirrData: XIRRTableData | null = xirrRes;
-  console.log("🔵 [UserTab] fetchUserTabData - xirrData:", xirrData);
 
-  const result = {
+  return {
     userDetails,
     portfolioDetails,
     transactions,
@@ -281,9 +165,6 @@ export async function fetchUserTabData(userId: number) {
     stockOrders,
     xirrData,
   };
-
-  console.log("🔵 [UserTab] fetchUserTabData - Returning result:", result);
-  return result;
 }
 
 export default function UserTab({
@@ -293,90 +174,37 @@ export default function UserTab({
   subscriptions,
   stockOrders,
 }: UserTabProps) {
-  console.log("🟢 [UserTab] Component rendered/re-rendered");
-  console.log("🟢 [UserTab] Props received:");
-  console.log("  - userDetails:", userDetails);
-  console.log("  - userDetails type:", typeof userDetails);
-  console.log("  - userDetails.id:", userDetails?.id);
-  console.log("  - userDetails.fromApp:", userDetails?.fromApp);
-  console.log("  - portfolioDetails:", portfolioDetails);
-  console.log("  - portfolioDetails type:", typeof portfolioDetails);
-  console.log("  - portfolioDetails isArray:", Array.isArray(portfolioDetails));
-  console.log("  - portfolioDetails length:", Array.isArray(portfolioDetails) ? portfolioDetails.length : "N/A");
-  console.log("  - transactions:", transactions);
-  console.log("  - transactions type:", typeof transactions);
-  console.log("  - transactions isArray:", Array.isArray(transactions));
-  console.log("  - transactions length:", Array.isArray(transactions) ? transactions.length : "N/A");
-  console.log("  - subscriptions:", subscriptions);
-  console.log("  - subscriptions type:", typeof subscriptions);
-  console.log("  - subscriptions isArray:", Array.isArray(subscriptions));
-  console.log("  - subscriptions length:", Array.isArray(subscriptions) ? subscriptions.length : "N/A");
-  console.log("  - stockOrders:", stockOrders);
-  console.log("  - stockOrders type:", typeof stockOrders);
-  console.log("  - stockOrders isArray:", Array.isArray(stockOrders));
-  console.log("  - stockOrders length:", Array.isArray(stockOrders) ? stockOrders.length : "N/A");
-
   const [activeTab, setActiveTab] = useState<string>("Portfolio");
   const [xirrData, setXirrData] = useState<XIRRTableData | null>(null);
   const [loadingXIRR, setLoadingXIRR] = useState<boolean>(false);
   const [xirrError, setXirrError] = useState<string | null>(null);
 
-  console.log("🟢 [UserTab] State values:");
-  console.log("  - activeTab:", activeTab);
-  console.log("  - xirrData:", xirrData);
-  console.log("  - loadingXIRR:", loadingXIRR);
-  console.log("  - xirrError:", xirrError);
-
   useEffect(() => {
-    console.log("🟡 [UserTab] useEffect triggered");
-    console.log("🟡 [UserTab] useEffect - activeTab:", activeTab);
-    console.log("🟡 [UserTab] useEffect - userDetails:", userDetails);
-    console.log("🟡 [UserTab] useEffect - userDetails.id:", userDetails?.id);
-    console.log("🟡 [UserTab] useEffect - userDetails.fromApp:", userDetails?.fromApp);
-
     async function fetchXIRR() {
-      console.log("🟡 [UserTab] fetchXIRR function called");
-      console.log("🟡 [UserTab] fetchXIRR - userDetails.fromApp:", userDetails?.fromApp);
-      console.log("🟡 [UserTab] fetchXIRR - userDetails.fromApp?.toLowerCase():", userDetails?.fromApp?.toLowerCase());
-      console.log("🟡 [UserTab] fetchXIRR - Comparison result:", userDetails.fromApp?.toLowerCase() !== "savestment");
-
       if (userDetails.fromApp?.toLowerCase() !== "savestment") {
-        console.log("🟡 [UserTab] fetchXIRR - Not a Savestment user, skipping XIRR fetch");
         setXirrData(null);
         return;
       }
       try {
-        console.log("🟡 [UserTab] fetchXIRR - Starting XIRR fetch for user ID:", userDetails.id);
         setLoadingXIRR(true);
         setXirrError(null);
         const data = await xirrService.getUserXIRR(userDetails.id);
-        console.log("🟡 [UserTab] fetchXIRR - XIRR data received:", data);
-        console.log("🟡 [UserTab] fetchXIRR - XIRR data type:", typeof data);
-        console.log("🟡 [UserTab] fetchXIRR - XIRR data truthy:", !!data);
         if (data) {
-          console.log("🟡 [UserTab] fetchXIRR - Setting XIRR data");
           setXirrData(data);
         } else {
-          console.warn("🟡 [UserTab] fetchXIRR - No XIRR data returned (null/undefined)");
           setXirrData(null);
           setXirrError("Failed to load XIRR data");
         }
       } catch (error) {
-        console.error("❌ [UserTab] fetchXIRR - Error occurred:", error);
-        console.error("❌ [UserTab] fetchXIRR - Error message:", error instanceof Error ? error.message : String(error));
-        console.error("❌ [UserTab] fetchXIRR - Error stack:", error instanceof Error ? error.stack : "N/A");
         setXirrData(null);
         setXirrError("Failed to load XIRR data");
       } finally {
-        console.log("🟡 [UserTab] fetchXIRR - Setting loading to false");
         setLoadingXIRR(false);
       }
     }
     if (activeTab === "Portfolio") {
-      console.log("🟡 [UserTab] useEffect - Active tab is Portfolio, calling fetchXIRR");
       fetchXIRR();
     } else {
-      console.log("🟡 [UserTab] useEffect - Active tab is not Portfolio, resetting XIRR data");
       setXirrData(null); // Reset on tab change
     }
   }, [activeTab, userDetails]);
@@ -386,9 +214,6 @@ export default function UserTab({
 
   // Allowed tabs excluding 'Reports' and 'Payments'
   const allowedTabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile"];
-
-  console.log("🟢 [UserTab] Rendering - allowedTabs:", allowedTabs);
-  console.log("🟢 [UserTab] Rendering - activeTab:", activeTab);
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6">
@@ -430,12 +255,7 @@ export default function UserTab({
             {allowedTabs.map((tab) => (
               <button
                 key={tab}
-                onClick={() => {
-                  console.log("🟠 [UserTab] Tab clicked:", tab);
-                  console.log("🟠 [UserTab] Previous activeTab:", activeTab);
-                  setActiveTab(tab);
-                  console.log("🟠 [UserTab] New activeTab set to:", tab);
-                }}
+                onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === tab
                     ? "bg-primary dark:bg-primary-dark bg-gray-100 text-gray-500"
@@ -451,17 +271,8 @@ export default function UserTab({
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
 
             {/* Portfolio Tab */}
-            {activeTab === "Portfolio" && (() => {
-              console.log("🟣 [UserTab] Rendering Portfolio tab");
-              console.log("🟣 [UserTab] Portfolio - portfolioDetails:", portfolioDetails);
-              console.log("🟣 [UserTab] Portfolio - portfolioDetails isArray:", Array.isArray(portfolioDetails));
-              console.log("🟣 [UserTab] Portfolio - portfolioDetails length:", Array.isArray(portfolioDetails) ? portfolioDetails.length : "N/A");
-              console.log("🟣 [UserTab] Portfolio - portfolioDetails truthy:", !!portfolioDetails);
-              return portfolioDetails?.map((portfolio, index) => {
-                console.log(`🟣 [UserTab] Portfolio - Rendering portfolio ${index}:`, portfolio);
-                console.log(`🟣 [UserTab] Portfolio - portfolio ${index} portfolioId:`, portfolio?.portfolioId);
-                console.log(`🟣 [UserTab] Portfolio - portfolio ${index} portfolioName:`, portfolio?.portfolioName);
-                return (
+            {activeTab === "Portfolio" &&
+              portfolioDetails?.map((portfolio) => (
                 <div key={portfolio.portfolioId} className="p-4">
                   <div className="border-b border-gray-100 dark:border-white/[0.05]">
                     <h3 className="text-lg font-semibold mb-4 dark:text-gray-400">{portfolio.portfolioName}</h3>
@@ -502,71 +313,39 @@ export default function UserTab({
                     </div>
                   </div>
                 </div>
-                )
-  })
-})()} 
+              ))}
 
             {/* XIRR Table for Savestment Users */}
             {activeTab === "Portfolio" &&
               userDetails.fromApp?.toLowerCase() === "savestment" &&
-              (() => {
-                console.log("🟣 [UserTab] XIRR Table - Rendering check");
-                console.log("🟣 [UserTab] XIRR Table - activeTab === 'Portfolio':", activeTab === "Portfolio");
-                console.log("🟣 [UserTab] XIRR Table - userDetails.fromApp:", userDetails.fromApp);
-                console.log("🟣 [UserTab] XIRR Table - userDetails.fromApp?.toLowerCase() === 'savestment':", userDetails.fromApp?.toLowerCase() === "savestment");
-                console.log("🟣 [UserTab] XIRR Table - loadingXIRR:", loadingXIRR);
-                console.log("🟣 [UserTab] XIRR Table - xirrError:", xirrError);
-                console.log("🟣 [UserTab] XIRR Table - xirrData:", xirrData);
-                console.log("🟣 [UserTab] XIRR Table - xirrData truthy:", !!xirrData);
-                
-                if (loadingXIRR) {
-                  console.log("🟣 [UserTab] XIRR Table - Rendering loading state");
-                  return <div className="col-span-12 w-full p-5 dark:text-gray-400">Loading performance metrics...</div>;
-                }
-                if (xirrError) {
-                  console.log("🟣 [UserTab] XIRR Table - Rendering error state");
-                  return (
-                    <div className="col-span-12 w-full p-5 dark:text-gray-400">
-                      <Badge color="warning">No XIRR Data Available</Badge>
-                    </div>
-                  );
-                }
-                if (xirrData) {
-                  console.log("🟣 [UserTab] XIRR Table - Rendering XIRR data");
-                  console.log("🟣 [UserTab] XIRR Table - xirrData.portfolioXIRR:", xirrData.portfolioXIRR);
-                  console.log("🟣 [UserTab] XIRR Table - xirrData.benchmarkXIRR:", xirrData.benchmarkXIRR);
-                  return (
-                    <div className="col-span-12 w-full p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
-                      <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-6 ">
-                        <h3 className="text-lg font-semibold dark:text-gray-400">Performance Metrics (XIRR)</h3>
-                      </div>
-                      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-                        <div className="max-w-full overflow-x-auto">
-                          <div className="min-w-[1200px]">
-                            <PerformanceXIRRTable
-                              portfolioXIRR={xirrData.portfolioXIRR}
-                              benchmarkXIRR={xirrData.benchmarkXIRR}
-                              loading={loadingXIRR}
-                              error={xirrError}
-                            />
-                          </div>
-                        </div>
+              (loadingXIRR ? (
+                <div className="col-span-12 w-full p-5 dark:text-gray-400">Loading performance metrics...</div>
+              ) : xirrError ? (
+                <div className="col-span-12 w-full p-5 dark:text-gray-400">
+                  <Badge color="warning">No XIRR Data Available</Badge>
+                </div>
+              ) : xirrData && (
+                <div className="col-span-12 w-full p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
+                  <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-6 ">
+                    <h3 className="text-lg font-semibold dark:text-gray-400">Performance Metrics (XIRR)</h3>
+                  </div>
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                    <div className="max-w-full overflow-x-auto">
+                      <div className="min-w-[1200px]">
+                        <PerformanceXIRRTable
+                          portfolioXIRR={xirrData.portfolioXIRR}
+                          benchmarkXIRR={xirrData.benchmarkXIRR}
+                          loading={loadingXIRR}
+                          error={xirrError}
+                        />
                       </div>
                     </div>
-                  );
-                }
-                console.log("🟣 [UserTab] XIRR Table - No condition met, returning null");
-                return null;
-              })()}
+                  </div>
+                </div>
+              ))}
 
             {/* Transaction Tab */}
-            {activeTab === "Transaction" && (() => {
-              console.log("🟣 [UserTab] Rendering Transaction tab");
-              console.log("🟣 [UserTab] Transaction - transactions:", transactions);
-              console.log("🟣 [UserTab] Transaction - transactions isArray:", Array.isArray(transactions));
-              console.log("🟣 [UserTab] Transaction - transactions length:", Array.isArray(transactions) ? transactions.length : "N/A");
-              console.log("🟣 [UserTab] Transaction - transactions truthy:", !!transactions);
-              return (
+            {activeTab === "Transaction" && (
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
@@ -611,19 +390,10 @@ export default function UserTab({
                   ))}
                 </TableBody>
               </Table>
-              );
-            })()}
+            )}
 
             {/* Subscription Tab */}
-            {activeTab === "Subscription" && (() => {
-              console.log("🟣 [UserTab] Rendering Subscription tab");
-              console.log("🟣 [UserTab] Subscription - subscriptions:", subscriptions);
-              console.log("🟣 [UserTab] Subscription - subscriptions isArray:", Array.isArray(subscriptions));
-              console.log("🟣 [UserTab] Subscription - subscriptions length:", Array.isArray(subscriptions) ? subscriptions.length : "N/A");
-              console.log("🟣 [UserTab] Subscription - subscriptions truthy:", !!subscriptions);
-              console.log("🟣 [UserTab] Subscription - userDetails.subscription_date:", userDetails?.subscription_date);
-              console.log("🟣 [UserTab] Subscription - userDetails.main_subscription_status:", userDetails?.main_subscription_status);
-              return (
+            {activeTab === "Subscription" && (
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
@@ -656,17 +426,10 @@ export default function UserTab({
                   ))}
                 </TableBody>
               </Table>
-              );
-            })()}
+            )}
 
             {/* Stock Orders Tab */}
-            {activeTab === "Stock" && (() => {
-              console.log("🟣 [UserTab] Rendering Stock tab");
-              console.log("🟣 [UserTab] Stock - stockOrders:", stockOrders);
-              console.log("🟣 [UserTab] Stock - stockOrders isArray:", Array.isArray(stockOrders));
-              console.log("🟣 [UserTab] Stock - stockOrders length:", Array.isArray(stockOrders) ? stockOrders.length : "N/A");
-              console.log("🟣 [UserTab] Stock - stockOrders truthy:", !!stockOrders);
-              return (
+            {activeTab === "Stock" && (
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
@@ -709,19 +472,10 @@ export default function UserTab({
                   ))}
                 </TableBody>
               </Table>
-              );
-            })()}
+            )}
 
             {/* Profile Tab */}
-            {activeTab === "Profile" && (() => {
-              console.log("🟣 [UserTab] Rendering Profile tab");
-              console.log("🟣 [UserTab] Profile - userDetails:", userDetails);
-              console.log("🟣 [UserTab] Profile - userDetails.dob:", userDetails?.dob);
-              console.log("🟣 [UserTab] Profile - userDetails.address:", userDetails?.address);
-              console.log("🟣 [UserTab] Profile - userDetails.pincode:", userDetails?.pincode);
-              console.log("🟣 [UserTab] Profile - userDetails.panStatus:", userDetails?.panStatus);
-              console.log("🟣 [UserTab] Profile - userDetails.total_investment:", userDetails?.total_investment);
-              return (
+            {activeTab === "Profile" && (
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -751,8 +505,7 @@ export default function UserTab({
                   </div>
                 </div>
               </div>
-              );
-            })()}
+            )}
           </div>
         </div>
       </div>
