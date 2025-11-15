@@ -196,11 +196,13 @@ export default function UserTab({
           setXirrError("Failed to load XIRR data");
         }
       } catch (error) {
-        setXirrData(null);
-        setXirrError("Failed to load XIRR data");
-      } finally {
-        setLoadingXIRR(false);
-      }
+  console.error("XIRR fetch error:", error);
+  setXirrData(null);
+  setXirrError("Failed to load XIRR data");
+} finally {
+  setLoadingXIRR(false);
+}
+
     }
     if (activeTab === "Portfolio") {
       fetchXIRR();
@@ -315,34 +317,7 @@ export default function UserTab({
                 </div>
               ))}
 
-            {/* XIRR Table for Savestment Users */}
-            {activeTab === "Portfolio" &&
-              userDetails.fromApp?.toLowerCase() === "savestment" &&
-              (loadingXIRR ? (
-                <div className="col-span-12 w-full p-5 dark:text-gray-400">Loading performance metrics...</div>
-              ) : xirrError ? (
-                <div className="col-span-12 w-full p-5 dark:text-gray-400">
-                  <Badge color="warning">No XIRR Data Available</Badge>
-                </div>
-              ) : xirrData && (
-                <div className="col-span-12 w-full p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
-                  <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-6 ">
-                    <h3 className="text-lg font-semibold dark:text-gray-400">Performance Metrics (XIRR)</h3>
-                  </div>
-                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-                    <div className="max-w-full overflow-x-auto">
-                      <div className="min-w-[1200px]">
-                        <PerformanceXIRRTable
-                          portfolioXIRR={xirrData.portfolioXIRR}
-                          benchmarkXIRR={xirrData.benchmarkXIRR}
-                          loading={loadingXIRR}
-                          error={xirrError}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+           
 
             {/* Transaction Tab */}
             {activeTab === "Transaction" && (
@@ -509,6 +484,34 @@ export default function UserTab({
           </div>
         </div>
       </div>
+       {/* XIRR Table for Savestment Users */}
+            {activeTab === "Portfolio" &&
+              userDetails.fromApp?.toLowerCase() === "savestment" &&
+              (loadingXIRR ? (
+                <div className="col-span-12 w-full p-5 dark:text-gray-400">Loading performance metrics...</div>
+              ) : xirrError ? (
+                <div className="col-span-12 w-full p-5 dark:text-gray-400">
+                  <Badge color="warning">No XIRR Data Available</Badge>
+                </div>
+              ) : xirrData && (
+                <div className="col-span-12 w-full p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6 mt-6">
+                  <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-6 ">
+                    <h3 className="text-lg font-semibold dark:text-gray-400">Performance Metrics (XIRR)</h3>
+                  </div>
+                  <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+                    <div className="max-w-full overflow-x-auto">
+                      <div className="min-w-[1200px]">
+                        <PerformanceXIRRTable
+                          portfolioXIRR={xirrData.portfolioXIRR}
+                          benchmarkXIRR={xirrData.benchmarkXIRR}
+                          loading={loadingXIRR}
+                          error={xirrError}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
     </div>
   );
 }
