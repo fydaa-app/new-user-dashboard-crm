@@ -41,8 +41,8 @@ interface UserDetails {
   dob: string;
   address: Address;
   userGoal: UserGoal;
-  subscription_date: string; // Added property
-  main_subscription_status: number; // Added property
+  subscription_date: string;
+  main_subscription_status: number;
 }
 
 interface UserSubscription {
@@ -52,7 +52,7 @@ interface UserSubscription {
 
 interface UserTransaction {
   transactionId: string;
-  orderType: string; // Original type from API
+  orderType: string;
   portfolioId: number;
   totalAmount: number;
   totalTradeQty: string;
@@ -61,7 +61,7 @@ interface UserTransaction {
 
 interface Transaction {
   transactionId: string;
-  orderType: "BUY" | "SELL"; // Expected type in UserTab
+  orderType: "BUY" | "SELL";
   portfolioId: number;
   totalAmount: number;
   totalTradeQty: string;
@@ -111,6 +111,31 @@ interface StockOrder {
   "stock.ticker": string;
 }
 
+interface MutualFundDetail {
+  portfolioId: number | null;
+  portfolioName: string;
+  sipId: number;
+  transactionId: string;
+  goal: string;
+  goalAmount: number;
+  monthlyInvestment: number;
+  currentBalance: number;
+  investmentStart: string;
+  investmentEnd: string | null;
+  estimatedReturn: number;
+  categoryId: number;
+  amcid: number;
+  schemeCode: string;
+  schemeName: string;
+  schemeLogo: string;
+  amcName: string;
+  amcLogo: string;
+  installedUnits: number;
+  investedValue: number;
+  currentValue: number;
+  xirr: number;
+}
+
 interface UserData {
   userDetails: UserDetails;
   userSubscriptionDetails: UserSubscription[];
@@ -118,10 +143,11 @@ interface UserData {
   portfolioDetails: PortfolioDetail[];
   stockOrders: StockOrder[];
   xirr: Record<string, unknown>;
+  mutualFundDetails: MutualFundDetail[];
 }
 
 interface PageProps {
-  params: Promise<{ userId: string }>; // Updated to match the expected type
+  params: Promise<{ userId: string }>;
 }
 
 export default function UserDetails({ params }: PageProps) {
@@ -132,7 +158,7 @@ export default function UserDetails({ params }: PageProps) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const resolvedParams = await params; // Resolve the params promise
+        const resolvedParams = await params;
         const { userId } = resolvedParams;
 
         const authToken =
@@ -161,14 +187,14 @@ export default function UserDetails({ params }: PageProps) {
 
         const data: UserData = await response.json();
 
-        // Transform the fetched data to match the expected structure
+        // Transform only transactions, keep mutualFundDetails as-is
         const transformedData = {
           ...data,
           userTransactionDetails: data.userTransactionDetails.map((transaction) => ({
             ...transaction,
-            orderType: transaction.orderType === "BUY" || transaction.orderType === "SELL"
+            orderType: (transaction.orderType === "BUY" || transaction.orderType === "SELL"
               ? transaction.orderType
-              : "BUY", // Default to "BUY" if the value is invalid
+              : "BUY") as "BUY" | "SELL",
           })),
         };
 
@@ -203,9 +229,23 @@ export default function UserDetails({ params }: PageProps) {
           <UserTab
             userDetails={userData.userDetails}
             portfolioDetails={userData.portfolioDetails}
-            transactions={userData.userTransactionDetails as Transaction[]} // Cast to match expected type
+            transactions={userData.userTransactionDetails as Transaction[]}
             subscriptions={userData.userSubscriptionDetails}
             stockOrders={userData.stockOrders}
+           mutualFundDetails={userData.mutualFundDetails.map(mf => ({
+  portfolioId: mf.portfolioId,
+  portfolioName: mf.portfolioName,
+  sipId: mf.sipId,
+  currentValue: mf.currentValue,
+  unrealizedReturn: 0,  // default or calculate if possible
+  realizedReturn: 0,    // default or calculate if possible
+  totalProfit: 0,       // default or calculate if possible
+  mutualFunds: [],      // empty array as you have no mutualFunds data
+  goal: [],             // empty array because goal expects Goal[] type
+  sip: [],              // empty array because sip expects SIP[] type
+}))}
+
+
           />
         </ComponentCard>
       </div>
