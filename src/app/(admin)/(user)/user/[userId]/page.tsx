@@ -6,7 +6,101 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
 import Cookies from "js-cookie";
 
-// Detailed interfaces matching the API response
+// Interfaces for nested mutual fund data per API response
+
+interface MutualFund {
+  portfolioName: string;
+  portfolioId: number | null;
+  sipId: number;
+  stockName: string;
+  capType: string;
+  stockType: string;
+  sector: number;
+  ticker: string;
+  ltp: string;
+  balanceQty: number;
+  totalQty: number;
+  averagePrice: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  investedValue: number;
+  currentValue: number;
+  stockId: number;
+}
+
+interface GoalItem {
+  image: string;
+  title: string;
+  description: string;
+}
+
+interface Goal {
+  id: number;
+  name: string;
+  termId: number;
+  feePricing: string;
+  tenureMin: number;
+  tenureMax: number;
+  goalAmountMin: string;
+  goalAmountMax: string;
+  brandName: string | null;
+  discount: string;
+  imageUrl: string;
+  recommendationUrl: string;
+  iconUrl: string | null;
+  pendingUrl: string;
+  description: string;
+  items: GoalItem[];
+  suggestion: string;
+  recommendations: string[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+interface SIP {
+  id: number;
+  userId: number;
+  portfolioId: number;
+  goalId: number;
+  feePricing: number;
+  planId: number | null;
+  sipTenure: number;
+  sipName: string;
+  userSipName: string | null;
+  sipAmount: number;
+  goalAmount: number;
+  autoRenewDate: string;
+  startDate: string;
+  sipDate: string;
+  endDate: string;
+  status: string;
+  paymentStatus: number;
+  isRegister: boolean;
+  isProgress: boolean;
+  isAllocation: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+// Update your existing MutualFundDetail interface to reflect API data shape fully
+interface MutualFundDetail {
+  portfolioId: number | null;
+  portfolioName: string;
+  sipId: number;
+  currentValue: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  mutualFunds: MutualFund[];
+  goal: Goal[];
+  sip: SIP[];
+}
+
+// Other interfaces omitted for brevity, keep your existing ones unchanged.
+
 interface Address {
   addressLine1: string;
   addressLine2: string;
@@ -41,8 +135,8 @@ interface UserDetails {
   dob: string;
   address: Address;
   userGoal: UserGoal;
-  subscription_date: string; // Added property
-  main_subscription_status: number; // Added property
+  subscription_date: string;
+  main_subscription_status: number;
 }
 
 interface UserSubscription {
@@ -52,7 +146,7 @@ interface UserSubscription {
 
 interface UserTransaction {
   transactionId: string;
-  orderType: string; // Original type from API
+  orderType: string;
   portfolioId: number;
   totalAmount: number;
   totalTradeQty: string;
@@ -61,7 +155,7 @@ interface UserTransaction {
 
 interface Transaction {
   transactionId: string;
-  orderType: "BUY" | "SELL"; // Expected type in UserTab
+  orderType: "BUY" | "SELL";
   portfolioId: number;
   totalAmount: number;
   totalTradeQty: string;
@@ -118,10 +212,11 @@ interface UserData {
   portfolioDetails: PortfolioDetail[];
   stockOrders: StockOrder[];
   xirr: Record<string, unknown>;
+  mutualFundDetails: MutualFundDetail[];
 }
 
 interface PageProps {
-  params: Promise<{ userId: string }>; // Updated to match the expected type
+  params: Promise<{ userId: string }>;
 }
 
 export default function UserDetails({ params }: PageProps) {
@@ -132,7 +227,7 @@ export default function UserDetails({ params }: PageProps) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const resolvedParams = await params; // Resolve the params promise
+        const resolvedParams = await params;
         const { userId } = resolvedParams;
 
         const authToken =
@@ -161,14 +256,15 @@ export default function UserDetails({ params }: PageProps) {
 
         const data: UserData = await response.json();
 
-        // Transform the fetched data to match the expected structure
+        // Transform only transactions, keep mutualFundDetails as-is
         const transformedData = {
           ...data,
           userTransactionDetails: data.userTransactionDetails.map((transaction) => ({
             ...transaction,
-            orderType: transaction.orderType === "BUY" || transaction.orderType === "SELL"
-              ? transaction.orderType
-              : "BUY", // Default to "BUY" if the value is invalid
+            orderType:
+              transaction.orderType === "BUY" || transaction.orderType === "SELL"
+                ? transaction.orderType
+                : ("BUY" as "BUY" | "SELL"),
           })),
         };
 
@@ -203,9 +299,10 @@ export default function UserDetails({ params }: PageProps) {
           <UserTab
             userDetails={userData.userDetails}
             portfolioDetails={userData.portfolioDetails}
-            transactions={userData.userTransactionDetails as Transaction[]} // Cast to match expected type
+            transactions={userData.userTransactionDetails as Transaction[]}
             subscriptions={userData.userSubscriptionDetails}
             stockOrders={userData.stockOrders}
+            mutualFundDetails={userData.mutualFundDetails} 
           />
         </ComponentCard>
       </div>
