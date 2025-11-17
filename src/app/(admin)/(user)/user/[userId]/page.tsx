@@ -6,7 +6,101 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
 import Cookies from "js-cookie";
 
-// Detailed interfaces matching the API response
+// Interfaces for nested mutual fund data per API response
+
+interface MutualFund {
+  portfolioName: string;
+  portfolioId: number | null;
+  sipId: number;
+  stockName: string;
+  capType: string;
+  stockType: string;
+  sector: number;
+  ticker: string;
+  ltp: string;
+  balanceQty: number;
+  totalQty: number;
+  averagePrice: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  investedValue: number;
+  currentValue: number;
+  stockId: number;
+}
+
+interface GoalItem {
+  image: string;
+  title: string;
+  description: string;
+}
+
+interface Goal {
+  id: number;
+  name: string;
+  termId: number;
+  feePricing: string;
+  tenureMin: number;
+  tenureMax: number;
+  goalAmountMin: string;
+  goalAmountMax: string;
+  brandName: string | null;
+  discount: string;
+  imageUrl: string;
+  recommendationUrl: string;
+  iconUrl: string | null;
+  pendingUrl: string;
+  description: string;
+  items: GoalItem[];
+  suggestion: string;
+  recommendations: string[];
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+interface SIP {
+  id: number;
+  userId: number;
+  portfolioId: number;
+  goalId: number;
+  feePricing: number;
+  planId: number | null;
+  sipTenure: number;
+  sipName: string;
+  userSipName: string | null;
+  sipAmount: number;
+  goalAmount: number;
+  autoRenewDate: string;
+  startDate: string;
+  sipDate: string;
+  endDate: string;
+  status: string;
+  paymentStatus: number;
+  isRegister: boolean;
+  isProgress: boolean;
+  isAllocation: boolean;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
+// Update your existing MutualFundDetail interface to reflect API data shape fully
+interface MutualFundDetail {
+  portfolioId: number | null;
+  portfolioName: string;
+  sipId: number;
+  currentValue: number;
+  unrealizedReturn: number;
+  realizedReturn: number;
+  totalProfit: number;
+  mutualFunds: MutualFund[];
+  goal: Goal[];
+  sip: SIP[];
+}
+
+// Other interfaces omitted for brevity, keep your existing ones unchanged.
+
 interface Address {
   addressLine1: string;
   addressLine2: string;
@@ -111,31 +205,6 @@ interface StockOrder {
   "stock.ticker": string;
 }
 
-interface MutualFundDetail {
-  portfolioId: number | null;
-  portfolioName: string;
-  sipId: number;
-  transactionId: string;
-  goal: string;
-  goalAmount: number;
-  monthlyInvestment: number;
-  currentBalance: number;
-  investmentStart: string;
-  investmentEnd: string | null;
-  estimatedReturn: number;
-  categoryId: number;
-  amcid: number;
-  schemeCode: string;
-  schemeName: string;
-  schemeLogo: string;
-  amcName: string;
-  amcLogo: string;
-  installedUnits: number;
-  investedValue: number;
-  currentValue: number;
-  xirr: number;
-}
-
 interface UserData {
   userDetails: UserDetails;
   userSubscriptionDetails: UserSubscription[];
@@ -192,9 +261,10 @@ export default function UserDetails({ params }: PageProps) {
           ...data,
           userTransactionDetails: data.userTransactionDetails.map((transaction) => ({
             ...transaction,
-            orderType: (transaction.orderType === "BUY" || transaction.orderType === "SELL"
-              ? transaction.orderType
-              : "BUY") as "BUY" | "SELL",
+            orderType:
+              transaction.orderType === "BUY" || transaction.orderType === "SELL"
+                ? transaction.orderType
+                : ("BUY" as "BUY" | "SELL"),
           })),
         };
 
@@ -232,20 +302,7 @@ export default function UserDetails({ params }: PageProps) {
             transactions={userData.userTransactionDetails as Transaction[]}
             subscriptions={userData.userSubscriptionDetails}
             stockOrders={userData.stockOrders}
-           mutualFundDetails={userData.mutualFundDetails.map(mf => ({
-  portfolioId: mf.portfolioId,
-  portfolioName: mf.portfolioName,
-  sipId: mf.sipId,
-  currentValue: mf.currentValue,
-  unrealizedReturn: 0,  // default or calculate if possible
-  realizedReturn: 0,    // default or calculate if possible
-  totalProfit: 0,       // default or calculate if possible
-  mutualFunds: [],      // empty array as you have no mutualFunds data
-  goal: [],             // empty array because goal expects Goal[] type
-  sip: [],              // empty array because sip expects SIP[] type
-}))}
-
-
+            mutualFundDetails={userData.mutualFundDetails} 
           />
         </ComponentCard>
       </div>
