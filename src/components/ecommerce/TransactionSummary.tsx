@@ -6,8 +6,10 @@ import {
   ExclamationTriangleIcon,
   ChartBarIcon,
   CurrencyRupeeIcon,
-  ClockIcon
+  ClockIcon,
+  ArrowRightIcon
 } from "@heroicons/react/24/outline";
+import Link from "next/link";
 
 interface SummaryData {
   totalOrders: number;
@@ -79,31 +81,44 @@ const TransactionSummary = ({
         <div className="flex items-center justify-between mb-5">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-             <a href="/siptransaction">Transaction Summary</a> 
+              <a href="/siptransaction" className="flex items-center gap-2 group">
+                Transaction Summary
+                <ArrowRightIcon className="w-4 h-4 inline-block group-hover:translate-x-1 transition-transform duration-300" />
+              </a>
             </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
               Comprehensive overview of all transactions
             </span>
           </div>
+          
+          <a 
+            href="/siptransaction" 
+            className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300 group"
+          >
+            View All
+            <ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" />
+          </a>
         </div>
 
         {/* Main Stats Grid */}
         <div className="grid grid-cols-1 gap-4">
           
           {/* Total Transactions */}
-          <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 border border-purple-200 dark:border-purple-800">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-purple-500/10">
-                <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                  {data.totalTransactions}
-                </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
+          <a href="/siptransaction" className="block">
+            <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 border border-purple-200 dark:border-purple-800 hover:scale-102 transition-all duration-300 ease-in-out cursor-pointer">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-purple-500/10">
+                  <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                    {data.totalTransactions}
+                  </h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
+                </div>
               </div>
             </div>
-          </div>
+          </a>
 
           {/* Success Rate */}
           
@@ -128,12 +143,15 @@ const TransactionSummary = ({
         {/* Transaction Status Cards - Updated to 4 cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           {/* Fully Successful */}
-          <div className="rounded-xl bg-green-50 dark:bg-green-900/10 p-4 border border-green-200 dark:border-green-800">
+          <div className="rounded-xl bg-green-50 dark:bg-green-900/10 p-4 border border-green-200 dark:border-green-800 hover:scale-[1.02] transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-2 mb-3">
               <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Fully Successful
-              </h4>
+              <Link href="/siptransaction?reportType=FULLY_SUCCESSFUL" className="flex items-center gap-1.5 cursor-pointer group">
+                <h4 className="font-semibold text-gray-800 dark:text-white">
+                  Fully Successful
+                </h4>
+                <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -158,12 +176,15 @@ const TransactionSummary = ({
           </div>
 
           {/* Partially Successful */}
-          <div className="rounded-xl bg-yellow-50 dark:bg-yellow-900/10 p-4 border border-yellow-200 dark:border-yellow-800">
+          <div className="rounded-xl bg-yellow-50 dark:bg-yellow-900/10 p-4 border border-yellow-200 dark:border-yellow-800 hover:scale-[1.02] transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-2 mb-3">
               <ExclamationTriangleIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Partially Successful
-              </h4>
+              <Link href="/siptransaction?reportType=PARTIALLY_SUCCESSFUL" className="flex items-center gap-1.5 cursor-pointer group">
+                <h4 className="font-semibold text-gray-800 dark:text-white">
+                  Partially Successful
+                </h4>
+                <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -188,12 +209,15 @@ const TransactionSummary = ({
           </div>
 
           {/* Failed */}
-          <div className="rounded-xl bg-red-50 dark:bg-red-900/10 p-4 border border-red-200 dark:border-red-800">
+          <div className="rounded-xl bg-red-50 dark:bg-red-900/10 p-4 border border-red-200 dark:border-red-800 hover:scale-[1.02] transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-2 mb-3">
               <XCircleIcon className="w-5 h-5 text-red-600 dark:text-red-400" />
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                Failed
-              </h4>
+              <Link href="/siptransaction?reportType=FAILED" className="flex items-center gap-1.5 cursor-pointer group">
+                <h4 className="font-semibold text-gray-800 dark:text-white">
+                  Failed
+                </h4>
+                <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -218,12 +242,15 @@ const TransactionSummary = ({
           </div>
 
           {/* In Process - NEW CARD */}
-          <div className="rounded-xl bg-blue-50 dark:bg-blue-900/10 p-4 border border-blue-200 dark:border-blue-800">
+          <div className="rounded-xl bg-blue-50 dark:bg-blue-900/10 p-4 border border-blue-200 dark:border-blue-800 hover:scale-[1.02] transition-all duration-300 ease-in-out">
             <div className="flex items-center gap-2 mb-3">
               <ClockIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              <h4 className="font-semibold text-gray-800 dark:text-white">
-                In Process
-              </h4>
+              <Link href="/siptransaction?reportType=IN_PROCESS" className="flex items-center gap-1.5 cursor-pointer group">
+                <h4 className="font-semibold text-gray-800 dark:text-white">
+                  In Process
+                </h4>
+                <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
+              </Link>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
@@ -245,7 +272,6 @@ const TransactionSummary = ({
                 </span>
               </div>
             </div>
-           
           </div>
         </div>
 
