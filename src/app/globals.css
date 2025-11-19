@@ -632,6 +632,15 @@ p.total-sale-text {
 .sales-box-row .col-span-4:nth-child(4) .box-total-sales {
   background: #F3E8FF;
 }
+.sales-box-row .col-span-4:nth-child(6) .box-total-sales {
+  background: #FFF4DE;
+}
+.sales-box-row .col-span-4:nth-child(7) .box-total-sales {
+  background: #DCFCE7;
+}
+.sales-box-row .col-span-4:nth-child(8) .box-total-sales {
+  background: #F3E8FF;
+}
 .sales-box-row {
   gap: 20px;
 }
