@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
+import { SalesIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
 interface DataProps {
