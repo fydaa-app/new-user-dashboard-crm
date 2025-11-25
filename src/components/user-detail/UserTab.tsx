@@ -668,15 +668,19 @@ useEffect(() => {
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                  {stockOrders.map((order) => (
-                                    <TableRow key={order.stockId}>
-                                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.stockName']}</TableCell>
-                                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.ticker']}</TableCell>
-                                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order.quantityDifference}</TableCell>
-                                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(order.avgValue)}</TableCell>
-                                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(order.netValue)}</TableCell>
-                                    </TableRow>
-                                  ))}
+                                  {stockOrders
+                                    .slice()
+                                    .sort((a, b) => a['stock.stockName'].localeCompare(b['stock.stockName']))
+                                    .map((order) => (
+                                      <TableRow key={order.stockId}>
+                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.stockName']}</TableCell>
+                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.ticker']}</TableCell>
+                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order.quantityDifference}</TableCell>
+                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(order.avgValue)}</TableCell>
+                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(order.netValue)}</TableCell>
+                                      </TableRow>
+                                    ))
+                                  }
                                 </TableBody>
                               </Table>
                             </div>
@@ -703,9 +707,18 @@ useEffect(() => {
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                  {portfolioDetails.flatMap((portfolio) => 
-                                    portfolio.stocks?.map((stock) => (
-                                      <TableRow key={`${portfolio.portfolioId}-${stock.stockId}`}>
+                                  {portfolioDetails
+                                    .flatMap((portfolio) => 
+                                      (portfolio.stocks || []).map(stock => ({
+                                        ...stock,
+                                        portfolioId: portfolio.portfolioId,
+                                        portfolioName: portfolio.portfolioName,
+                                      }))
+                                    )
+                                    .slice()
+                                    .sort((a, b) => a.stockName.localeCompare(b.stockName))
+                                    .map((stock) => (
+                                      <TableRow key={`${stock.portfolioId}-${stock.stockId}`}>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.stockName}</TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.ticker}</TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.portfolioName}</TableCell>
@@ -714,8 +727,8 @@ useEffect(() => {
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(stock.investedValue)}</TableCell>
                                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(stock.currentValue)}</TableCell>
                                       </TableRow>
-                                    )) || []
-                                  )}
+                                    ))
+                                  }
                                 </TableBody>
                               </Table>
                             </div>
