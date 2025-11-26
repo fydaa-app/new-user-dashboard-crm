@@ -283,6 +283,14 @@ export default function UserTab({
   // Allowed tabs excluding 'Reports' and 'Payments'
   const allowedTabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile"];
 
+  // Helper function to get display name for tab
+  const getTabDisplayName = (tab: string) => {
+    if (tab === "Stock" && userDetails.fromApp?.toLowerCase() === "fydaa") {
+      return "Mutual Funds";
+    }
+    return tab;
+  };
+
   // Add this right after the component starts, before the return statement
 useEffect(() => {
   console.log('=== USER TAB DEBUG ===');
@@ -341,7 +349,7 @@ useEffect(() => {
                     : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400"
                 }`}
               >
-                {tab}
+                {getTabDisplayName(tab)}
               </button>
             ))}
           </div>
@@ -505,6 +513,7 @@ useEffect(() => {
 
             {/* Transaction Tab */}
             {activeTab === "Transaction" && (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
@@ -549,10 +558,12 @@ useEffect(() => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
 
             {/* Subscription Tab */}
             {activeTab === "Subscription" && (
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
@@ -585,6 +596,7 @@ useEffect(() => {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             )}
 
             {/* Stock Orders Tab */}
@@ -597,6 +609,7 @@ useEffect(() => {
                       <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-4">
                         <h4 className="text-md font-medium dark:text-gray-400">Mutual Fund Holdings</h4>
                       </div>
+                      <div className="overflow-x-auto">
                       <Table>
                         <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                           <TableRow>
@@ -640,6 +653,7 @@ useEffect(() => {
                           )}
                         </TableBody>
                       </Table>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -652,11 +666,12 @@ useEffect(() => {
                       <>
                         {/* Stock Orders Section */}
                         {stockOrders && stockOrders.length > 0 && (
-                          <div className="mb-6">
+                          <div className="mb-6 ">
                             <div className="p-4">
                               <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-4">
                                 <h4 className="text-md font-medium dark:text-gray-400">Stock Orders</h4>
                               </div>
+                              <div className="overflow-x-auto">
                               <Table>
                                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                                   <TableRow>
@@ -683,6 +698,7 @@ useEffect(() => {
                                   }
                                 </TableBody>
                               </Table>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -691,46 +707,7 @@ useEffect(() => {
                         {portfolioDetails && portfolioDetails.some(pd => pd.stocks && pd.stocks.length > 0) && (
                           <div className="mb-6">
                             <div className="p-4">
-                              <div className="border-b border-gray-100 dark:border-white/[0.05] pb-4 mb-4">
-                                <h4 className="text-md font-medium dark:text-gray-400">Portfolio Stock Holdings</h4>
-                              </div>
-                              <Table>
-                                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                                  <TableRow>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Stock</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Ticker</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Portfolio</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Balance Qty</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Avg. Price</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Invested Value</TableCell>
-                                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-900 text-start text-theme-sm dark:text-gray-400">Current Value</TableCell>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                                  {portfolioDetails
-                                    .flatMap((portfolio) => 
-                                      (portfolio.stocks || []).map(stock => ({
-                                        ...stock,
-                                        portfolioId: portfolio.portfolioId,
-                                        portfolioName: portfolio.portfolioName,
-                                      }))
-                                    )
-                                    .slice()
-                                    .sort((a, b) => a.stockName.localeCompare(b.stockName))
-                                    .map((stock) => (
-                                      <TableRow key={`${stock.portfolioId}-${stock.stockId}`}>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.stockName}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.ticker}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.portfolioName}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{stock.balanceQty}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(stock.averagePrice)}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(stock.investedValue)}</TableCell>
-                                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(stock.currentValue)}</TableCell>
-                                      </TableRow>
-                                    ))
-                                  }
-                                </TableBody>
-                              </Table>
+                              
                             </div>
                           </div>
                         )}
