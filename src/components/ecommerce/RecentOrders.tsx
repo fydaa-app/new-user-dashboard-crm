@@ -17,6 +17,7 @@ interface Order {
   planName: string;
   orderValue: number;
   status: string;
+  type: string;
 }
 
 export default function RecentOrders() {
@@ -98,6 +99,9 @@ export default function RecentOrders() {
                   Order Value
                 </TableCell>
                 <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Type
+                </TableCell>
+                <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Status
                 </TableCell>
               </TableRow>
@@ -110,6 +114,14 @@ export default function RecentOrders() {
                     <TableCell className="py-3">{order.userName}</TableCell>
                     <TableCell className="py-3">{order.planName}</TableCell>
                     <TableCell className="py-3">{formatCurrency(order.orderValue)}</TableCell>
+                    <TableCell className="py-3">
+                    <Badge
+                      size="sm"
+                      color={order.type === "BUY" ? "success" : "error"}
+                    >
+                      {order.type}
+                    </Badge>
+                  </TableCell>
                     <TableCell className="py-3">
                       <Badge
                         size="sm"
@@ -128,7 +140,7 @@ export default function RecentOrders() {
                 ))
               ) : (
                 <TableRow>
-                  <td colSpan={5} className="text-center py-3">
+                  <td colSpan={6} className="text-center py-3">
                     No orders found
                   </td>
                 </TableRow>
