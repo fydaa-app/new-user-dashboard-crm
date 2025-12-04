@@ -28,6 +28,7 @@ interface Sip {
   goalId?: number;
   totalPlans: number;
   goalName?: string;
+  nextInstallmentDate?: Date | null;
 }
 
 async function fetchActiveSips(

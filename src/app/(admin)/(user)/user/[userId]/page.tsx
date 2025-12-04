@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
 import Cookies from "js-cookie";
+import { MutualFundTransaction } from "@/components/user-detail/types";
 
 // Interfaces for nested mutual fund data per API response
 
@@ -213,6 +214,8 @@ interface UserData {
   stockOrders: StockOrder[];
   xirr: Record<string, unknown>;
   mutualFundDetails: MutualFundDetail[];
+  // Mutual fund SIP transaction groups for Fydaa users
+  transactionsMF?: MutualFundTransaction[];
 }
 
 interface PageProps {
@@ -256,7 +259,7 @@ export default function UserDetails({ params }: PageProps) {
 
         const data: UserData = await response.json();
 
-        // Transform only transactions, keep mutualFundDetails as-is
+        // Transform only transactions, keep mutualFundDetails and transactionsMF as-is
         const transformedData = {
           ...data,
           userTransactionDetails: data.userTransactionDetails.map((transaction) => ({
@@ -302,7 +305,9 @@ export default function UserDetails({ params }: PageProps) {
             transactions={userData.userTransactionDetails as Transaction[]}
             subscriptions={userData.userSubscriptionDetails}
             stockOrders={userData.stockOrders}
-            mutualFundDetails={userData.mutualFundDetails} 
+            mutualFundDetails={userData.mutualFundDetails}
+            // Pass through mutual fund transactions for Fydaa users
+            transactionsMF={userData.transactionsMF || []}
           />
         </ComponentCard>
       </div>

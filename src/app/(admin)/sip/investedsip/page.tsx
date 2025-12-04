@@ -31,6 +31,7 @@ interface Sip {
   investmentStats: {
       totalInvested: number;
     };
+  nextInstallmentDate?: Date | null;
 }
 
 async function fetchActiveSips(

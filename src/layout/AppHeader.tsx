@@ -112,7 +112,7 @@ const AppHeader: React.FC = () => {
   // Fetch employees when designation changes
   useEffect(() => {
     if (selectedDesignation) {
-      setSelectedEmployee("");
+      //setSelectedEmployee("");
       
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
@@ -152,7 +152,7 @@ const AppHeader: React.FC = () => {
       fetchEmployees();
     } else {
       setEmployees([]);
-      setSelectedEmployee("");
+      // setSelectedEmployee("");
     }
   }, [selectedDesignation]);
 
@@ -195,9 +195,15 @@ const AppHeader: React.FC = () => {
     }    
   };
 
-  const handleDesignationChange = (option: { value: string; label: string } | null) => {
-    setSelectedDesignation(option?.value || "");
-  };
+const handleDesignationChange = (option: { value: string; label: string } | null) => {
+  const newValue = option?.value || "";
+  if (newValue !== selectedDesignation) {
+    // Reset employee only on real change
+    setSelectedEmployee("");
+  }
+  setSelectedDesignation(newValue);
+};
+
 
   const handleEmployeeChange = (option: { value: string; label: string } | null) => {
     setSelectedEmployee(option?.value || "");

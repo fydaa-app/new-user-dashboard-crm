@@ -28,6 +28,7 @@ export interface ActiveSipTableProps {
     goalId?: number;
     totalPlans: number;
     goalName?: string;
+    nextInstallmentDate?: Date | null;
   }[];
   error: string | null;
 }
@@ -38,7 +39,10 @@ const formatCurrency = (value: number): string =>
     currency: "INR",
   }).format(value);
 
-const formatDate = (date: Date): string => {
+// ActiveSipTable.tsx
+
+const formatDate = (date: Date | null | undefined): string => {
+  if (!date) return '-';
   return new Date(date).toLocaleDateString('en-IN', {
     year: 'numeric',
     month: 'short',
@@ -88,6 +92,9 @@ export default function ActiveSipTable({ sips, error }: ActiveSipTableProps) {
                     Start Date
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Due Date {/* 👈 new column */}
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Status
                   </TableCell>
                 </TableRow>
@@ -131,6 +138,9 @@ export default function ActiveSipTable({ sips, error }: ActiveSipTableProps) {
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {formatDate(sip.startDate)}
+                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                      {formatDate(sip.nextInstallmentDate)} {/* 👈 new cell */}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">                     
                       <Badge color={sip.status === 'ACTIVE' ? 'success' : 'error'}>
