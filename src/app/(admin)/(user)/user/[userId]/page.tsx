@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
 import Cookies from "js-cookie";
 import { MutualFundTransaction } from "@/components/user-detail/types";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Interfaces for nested mutual fund data per API response
 
@@ -218,6 +219,8 @@ interface UserData {
   transactionsMF?: MutualFundTransaction[];
 }
 
+// UserDetails component body and return (updated with "Back to Users")
+
 interface PageProps {
   params: Promise<{ userId: string }>;
 }
@@ -226,6 +229,14 @@ export default function UserDetails({ params }: PageProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const fromUrl = useMemo(() => {
+    const from = searchParams.get("from");
+    return from && from.startsWith("/") ? from : "/userlist";
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -294,10 +305,35 @@ export default function UserDetails({ params }: PageProps) {
     return <div>No user data found</div>;
   }
 
+  const userName =
+    userData.userDetails
+      ? `${userData.userDetails.firstName} ${userData.userDetails.lastName}`.trim() || "User"
+      : "User";
+
   return (
     <div>
-      <PageBreadcrumb pageTitle="User" />
+      <PageBreadcrumb pageTitle={userName} />
       <div className="space-y-6">
+        <div className="mb-4">
+          <button
+            onClick={() => router.push(fromUrl)}
+            className="flex items-center text-blue-600 hover:text-blue-800"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Back to Users
+          </button>
+        </div>
         <ComponentCard title="User Details">
           <UserTab
             userDetails={userData.userDetails}
@@ -314,3 +350,4 @@ export default function UserDetails({ params }: PageProps) {
     </div>
   );
 }
+
