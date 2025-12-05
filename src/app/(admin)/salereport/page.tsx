@@ -7,6 +7,7 @@ import SaleReportTable from "@/components/tables/SaleReport";
 import { useGlobalContext } from "@/context/GlobalState";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AdminEndpoints } from "@/config/api-endpoints";
 
 interface SaleList {
     userId: string;
@@ -36,9 +37,9 @@ async function fetchPayments(
     try {
 
         // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_PAYMENTS_LIST_ENDPOINT;
+        let endpoint: string = AdminEndpoints.PAYMENTS_LIST;
         if (appType === "Fydaa") {
-            endpoint = "/referrals/payments-list-mf";
+            endpoint = AdminEndpoints.PAYMENTS_LIST_MF;
         }
 
         let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;

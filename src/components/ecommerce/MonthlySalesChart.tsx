@@ -5,6 +5,7 @@ import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import Select from "@/components/form/Select";
+import { DashboardEndpoints } from "@/config/api-endpoints";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -37,7 +38,7 @@ export default function MonthlySalesChart() {
        const AUTH_TOKEN = Cookies.get("authToken");
       try {
         
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_SALE_ENDPOINT}?`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${DashboardEndpoints.SALE_ENDPOINT}?`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;

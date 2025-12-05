@@ -37,6 +37,12 @@ interface Transaction {
   status: string;
   createdAt: string;
   orders: Order[];
+  referredUserInfo?: {
+    id: number;
+    mobileNumber: string;
+    firstName: string | null;
+    lastName: string | null;
+  };
 }
 
 export interface TransactionsTableProps {
@@ -79,6 +85,14 @@ const getOrderStateColor = (state: string): 'success' | 'error' => {
   return state === 'successful' ? 'success' : 'error';
 };
 
+const getReferredByName = (referredUserInfo: { firstName: string | null; lastName: string | null } | null | undefined): string => {
+  if (!referredUserInfo) return '-';
+  const firstName = referredUserInfo.firstName || '';
+  const lastName = referredUserInfo.lastName || '';
+  return `${firstName} ${lastName}`.trim() || '-';
+};
+
+
 export default function TransactionsTable({ transactions, error }: TransactionsTableProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
@@ -111,6 +125,9 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Referred By
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Email
@@ -176,6 +193,9 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                           </span>
                         </TableCell>
                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {getReferredByName(transaction.referredUserInfo)}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {transaction.userInfo.email}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
@@ -206,7 +226,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                       {/* Expanded Orders Details */}
                       {isExpanded && (
                         <TableRow>
-                          <td colSpan={11} className="px-8 py-4 bg-gray-50 dark:bg-white/[0.02]">
+                          <td colSpan={12} className="px-8 py-4 bg-gray-50 dark:bg-white/[0.02]">
                             <div className="space-y-2">
                               <h4 className="font-semibold text-gray-800 dark:text-white/90 mb-3">
                                 Order Details ({transaction.orders.length} orders)

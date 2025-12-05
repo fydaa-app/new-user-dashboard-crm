@@ -8,6 +8,8 @@ import React, { useState, FormEvent, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { setCookie } from "cookies-next";
 import { useAuth } from "@/context/AuthContext";
+import { apiClient } from "@/services/api-client";
+import { AuthEndpoints } from "@/config/api-endpoints";
 
 // Define types for login response and form data
 interface LoginResponse {
@@ -63,20 +65,17 @@ export default function SignInForm() {
       }
 
       // Perform login API call
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_LOGIN_ENDPOINT}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
+      const response = await apiClient.post<LoginResponse>(
+        AuthEndpoints.LOGIN,
+        { 
           email: emailValue, 
           password: passwordValue 
-        }),
-      });
+        },
+        { skipAuth: true }
+      );
 
-      const data: LoginResponse = await response.json();
-
-      if (response.ok) {
+      if (response.ok && response.data) {
+        const data = response.data;
         // Set token in cookie (more secure than localStorage)
         // Cookie expires in 1 day by default, or 30 days if "keep me logged in" is checked
         const expiresIn = isChecked ? 30 : 1;
@@ -102,7 +101,7 @@ export default function SignInForm() {
         router.push("/");
       } else {
         // Handle login error
-        setError(data.message || "Login failed. Please try again.");
+        setError(response.data?.message || "Login failed. Please try again.");
       }
     } catch (err) {
       console.error("Login error:", err);

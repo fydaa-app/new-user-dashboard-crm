@@ -4,6 +4,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { apiClient } from "@/services/api-client";
+import { AuthEndpoints } from "@/config/api-endpoints";
 
 interface ResetPasswordFormProps {
   isValidToken: boolean;
@@ -35,28 +37,24 @@ export default function ResetPasswordForm({
     setMessage(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RESET_PASSWORD_WITH_TOKEN_ENDPOINT}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await apiClient.post<{ message: string }>(
+        AuthEndpoints.RESET_PASSWORD_WITH_TOKEN,
+        {
           token,
           newPassword,
           confirmPassword,
-        }),
-      });
+        },
+        { skipAuth: true }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage({ text: data.message, type: 'success' });
+      if (response.ok && response.data) {
+        setMessage({ text: response.data.message, type: 'success' });
         // Redirect to login after 2 seconds
         setTimeout(() => {
           router.push('/signin');
         }, 2000);
       } else {
-        setMessage({ text: data.message || 'Failed to reset password', type: 'error' });
+        setMessage({ text: response.data?.message || 'Failed to reset password', type: 'error' });
       }
     } catch (error) {
       console.error("Error in fetchData:", error);

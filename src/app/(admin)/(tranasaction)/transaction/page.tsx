@@ -5,9 +5,10 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
 import { useGlobalContext } from "@/context/GlobalState";
-import Cookies from 'js-cookie';
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { TransactionEndpoints } from "@/config/api-endpoints";
 
 interface Transaction {
   userName: string;
@@ -35,46 +36,36 @@ async function fetchTransactions(
         limit?: number; 
     }> {
     try {
-
         // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT;
+        let endpoint: string = TransactionEndpoints.TRANSACTIONS_LIST;
         if (appType === "Fydaa") {
-            endpoint = "/referrals/transactions-list-mf";
+            endpoint = TransactionEndpoints.TRANSACTIONS_LIST_MF;
         }
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
+        let queryParams = `page=${page}`;
     
         if (selectedOption === 'custom') {
-          url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+          queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
-          url += `&timeframe=${selectedOption || "yearly"}`;
+          queryParams += `&timeframe=${selectedOption || "yearly"}`;
         }
 
         if (searchQuery) {
-            url += `&search=${encodeURIComponent(searchQuery)}`;
+            queryParams += `&search=${encodeURIComponent(searchQuery)}`;
         }
 
         if (selectedEmployee) {
-            url += `&employeeId=${selectedEmployee}`;
+            queryParams += `&employeeId=${selectedEmployee}`;
         }
 
-        const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
-                }
-            }
-        );
-  
-        if (response.status === 401) {
-            Cookies.remove('authToken'); 
-            window.location.href = "/signin";          
-        }
+        const url = `${endpoint}?${queryParams}`;
+        const response = await apiClient.get<{ transactions: Transaction[]; totalTransactions?: number; limit?: number }>(url);
 
         if (!response.ok) {
             throw new Error("Failed to fetch");
         }
 
-        const data = await response.json();
+        const data = response.data;
         return { transactions: Array.isArray(data.transactions) ? data.transactions : [], error: null, totalTransactions: data.totalTransactions, limit: data.limit };
     } catch (err) {
         console.error("Error fetching data:", err);

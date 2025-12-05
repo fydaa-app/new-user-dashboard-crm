@@ -10,6 +10,7 @@ import {
 import Badge from "../ui/badge/Badge";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { DashboardEndpoints } from "@/config/api-endpoints";
 
 interface Order {
   date: string;
@@ -28,7 +29,7 @@ export default function RecentOrders() {
     const fetchOrders = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       try {
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RECENT_ORDERS_ENDPOINT}?`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${DashboardEndpoints.RECENT_ORDERS}?`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -96,11 +97,11 @@ export default function RecentOrders() {
                   Plan Name
                 </TableCell>
                 <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                  Order Value
-                </TableCell>
-                <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Type
                 </TableCell>
+                <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+                  Order Value
+                </TableCell>                
                 <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                   Status
                 </TableCell>
@@ -113,7 +114,6 @@ export default function RecentOrders() {
                     <TableCell className="py-3">{order.date}</TableCell>
                     <TableCell className="py-3">{order.userName}</TableCell>
                     <TableCell className="py-3">{order.planName}</TableCell>
-                    <TableCell className="py-3">{formatCurrency(order.orderValue)}</TableCell>
                     <TableCell className="py-3">
                     <Badge
                       size="sm"
@@ -121,7 +121,8 @@ export default function RecentOrders() {
                     >
                       {order.type}
                     </Badge>
-                  </TableCell>
+                    </TableCell>
+                    <TableCell className="py-3">{formatCurrency(order.orderValue)}</TableCell>                    
                     <TableCell className="py-3">
                       <Badge
                         size="sm"

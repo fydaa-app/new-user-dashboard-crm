@@ -2,7 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { xirrService, XIRRTableData } from "../../services/xirrService";
-import { UserTabProps, Transaction, MutualFundTransaction } from "./types";
+import { 
+  UserTabProps, 
+  Transaction, 
+  MutualFundTransaction, 
+  UserDetails, 
+  MutualFundDetails 
+} from "./types";
 import UserProfileCard from "./UserProfileCard";
 import TabNavigation from "./TabNavigation";
 import PortfolioTab from "./PortfolioTab";
@@ -11,51 +17,34 @@ import SubscriptionTab from "./SubscriptionTab";
 import StockTab from "./StockTab";
 import ProfileTab from "./ProfileTab";
 import XIRRTableSection from "./XIRRTableSection";
+import { apiClient } from "@/services/api-client";
+import { UserEndpoints, StockEndpoints, TransactionEndpoints } from "@/config/api-endpoints";
+
+interface UserDetailsApiResponse {
+  transactionsMF?: MutualFundTransaction[];
+  userDetails?: UserDetails;
+  mutualFundDetails?: MutualFundDetails[];
+  [key: string]: unknown; // Allow other properties
+}
 
 export async function fetchUserTabData(userId: number) {
-  const authToken = document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME + "="))
-    ?.split("=")[1];
-
-  if (!authToken) {
-    console.error("[fetchUserTabData] No auth token found");
-    return {
-      userDetails: {},
-      portfolioDetails: [],
-      transactions: [],
-      subscriptions: [],
-      stockOrders: [],
-      xirrData: null,
-      mutualFundDetails: [],
-      transactionsMF: [],
-    };
-  }
-
-  const headers = {
-    Authorization: `Bearer ${authToken}`,
-    "Content-Type": "application/json",
-  };
-
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-  const stockApiUrl = process.env.NEXT_PUBLIC_STOCK_API_URL || "";
-
   try {
     // --- CRITICAL FIX: Fetch and extract transactionsMF FIRST ---
-    const userDetailsRes = await fetch(
-      `${apiUrl}${process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT}/${userId}`,
-      { headers, cache: "no-store" }
+    const userDetailsRes = await apiClient.get<UserDetailsApiResponse | UserDetails>(
+      `${UserEndpoints.USER_DETAILS}/${userId}`,
+      { baseUrl: 'crm' }
     );
 
-    if (!userDetailsRes.ok) {
+    if (!userDetailsRes.ok || !userDetailsRes.data) {
       throw new Error(`Failed to fetch user details: ${userDetailsRes.status}`);
     }
 
-    const mainData = await userDetailsRes.json();
+    const mainData = userDetailsRes.data;
     
     // Extract IMMEDIATELY - this is the data we need
-    const transactionsMF: MutualFundTransaction[] = mainData.transactionsMF || [];
-    const userDetails = mainData.userDetails || mainData;
+    const transactionsMF: MutualFundTransaction[] = 
+      (mainData as UserDetailsApiResponse).transactionsMF || [];
+    const userDetails = (mainData as UserDetailsApiResponse).userDetails || (mainData as UserDetails);
     const isFydaa = userDetails.fromApp?.toLowerCase() === "fydaa";
 
     console.log(`[fetchUserTabData] ✅ Extracted ${transactionsMF.length} MF transactions for user ${userId}`);
@@ -63,40 +52,40 @@ export async function fetchUserTabData(userId: number) {
     // Now fetch the rest in parallel - if these fail, we still have transactionsMF
     const [portfolioRes, subscriptionsRes, stockOrdersRes, xirrRes] =
       await Promise.all([
-        fetch(
-          `${stockApiUrl}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}?userId=${userId}`,
-          { headers, cache: "no-store" }
+        apiClient.get(
+          `${StockEndpoints.PORTFOLIO}?userId=${userId}`,
+          { baseUrl: 'stock' }
         ),
-        fetch(
-          `${apiUrl}${process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT}?userId=${userId}`,
-          { headers, cache: "no-store" }
+        apiClient.get(
+          `${UserEndpoints.USER_LIST}?userId=${userId}`,
+          { baseUrl: 'crm' }
         ),
-        fetch(
-          `${stockApiUrl}${process.env.NEXT_PUBLIC_STOCK_LIST_ENDPOINT}?userId=${userId}`,
-          { headers, cache: "no-store" }
+        apiClient.get(
+          `${StockEndpoints.STOCK_LIST}?userId=${userId}`,
+          { baseUrl: 'stock' }
         ),
         !isFydaa ? xirrService.getUserXIRR(userId) : Promise.resolve(null),
       ]);
 
     // Parse responses
-    const portfolioDetails = await portfolioRes.json();
-    const subscriptions = await subscriptionsRes.json();
-    const stockOrders = await stockOrdersRes.json();
+    const portfolioDetails = portfolioRes.ok ? portfolioRes.data : [];
+    const subscriptions = subscriptionsRes.ok ? subscriptionsRes.data : [];
+    const stockOrders = stockOrdersRes.ok ? stockOrdersRes.data : [];
     const xirrData: XIRRTableData | null = xirrRes;
 
     // Standard transactions for Savestment (only fetch if needed)
     let transactions: Transaction[] = [];
     if (!isFydaa) {
-      const transactionsRes = await fetch(
-        `${apiUrl}${process.env.NEXT_PUBLIC_TRANSACTIONS_LIST_ENDPOINT}?userId=${userId}`,
-        { headers, cache: "no-store" }
+      const transactionsRes = await apiClient.get<Transaction[]>(
+        `${TransactionEndpoints.TRANSACTIONS_LIST}?userId=${userId}`,
+        { baseUrl: 'crm' }
       );
-      const tData = await transactionsRes.json();
-      transactions = tData || [];
+      transactions = transactionsRes.ok && Array.isArray(transactionsRes.data) ? transactionsRes.data : [];
     }
 
     // Mutual Fund Details
-    const mutualFundDetails = mainData.mutualFundDetails || subscriptions.mutualFundDetails || [];
+    const mutualFundDetails = (mainData as UserDetailsApiResponse).mutualFundDetails || 
+      (subscriptions as { mutualFundDetails?: MutualFundDetails[] }).mutualFundDetails || [];
 
     return {
       userDetails,

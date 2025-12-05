@@ -9,7 +9,8 @@ import { EyeCloseIcon, EyeIcon } from "../../../icons";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { getCookie } from "cookies-next";
-import Cookies from "js-cookie";
+import { apiClient } from "@/services/api-client";
+import { AuthEndpoints } from "@/config/api-endpoints";
 
 interface EmployeeData {
   email: string;
@@ -76,21 +77,15 @@ export default function ResetPasswordForm() {
         ...formData
       };
 
-      const AUTH_TOKEN = Cookies.get("authToken");
       // Call your API endpoint
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_RESET_PASSWORD_ENDPOINT}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${AUTH_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
+      const response = await apiClient.post<{ message?: string }>(
+        AuthEndpoints.RESET_PASSWORD,
+        payload
+      );
 
       if (!response.ok) {
-        toast.error(data.message || "Failed to reset password");
+        toast.error(response.data?.message || "Failed to reset password");
+        return;
       }
 
       toast.success("Password reset successfully");

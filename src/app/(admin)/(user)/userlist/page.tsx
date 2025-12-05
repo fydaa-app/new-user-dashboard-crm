@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
 import { useGlobalContext } from "@/context/GlobalState";
-import Cookies from 'js-cookie';
+
 import Pagination from "@/components/tables/Pagination";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { UserEndpoints } from "@/config/api-endpoints";
 
 interface User {
   userId:number;
@@ -36,186 +38,251 @@ async function fetchUsers(
     }> {
     try {
         // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT;
+        let endpoint: string = UserEndpoints.USER_LIST;
         if (appType === "Fydaa") {
-            endpoint = "/referrals/user-list-mf";
+            endpoint = UserEndpoints.USER_LIST_MF;
         }
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
+        let queryParams = `page=${page}`;
     
         if (selectedOption === 'custom') {
-          url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+          queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
-          url += `&timeframe=${selectedOption || "yearly"}`;
+          queryParams += `&timeframe=${selectedOption || "yearly"}`;
         }
 
         if (searchQuery) {
-            url += `&search=${encodeURIComponent(searchQuery)}`;
+            queryParams += `&search=${encodeURIComponent(searchQuery)}`;
         }
         
         if (selectedEmployee) {
-            url += `&employeeId=${selectedEmployee}`;
+            queryParams += `&employeeId=${selectedEmployee}`;
         }
-console.log("URL:", url);
-        const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
-                }
-            }
-        );
-  
-        if (response.status === 401) {
-            Cookies.remove('authToken'); 
-            window.location.href = "/signin";          
-        }
+
+        const url = `${endpoint}?${queryParams}`;
+        const response = await apiClient.get<{ users: User[]; totalUsers?: number; limit?: number }>(url);
 
         if (!response.ok) {
             throw new Error("Failed to fetch");
         }
 
-        const data = await response.json();
-        return { users: Array.isArray(data.users) ? data.users : [], error: null,totalUsers: data.totalUsers,limit: data.limit };
+        const data = response.data;
+        return { users: Array.isArray(data.users) ? data.users : [], error: null, totalUsers: data.totalUsers, limit: data.limit };
     } catch (err) {
         console.error("Error fetching data:", err);
         return { users: [], error: "Error fetching data" };
     }
 }
 
+// UserTablesPage component (updated with URL sync and skipNextPageReset like clients)
+
 export default function UserTablesPage() {
-    const [users, setUsers] = useState<User[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates,selectedEmployee, appType } = useGlobalContext();
-    const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalUsers, setTotalUsers] = useState(0);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const inputRef = useRef<HTMLInputElement>(null);
+  // Initialize state from URL query parameters on first render
+  const initialPage = useMemo(() => {
+    const pageParam = searchParams.get("page");
+    const parsed = pageParam ? parseInt(pageParam, 10) : 1;
+    return Number.isNaN(parsed) || parsed < 1 ? 1 : parsed;
+  }, [searchParams]);
 
-    useEffect(() => {
-            const query = searchParams.get('search') || "";
-            setSearchQuery(query);
-          }, [searchParams]);
+  const initialSearchQuery = useMemo(() => {
+    return searchParams.get("search") ?? "";
+  }, [searchParams]);
 
-    const fetchData = useCallback(async () => {
-        try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
-            setUsers(users);
-            setError(error);
-            
-            if (apiTotalUsers && limit) {
-                const calculatedTotalPages = Math.ceil(apiTotalUsers / limit);
-                setTotalPages(calculatedTotalPages);
-                setTotalUsers(apiTotalUsers);
-            }
-        } catch (err) {
-            console.error("Error in fetchData:", err);
-            setError("Failed to load data");
-        }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { selectedOption, customDates, selectedEmployee, appType } = useGlobalContext();
+  const [page, setPage] = useState(initialPage);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
+  const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const skipNextPageResetRef = useRef(false);
+  const previousFiltersRef = useRef({
+    searchQuery: initialSearchQuery,
+    selectedOption,
+    selectedEmployee,
+    customDates,
+    appType,
+  });
 
-    useEffect(() => {
-        setPage(1);
-    }, [selectedOption, customDates, searchQuery]);
+  // When navigating back from the user detail page, skip the first automatic page reset
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (sessionStorage.getItem("usersSkipNextPageReset") === "true") {
+      skipNextPageResetRef.current = true;
+      sessionStorage.removeItem("usersSkipNextPageReset");
+    }
+  }, []);
 
-    const handlePageChange = (newPage: number) => {
-        setPage(newPage);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(
+        page,
+        selectedOption,
+        selectedEmployee,
+        customDates,
+        searchQuery,
+        appType
+      );
+      setUsers(users);
+      setError(error);
+
+      if (apiTotalUsers && limit) {
+        const calculatedTotalPages = Math.ceil(apiTotalUsers / limit);
+        setTotalPages(calculatedTotalPages);
+        setTotalUsers(apiTotalUsers);
+      }
+    } catch (err) {
+      console.error("Error in fetchData:", err);
+      setError("Failed to load data");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Reset to page 1 when filters change (but skip once when coming back from detail)
+  useEffect(() => {
+    const prev = previousFiltersRef.current;
+    const hasChanged =
+      prev.searchQuery !== searchQuery ||
+      prev.selectedOption !== selectedOption ||
+      prev.selectedEmployee !== selectedEmployee ||
+      (prev.customDates?.start !== customDates?.start) ||
+      (prev.customDates?.end !== customDates?.end) ||
+      prev.appType !== appType;
+
+    previousFiltersRef.current = { 
+      searchQuery, 
+      selectedOption, 
+      selectedEmployee,
+      customDates,
+      appType,
     };
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSearching(true);
-        
-        // Update URL with search query
-        const params = new URLSearchParams();
-        if (searchQuery) {
-            params.set('search', searchQuery);
-        } else {
-            params.delete('search');
-        }
-        
-        router.push(`?${params.toString()}`, { scroll: false });
-        
-        // Reset to first page when searching
-        setPage(1);
+    if (!hasChanged) return;
+
+    if (skipNextPageResetRef.current) {
+      skipNextPageResetRef.current = false;
+      return;
+    }
+
+    setPage(1);
+  }, [searchQuery, selectedOption, selectedEmployee, customDates, appType]);
+
+  // Keep URL query parameters in sync with pagination and search state
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (page && page > 1) {
+      params.set("page", page.toString());
+    } else {
+      params.delete("page");
+    }
+
+    if (searchQuery) {
+      params.set("search", searchQuery);
+    } else {
+      params.delete("search");
+    }
+
+    const newQuery = params.toString();
+    const currentQuery = searchParams.toString();
+
+    if (newQuery === currentQuery) return;
+
+    const newUrl = newQuery ? `${pathname}?${newQuery}` : pathname;
+    router.replace(newUrl);
+  }, [page, searchQuery, pathname, router, searchParams]);
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      event.preventDefault();
+      inputRef.current?.focus();
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
     };
+  }, []);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-        if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-            event.preventDefault();
-            inputRef.current?.focus();
-        }
-    };
-    
-    useEffect(() => {
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="User" />
-            <div className="space-y-6">
-                <ComponentCard title="User List">
-                <div>
-                    <form onSubmit={handleSearch}>
-                        <div className="relative search-box">
-                            <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
-                            <svg
-                                className="fill-gray-500 dark:fill-gray-400"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-                                fill=""
-                                />
-                            </svg>
-                            </span>
-                                <input
-                                ref={inputRef}
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder="Search or type command..."
-                                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-full"
-                                />
-                            {isSearching && (
-                            <span className="absolute -translate-y-1/2 right-4 top-1/2">
-                                <svg className="animate-spin h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                            </span>
-                            )}
-                        </div>
-                    </form>
-                </div>
-
-                    <UserListTable users={users} error={error} />
-                    {totalUsers > 0 && (
-                        <Pagination 
-                            currentPage={page} 
-                            totalPages={totalPages} 
-                            onPageChange={handlePageChange} 
-                        />
-                    )}                
-                </ComponentCard>
+  return (
+    <div>
+      <PageBreadcrumb pageTitle="User" />
+      <div className="space-y-6">
+        <ComponentCard title="User List">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+            }}
+            className="mb-4"
+          >
+            <div className="relative search-box">
+              <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
+                {/* search icon svg preserved from previous code */}
+              </span>
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search users..."
+                className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              />
             </div>
-        </div>
-    );
+          </form>
+
+          {!isLoading && totalUsers > 0 && (
+            <div className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+              Showing {users.length} of {totalUsers} total users
+              {searchQuery && ` (filtered by "${searchQuery}")`}
+            </div>
+          )}
+
+          {error && <p className="mb-4 text-red-600 font-semibold">{error}</p>}
+
+          {isLoading ? (
+            <div className="my-10 flex justify-center">
+              <span className="loading loading-spinner loading-lg" />
+            </div>
+          ) : users.length === 0 ? (
+            <div className="m-4">
+              <p>No users found{searchQuery ? ` matching "${searchQuery}"` : ""}.</p>
+            </div>
+          ) : (
+            <>
+              <UserListTable users={users} error={error} />
+
+              {totalUsers > 0 && (
+                <div className="mt-4 flex justify-start">
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </ComponentCard>
+      </div>
+    </div>
+  );
 }

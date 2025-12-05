@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import { apiClient } from "@/services/api-client";
+import { AuthEndpoints } from "@/config/api-endpoints";
 
 const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
@@ -14,21 +16,17 @@ const ForgotPasswordPage = () => {
     setMessage(null);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_FORGOT_PASSWORD_ENDPOINT}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
+      const response = await apiClient.post<{ message: string }>(
+        AuthEndpoints.FORGOT_PASSWORD,
+        { email },
+        { skipAuth: true }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setMessage({ text: data.message, type: 'success' });
+      if (response.ok && response.data) {
+        setMessage({ text: response.data.message, type: 'success' });
       } else {
         setMessage({ 
-          text: data.message || 'Something went wrong', 
+          text: response.data?.message || 'Something went wrong', 
           type: 'error' 
         });
       }

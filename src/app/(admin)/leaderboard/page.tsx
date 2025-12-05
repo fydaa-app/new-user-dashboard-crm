@@ -5,11 +5,22 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Leaderboard from "@/components/leaderboard/leaderboard";
 import LeaderboardMf from "@/components/leaderboard/leaderboardMf";
 import { useGlobalContext } from "@/context/GlobalState";
-import Cookies from "js-cookie";
+
 import { useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { LeaderboardEndpoints } from "@/config/api-endpoints";
+
+interface LeaderboardEntry {
+  employeeId: string;
+  rank: number;
+  name: string;
+  revenue: number;
+  userCount: number;
+  totalInvestment: number;
+}
 
 interface LeaderboardData {
-  leaderboard: [];
+  leaderboard: LeaderboardEntry[];
   error: string | null;
 }
 
@@ -28,34 +39,18 @@ export default function LeaderboardPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const authToken = Cookies.get("authToken") || "";
+        // const authToken = Cookies.get("authToken") || "";
         
-        // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_LEADERBOARD_LIST_ENDPOINT;
-        if (appType === "Fydaa") {
-          endpoint = "/referrals/leaderboard-list-mf";
-        }
+        // Note: If you have a separate MF leaderboard endpoint for Fydaa, add it to LeaderboardEndpoints
+        const endpoint = `${LeaderboardEndpoints.LEADERBOARD_LIST}?criteria=${criteria}&employeeId=${selectedEmployee}`;
         
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?criteria=${criteria}&employeeId=${selectedEmployee}`,
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
+        const response = await apiClient.get<{ leaderboard: LeaderboardEntry[] }>(endpoint);
 
-        if (response.status === 401) {
-          Cookies.remove("authToken");
-          window.location.href = "/signin";
-          return;
-        }
-
-        if (!response.ok) {
+        if (!response.ok || !response.data) {
           throw new Error("Failed to fetch");
         }
 
-        const data = await response.json();
+        const data = response.data;
         setLeaderboardData({
           leaderboard: Array.isArray(data.leaderboard) ? data.leaderboard : [],
           error: null
