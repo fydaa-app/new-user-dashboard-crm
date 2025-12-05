@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
-import Cookies from "js-cookie";
 import { MutualFundTransaction } from "@/components/user-detail/types";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -244,31 +243,25 @@ export default function UserDetails({ params }: PageProps) {
         const resolvedParams = await params;
         const { userId } = resolvedParams;
 
-        const authToken =
-          document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("authToken="))
-            ?.split("=")[1] || "";
+        // const authToken =
+        //   document.cookie
+        //     .split("; ")
+        //     .find((row) => row.startsWith("authToken="))
+        //     ?.split("=")[1] || "";
 
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_USER_DETAILS_ENDPOINT}/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
+        // Import at top of file
+        const { apiClient } = await import("@/services/api-client");
+        const { UserEndpoints } = await import("@/config/api-endpoints");
+        
+        const response = await apiClient.get<UserData>(
+          `${UserEndpoints.USER_DETAILS}/${userId}`
         );
 
-        if (response.status === 401) {
-          Cookies.remove("authToken");
-          window.location.href = "/signin";
-        }
-
-        if (!response.ok) {
+        if (!response.ok || !response.data) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const data: UserData = await response.json();
+        const data: UserData = response.data;
 
         // Transform only transactions, keep mutualFundDetails and transactionsMF as-is
         const transformedData = {

@@ -1,3 +1,5 @@
+import { StockEndpoints } from '../config/api-endpoints';
+
 interface NIFTYBenchmark {
   cagr: string;
   absoluteReturn: string;
@@ -96,7 +98,11 @@ class XIRRService {
         throw new Error('XIRR Auth Key not configured');
       }
 
-      const url = `${this.baseURL}orders/getUserXirrForAllTimePeriods`;
+      const endpoint = StockEndpoints.USER_XIRR;
+      // Normalize base URL and endpoint to avoid double slashes
+      const normalizedBase = this.baseURL.endsWith('/') ? this.baseURL.slice(0, -1) : this.baseURL;
+      const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const url = `${normalizedBase}${normalizedEndpoint}`;
 
       const response = await fetch(url, {
         method: 'POST',

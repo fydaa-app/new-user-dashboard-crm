@@ -15,6 +15,8 @@ import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Cookies from 'js-cookie';
+import { apiClient } from "@/services/api-client";
+import { AdminEndpoints } from "@/config/api-endpoints";
 
 interface DesignationItem {
   level: number;
@@ -74,26 +76,12 @@ const AppHeader: React.FC = () => {
     const fetchDesignations = async () => {
       setIsLoadingDesignations(true);
       try {
-        const url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_DESIGNATION_LIST_ENDPOINT}`;    
-        const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
-                }
-            }
+        const response = await apiClient.get<{ success: boolean; data: DesignationItem[] }>(
+          AdminEndpoints.DESIGNATION_LIST
         );
-        if (response.status === 401) {
-            Cookies.remove('authToken'); 
-            window.location.href = "/signin";          
-        }
 
-        if (!response.ok) {
-            throw new Error("Failed to fetch");
-        }
-
-        const data = await response.json();
-        
-        if (data.success) {
-          const designationOptions = data.data.map((item: DesignationItem) => ({
+        if (response.ok && response.data.success) {
+          const designationOptions = response.data.data.map((item: DesignationItem) => ({
             value: item.level.toString(),
             label: item.hierarchyName
           }));
@@ -117,26 +105,11 @@ const AppHeader: React.FC = () => {
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
         try {
-          const url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_ROLE_WISE_EMPLOYEE_LIST_ENDPOINT}?role=${selectedDesignation}`;    
-          const response = await fetch(url, {
-                  headers: {
-                      Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
-                  }
-              }
-          );
-          if (response.status === 401) {
-              Cookies.remove('authToken'); 
-              window.location.href = "/signin";          
-          }
+          const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${selectedDesignation}`;
+          const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
-          if (!response.ok) {
-              throw new Error("Failed to fetch");
-          }
-
-          const data = await response.json();
-
-          if (data.success) {
-            const employeeOptions = data.data.map((item: EmployeeItem) => ({
+          if (response.ok && response.data.success) {
+            const employeeOptions = response.data.data.map((item: EmployeeItem) => ({
               value: item.id.toString(),
               label: item.name
             }));

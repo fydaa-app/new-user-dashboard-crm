@@ -1,6 +1,8 @@
 // app/reset-password/page.tsx
 import ResetPasswordForm from "@/components/auth/ResetPassword";
 import { Metadata } from "next";
+import { apiClient } from "@/services/api-client";
+import { AuthEndpoints } from "@/config/api-endpoints";
 
 export const metadata: Metadata = {
   title: "Reset Password | Fydaa",
@@ -15,21 +17,18 @@ interface ValidationResult {
 async function validateToken(token: string): Promise<ValidationResult> {
  
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VALIDATE_RESET_TOKEN_ENDPOINT}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-      cache: 'no-store' // Important for token validation
-    });
+    const response = await apiClient.post<ValidationResult>(
+      AuthEndpoints.VALIDATE_RESET_TOKEN,
+      { token },
+      { skipAuth: true }
+    );
 
-    if (!response.ok) {
+    if (!response.ok || !response.data) {
       return { isValid: false, email: null };
     }
     
 
-    return await response.json();
+    return response.data;
   } catch (error) {
     console.error('Token validation error:', error);
     return { isValid: false, email: null };

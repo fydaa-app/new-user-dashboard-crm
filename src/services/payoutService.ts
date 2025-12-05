@@ -1,18 +1,7 @@
 // src/services/payoutService.ts
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
-// Helper function to get token from cookies
-const getAuthToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    const cookies = document.cookie.split(';');
-    const authCookie = cookies.find(cookie => 
-      cookie.trim().startsWith('authToken=')
-    );
-    return authCookie ? authCookie.split('=')[1] : null;
-  }
-  return null;
-};
+import { apiClient } from './api-client';
+import { PayoutEndpoints, AdminEndpoints } from '../config/api-endpoints';
 
 // Interface for API responses
 interface ApiResponse<T> {
@@ -100,25 +89,20 @@ export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
   withdrawableAmount: number;
 } | null> => {
   try {
-    const token = getAuthToken();
-    if (!token) return null;
-
-    // Build URL with optional employeeId parameter
-    let url = `${API_URL}/referrals/partner/earnings`;
+    let endpoint = PayoutEndpoints.PARTNER_EARNINGS;
     if (employeeId) {
-      url += `?employeeId=${employeeId}`;
+      endpoint += `?employeeId=${employeeId}`;
     }
 
-    const res = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await apiClient.get<{ data: {
+      totalEarnings: number;
+      availableAmount: number;
+      withdrawableAmount: number;
+    } }>(endpoint);
     
-    if (!res.ok) return null;
+    if (!response.ok) return null;
 
-    const { data } = await res.json();
+    const { data } = response.data;
     return {
       totalEarnings: data?.totalEarnings ?? 0,
       availableAmount: data?.availableAmount ?? 0,
@@ -135,19 +119,13 @@ export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
  */
 export const checkWithdrawalAccountStatus = async (): Promise<boolean> => {
   try {
-    const token = getAuthToken();
-    if (!token) return false;
-
-    const res = await fetch(`${API_URL}/referrals/partner/withdrawal-account-status`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await apiClient.get<{ data: { isSetup: boolean } }>(
+      PayoutEndpoints.WITHDRAWAL_ACCOUNT_STATUS
+    );
     
-    if (!res.ok) return false;
+    if (!response.ok) return false;
 
-    const { data } = await res.json();
+    const { data } = response.data;
     return !!data?.isSetup;
   } catch (e) {
     console.error('Error checking withdrawal account status:', e);
@@ -162,46 +140,28 @@ export const setupWithdrawalAccount = async (
   accountData: WithdrawalAccountSetup
 ): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
-    const token = getAuthToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Authentication token not found'
-      };
-    }
-
-    const response = await fetch(
-      `${API_URL}/referrals/partner/setup-withdrawal-account`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(accountData)
-      }
-    );
-
-    const data = await response.json();
+    const response = await apiClient.post<{
+      message?: string;
+      data?: Record<string, unknown>;
+    }>(PayoutEndpoints.SETUP_WITHDRAWAL_ACCOUNT, accountData);
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.message || 'Failed to setup withdrawal account'
+        error: response.data.message || 'Failed to setup withdrawal account'
       };
     }
 
     return {
       success: true,
-      data: data,
+      data: response.data.data || response.data,
       message: 'Withdrawal account setup successfully'
     };
   } catch (error) {
     console.error('Error setting up withdrawal account:', error);
     return {
       success: false,
-      error: 'Network error occurred'
+      error: error instanceof Error ? error.message : 'Network error occurred'
     };
   }
 };
@@ -213,46 +173,28 @@ export const withdrawDirect = async (
   amount: number
 ): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
-    const token = getAuthToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Authentication token not found'
-      };
-    }
-
-    const response = await fetch(
-      `${API_URL}/referrals/partner/withdraw-direct`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ amount })
-      }
-    );
-
-    const data = await response.json();
+    const response = await apiClient.post<{
+      message?: string;
+      data?: Record<string, unknown>;
+    }>(PayoutEndpoints.WITHDRAW_DIRECT, { amount });
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.message || 'Withdrawal request failed'
+        error: response.data.message || 'Withdrawal request failed'
       };
     }
 
     return {
       success: true,
-      data: data,
+      data: response.data.data || response.data,
       message: 'Withdrawal request submitted successfully'
     };
   } catch (error) {
     console.error('Error processing withdrawal:', error);
     return {
       success: false,
-      error: 'Network error occurred'
+      error: error instanceof Error ? error.message : 'Network error occurred'
     };
   }
 };
@@ -262,44 +204,27 @@ export const withdrawDirect = async (
  */
 export const calculateEarnings = async (): Promise<ApiResponse<Record<string, unknown>>> => {
   try {
-    const token = getAuthToken();
-    
-    if (!token) {
-      return {
-        success: false,
-        error: 'Authentication token not found'
-      };
-    }
-
-    const response = await fetch(
-      `${API_URL}/referrals/partner/earnings/calculate`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-
-    const data = await response.json();
+    const response = await apiClient.post<{
+      message?: string;
+      data?: Record<string, unknown>;
+    }>(PayoutEndpoints.CALCULATE_EARNINGS);
 
     if (!response.ok) {
       return {
         success: false,
-        error: data.message || 'Failed to calculate earnings'
+        error: response.data.message || 'Failed to calculate earnings'
       };
     }
 
     return {
       success: true,
-      data: data
+      data: response.data.data || response.data
     };
   } catch (error) {
     console.error('Error calculating earnings:', error);
     return {
       success: false,
-      error: 'Network error occurred'
+      error: error instanceof Error ? error.message : 'Network error occurred'
     };
   }
 };
@@ -321,42 +246,19 @@ export const fetchPartnerPayoutList = async (
   error: string | null;
 }> => {
   try {
-    const token = getAuthToken();
-    if (!token) {
+    const endpoint = `${AdminEndpoints.ADMIN_PARTNERS_LIST}?page=${page}&limit=${limit}`;
+    const response = await apiClient.get<PartnerPayoutApiResponse>(endpoint);
+    
+    if (!response.ok) {
       return { 
         payouts: [], 
         pagination: null,
-        error: "Authentication token not found" 
+        error: (response.data as { message?: string }).message || "Failed to fetch payout list" 
       };
     }
 
-    // ========== API CALL ==========
-    const endpoint = process.env.NEXT_PUBLIC_ADMIN_PARTNERS_LIST_ENDPOINT || '/referrals/admin/partners';
-    const res = await fetch(
-      `${API_URL}${endpoint}?page=${page}&limit=${limit}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    
-    if (!res.ok) {
-      const errorData = await res.json();
-      return { 
-        payouts: [], 
-        pagination: null,
-        error: errorData.message || "Failed to fetch payout list" 
-      };
-    }
-
-    const response: PartnerPayoutApiResponse = await res.json();
-    
     // Transform API response to match our interface
-    const transformedPayouts: PartnerPayoutListItem[] = response.data.partners.map(partner => ({
+    const transformedPayouts: PartnerPayoutListItem[] = response.data.data.partners.map(partner => ({
       partnerId: partner.partnerId,
       partnerName: partner.name,
       balanceEarned: partner.earnings.availableAmount,
@@ -367,11 +269,9 @@ export const fetchPartnerPayoutList = async (
 
     return {
       payouts: transformedPayouts,
-      pagination: response.data.pagination,
+      pagination: response.data.data.pagination,
       error: null
     };
-    // ========== END API CALL ==========
-
   } catch (e) {
     console.error("Error fetching partner payout list:", e);
     return {

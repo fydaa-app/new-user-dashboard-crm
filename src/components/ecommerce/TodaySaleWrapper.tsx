@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import TodaySale from "@/components/ecommerce/TodaySale";
 import { useGlobalContext } from "@/context/GlobalState";
+import { DashboardEndpoints } from "@/config/api-endpoints";
 
 interface CardData {
   type: string;
@@ -50,7 +51,7 @@ const TodaySaleWrapper = () => {
 
       try {
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_CARD_ENDPOINT}?`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}${DashboardEndpoints.CARD_DATA}?`;
     
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;

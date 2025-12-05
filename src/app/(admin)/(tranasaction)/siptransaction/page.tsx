@@ -5,9 +5,11 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionsTable from "@/components/tables/MfTransactionsTable";
 import { useGlobalContext } from "@/context/GlobalState";
-import Cookies from "js-cookie";
+
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { TransactionEndpoints } from "@/config/api-endpoints";
 
 interface Order {
   id: number;
@@ -54,50 +56,41 @@ async function fetchTransactions(
   totalPages?: number;
 }> {
   try {
-    let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/transactions-list-sip-mf?page=${page}`;
+    let queryParams = `page=${page}`;
 
     if (selectedOption === "custom") {
-      url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
     } else {
-      url += `&timeframe=${selectedOption || "yearly"}`;
+      queryParams += `&timeframe=${selectedOption || "yearly"}`;
     }
 
     if (searchQuery) {
-      url += `&search=${encodeURIComponent(searchQuery)}`;
+      queryParams += `&search=${encodeURIComponent(searchQuery)}`;
     }
 
     if (reportType) {
-      url += `&reportType=${reportType}`;
+      queryParams += `&reportType=${reportType}`;
     }
 
     if (selectedEmployee) {
-      url += `&employeeId=${selectedEmployee}`;
+      queryParams += `&employeeId=${selectedEmployee}`;
     }
 
-    console.log("URL:", url);
+    const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
+    const response = await apiClient.get<{
+      data: Transaction[];
+      pagination?: {
+        totalItems?: number;
+        itemsPerPage?: number;
+        totalPages?: number;
+      };
+    }>(url);
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${
-          document.cookie
-            .split("; ")
-            .find((row) => row.startsWith("authToken="))
-            ?.split("=")[1] || ""
-        }`,
-      },
-    });
-
-    if (response.status === 401) {
-      Cookies.remove("authToken");
-      window.location.href = "/signin";
-      return { transactions: [], error: "Unauthorized" };
-    }
-
-    if (!response.ok) {
+    if (!response.ok || !response.data) {
       throw new Error("Failed to fetch");
     }
 
-    const result = await response.json();
+    const result = response.data;
 
     return {
       transactions: Array.isArray(result.data) ? result.data : [],

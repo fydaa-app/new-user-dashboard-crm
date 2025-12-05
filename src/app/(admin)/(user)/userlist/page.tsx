@@ -5,9 +5,11 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
 import { useGlobalContext } from "@/context/GlobalState";
-import Cookies from 'js-cookie';
+
 import Pagination from "@/components/tables/Pagination";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
+import { UserEndpoints } from "@/config/api-endpoints";
 
 interface User {
   userId:number;
@@ -36,45 +38,36 @@ async function fetchUsers(
     }> {
     try {
         // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_USER_LIST_ENDPOINT;
+        let endpoint: string = UserEndpoints.USER_LIST;
         if (appType === "Fydaa") {
-            endpoint = "/referrals/user-list-mf";
+            endpoint = UserEndpoints.USER_LIST_MF;
         }
 
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;
+        let queryParams = `page=${page}`;
     
         if (selectedOption === 'custom') {
-          url += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+          queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
-          url += `&timeframe=${selectedOption || "yearly"}`;
+          queryParams += `&timeframe=${selectedOption || "yearly"}`;
         }
 
         if (searchQuery) {
-            url += `&search=${encodeURIComponent(searchQuery)}`;
+            queryParams += `&search=${encodeURIComponent(searchQuery)}`;
         }
         
         if (selectedEmployee) {
-            url += `&employeeId=${selectedEmployee}`;
+            queryParams += `&employeeId=${selectedEmployee}`;
         }
-console.log("URL:", url);
-        const response = await fetch(url, {
-                headers: {
-                    Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
-                }
-            }
-        );
-  
-        if (response.status === 401) {
-            Cookies.remove('authToken'); 
-            window.location.href = "/signin";          
-        }
+
+        const url = `${endpoint}?${queryParams}`;
+        const response = await apiClient.get<{ users: User[]; totalUsers?: number; limit?: number }>(url);
 
         if (!response.ok) {
             throw new Error("Failed to fetch");
         }
 
-        const data = await response.json();
-        return { users: Array.isArray(data.users) ? data.users : [], error: null,totalUsers: data.totalUsers,limit: data.limit };
+        const data = response.data;
+        return { users: Array.isArray(data.users) ? data.users : [], error: null, totalUsers: data.totalUsers, limit: data.limit };
     } catch (err) {
         console.error("Error fetching data:", err);
         return { users: [], error: "Error fetching data" };
@@ -114,6 +107,8 @@ export default function UserTablesPage() {
     searchQuery: initialSearchQuery,
     selectedOption,
     selectedEmployee,
+    customDates,
+    appType,
   });
 
   // When navigating back from the user detail page, skip the first automatic page reset
@@ -162,9 +157,18 @@ export default function UserTablesPage() {
     const hasChanged =
       prev.searchQuery !== searchQuery ||
       prev.selectedOption !== selectedOption ||
-      prev.selectedEmployee !== selectedEmployee;
+      prev.selectedEmployee !== selectedEmployee ||
+      (prev.customDates?.start !== customDates?.start) ||
+      (prev.customDates?.end !== customDates?.end) ||
+      prev.appType !== appType;
 
-    previousFiltersRef.current = { searchQuery, selectedOption, selectedEmployee };
+    previousFiltersRef.current = { 
+      searchQuery, 
+      selectedOption, 
+      selectedEmployee,
+      customDates,
+      appType,
+    };
 
     if (!hasChanged) return;
 
@@ -174,7 +178,7 @@ export default function UserTablesPage() {
     }
 
     setPage(1);
-  }, [searchQuery, selectedOption, selectedEmployee]);
+  }, [searchQuery, selectedOption, selectedEmployee, customDates, appType]);
 
   // Keep URL query parameters in sync with pagination and search state
   useEffect(() => {
