@@ -12,6 +12,7 @@ import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
 import { useGlobalContext } from "@/context/GlobalState";
 import RecentOrdersMf from "@/components/ecommerce/RecentOrdersMf";
+import DueSipsWrapper from "@/components/ecommerce/DueSipsWrapper";
 // import TargetVsRealityChartMf from "@/components/ecommerce/TargetVsRealityChartMf";
 // import MonthlyTargetMf from "@/components/ecommerce/MonthlyTargetMf";
 // import DemographicCard from "@/components/ecommerce/DemographicCard";
@@ -28,6 +29,10 @@ export default function Ecommerce() {
       <div className="grid grid-cols-12 gap-4 md:gap-6">
         <div className="col-span-12">
           <TodaySaleWrapperMf />
+        </div>
+
+        <div className="col-span-12">
+          <DueSipsWrapper />
         </div>
 
         <div className="col-span-12">
