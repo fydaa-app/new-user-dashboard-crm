@@ -14,6 +14,7 @@ import {
   LeaderboardIcon,
   SettingIcon,
   ShoppingCartIcon,
+  
 } from "../icons/index";
 
 type NavItem = {
@@ -54,6 +55,11 @@ const navItems: NavItem[] = [
     name: "Payment Report",
     path: "/salereport",
   },
+  // {
+  //   icon: <SalesIcon />,
+  //   name: "Sales CRM",
+  //   path: "/sales-crm",
+  // },
   {
     name: "Payouts",
     icon: <TableIcon />,
