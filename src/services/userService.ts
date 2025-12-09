@@ -1,4 +1,5 @@
 import { getCookie } from 'cookies-next';
+import { UserEndpoints } from '@/config/api-endpoints';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -69,7 +70,7 @@ export const userService = {
         return generateFallbackUser(userId);
       }
 
-      const url = `${API_URL}/employees/${userId}`;
+      const url = `${API_URL}${UserEndpoints.VIEW_USER_PROFILE}/${userId}`;
       const headers = getHeaders();
 
       console.log("Attempting to fetch user from:", url);
