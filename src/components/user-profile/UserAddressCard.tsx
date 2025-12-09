@@ -5,8 +5,17 @@ import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";
+import { UserData } from "@/services/userService";
 
-export default function UserAddressCard() {
+interface UserAddressCardProps {
+  user: UserData | null;
+  error: string | null;
+}
+
+export default function UserAddressCard({ user: _user, error: _error }: UserAddressCardProps) {
+  // Suppress unused variable warnings - these props are for future use
+  void _user;
+  void _error;
   const { isOpen, openModal, closeModal } = useModal();
   const handleSave = () => {
     // Handle save logic here

@@ -27,8 +27,15 @@ async function fetchUserDetails(): Promise<{ user: User | null; error: string | 
       .find((row) => row.startsWith("authToken="))
       ?.split("=")[1] || "";
 
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    const endpoint = process.env.NEXT_PUBLIC_VIEW_USER_PROFILE_ENDPOINT;
+    
+    if (!apiUrl || !endpoint) {
+      throw new Error("Missing API configuration");
+    }
+    
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VIEW_USER_PROFILE_ENDPOINT}`,
+      `${apiUrl}${endpoint}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }
