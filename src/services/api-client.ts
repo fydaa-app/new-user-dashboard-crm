@@ -141,12 +141,6 @@ class ApiClient {
         headers: preparedHeaders,
       });
 
-      // Handle 401 globally
-      if (response.status === 401 && requireAuth && !skipAuth) {
-        this.handleUnauthorized();
-        throw new ApiError('Unauthorized', 401);
-      }
-
       // Parse response body
       let data: T;
       const contentType = response.headers.get('content-type');
@@ -155,6 +149,40 @@ class ApiClient {
         data = await response.json();
       } else {
         data = (await response.text()) as unknown as T;
+      }
+
+      // Handle 401 globally
+      if (response.status === 401 && requireAuth && !skipAuth) {
+        this.handleUnauthorized();
+        throw new ApiError('Unauthorized', 401);
+      }
+
+      // Throw error for non-ok responses
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        
+        // Try to extract a meaningful error message
+        if (data && typeof data === 'object') {
+          const errorData = data as Record<string, unknown>;
+          
+          // Check if message is a string and not [object Object]
+          if (errorData.message && typeof errorData.message === 'string') {
+            errorMessage = errorData.message;
+          }
+          // Check if error field exists and is a string
+          else if (errorData.error && typeof errorData.error === 'string') {
+            errorMessage = errorData.error;
+          }
+          // Check nested error message
+          else if (errorData.error && typeof errorData.error === 'object' && errorData.error !== null) {
+            const nestedError = errorData.error as Record<string, unknown>;
+            if (nestedError.message && typeof nestedError.message === 'string') {
+              errorMessage = nestedError.message;
+            }
+          }
+        }
+        
+        throw new ApiError(errorMessage, response.status, data);
       }
 
       return {

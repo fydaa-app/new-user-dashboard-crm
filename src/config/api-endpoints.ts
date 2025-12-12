@@ -91,6 +91,15 @@ export const AdminEndpoints = {
   PAYMENTS_LIST_MF: "/referrals/payments-list-mf", // Fydaa app type
 } as const;
 
+// Lead Management Endpoints
+export const LeadEndpoints = {
+  LEADS: "/referrals/leads",
+  LEAD_BY_ID: "/referrals/leads",
+  LEAD_STATS: "/referrals/leads/stats",
+  UPDATE_LEAD_STATUS: "/referrals/leads",
+  ASSIGN_LEAD: "/referrals/leads",
+} as const;
+
 // Partner/Payout Endpoints
 export const PayoutEndpoints = {
   PARTNER_EARNINGS: "/referrals/partner/earnings",
@@ -125,6 +134,7 @@ export const APIEndpoints = {
   ...DashboardEndpoints,
   ...LeaderboardEndpoints,
   ...AdminEndpoints,
+  ...LeadEndpoints,
   ...PayoutEndpoints,
   ...MutualFundEndpoints,
   ...PortfolioEndpoints,
