@@ -32,6 +32,11 @@ const navItems: NavItem[] = [
   },
   {
     icon: <LeaderboardIcon />,
+    name: "Sales CRM",
+    path: "/sales-crm",
+  },
+  {
+    icon: <LeaderboardIcon />,
     name: "Leaderboard",
     path: "/leaderboard",
   },
@@ -55,11 +60,6 @@ const navItems: NavItem[] = [
     name: "Payment Report",
     path: "/salereport",
   },
-  // {
-  //   icon: <SalesIcon />,
-  //   name: "Sales CRM",
-  //   path: "/sales-crm",
-  // },
   {
     name: "Payouts",
     icon: <TableIcon />,
