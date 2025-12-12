@@ -59,34 +59,34 @@ const DueSipsWrapper = () => {
   // Filter sips based on selected period (CUMULATIVE - shows everything up to that period)
   const filterSipsByDueDate = (sips: DueSipItem[], period: DuePeriod): DueSipItem[] => {
     const today = new Date();
-    
+
     return sips.filter(sip => {
       if (!sip.nextInstallmentDate) return false;
-      
+
       const dueDate = new Date(sip.nextInstallmentDate);
       const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-      
+
       switch (period) {
         case 'today':
           // Show everything due up to and including today
           const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
           return dueDateOnly <= endOfToday;
-        
+
         case 'thisWeek':
           // Show everything due up to end of this calendar week (Sunday)
           const endOfThisWeek = getEndOfWeek(today);
           return dueDateOnly <= endOfThisWeek;
-        
+
         case 'nextWeek':
           // Show everything due up to end of next calendar week
           const endOfNextWeek = getEndOfNextWeek(today);
           return dueDateOnly <= endOfNextWeek;
-        
+
         case 'thisMonth':
           // Show everything due up to end of this calendar month (handles leap years)
           const endOfThisMonth = getEndOfMonth(today.getFullYear(), today.getMonth());
           return dueDateOnly <= endOfThisMonth;
-        
+
         case 'nextMonth':
           // Show everything due up to end of next calendar month (handles leap years)
           const nextMonth = today.getMonth() + 1;
@@ -94,7 +94,7 @@ const DueSipsWrapper = () => {
           const adjustedNextMonth = nextMonth > 11 ? 0 : nextMonth;
           const endOfNextMonth = getEndOfMonth(nextMonthYear, adjustedNextMonth);
           return dueDateOnly <= endOfNextMonth;
-        
+
         default:
           return false;
       }
@@ -113,51 +113,39 @@ const DueSipsWrapper = () => {
     setLoading(true);
     setError(null);
 
-    try {
-      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/active-sip-list-mf?page=1&timeframe=yearly`;
+    // Helper to fetch a single page
+    const fetchPage = async (page: number, ignoreFilters: boolean = false) => {
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/active-sip-list-mf?page=${page}&timeframe=yearly`;
 
-      // Add designation filter if selected
-      if (selectedDesignation) {
-        url += `&designationId=${selectedDesignation}`;
-      }
-
-      // Add employee filter if selected
-      if (selectedEmployee) {
-        url += `&employeeId=${selectedEmployee}`;
+      if (!ignoreFilters) {
+        if (selectedDesignation) url += `&designationId=${selectedDesignation}`;
+        if (selectedEmployee) url += `&employeeId=${selectedEmployee}`;
       }
 
       const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${AUTH_TOKEN}`,
-        }
+        headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
       });
+      return response;
+    };
+
+    try {
+      let allSips: DueSipItem[] = [];
+      let page = 1;
+      let totalPages = 1;
+      let shouldUseFilters = true;
+
+      // 1. Initial attempt (Page 1)
+      let response = await fetchPage(1, false);
+
+      // 2. Handle 401 with filters -> Retry without filters
+      if (response.status === 401 && (selectedDesignation || selectedEmployee)) {
+        console.warn("401 error with filters - trying without filters");
+        shouldUseFilters = false;
+        response = await fetchPage(1, true); // Retry without filters which means ignoreFilters=true
+      }
 
       if (response.status === 401) {
-        if (selectedEmployee || selectedDesignation) {
-          console.warn("401 error with filters - trying without filters");
-          // Retry without filters to get real data
-          const fallbackUrl = `${process.env.NEXT_PUBLIC_API_URL}/referrals/active-sip-list-mf?page=1&timeframe=yearly`;
-          
-          const fallbackResponse = await fetch(fallbackUrl, {
-            headers: {
-              Authorization: `Bearer ${AUTH_TOKEN}`,
-            }
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackResult = await fallbackResponse.json();
-            console.log('✅ Got real SIP list data without filters');
-            const allSips = Array.isArray(fallbackResult.data) ? fallbackResult.data : [];
-            
-            // Filter to only show SIPs with due dates
-            const sipsWithDueDates = allSips.filter((sip: DueSipItem) => sip.nextInstallmentDate);
-            setDueSips(sipsWithDueDates);
-          } else {
-            setError("Unable to fetch due SIPs data");
-          }
-        } else {
-          setError("Authentication issue - please try again");
-        }
+        setError("Authentication issue - please try again");
         setLoading(false);
         return;
       }
@@ -166,9 +154,34 @@ const DueSipsWrapper = () => {
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
 
-      const result = await response.json();
-      const allSips = Array.isArray(result.data) ? result.data : [];
-      
+      let result = await response.json();
+      if (Array.isArray(result.data)) {
+        allSips = [...allSips, ...result.data];
+        totalPages = result.pagination?.totalPages || 1;
+      }
+
+      // 3. Fetch remaining pages
+      while (page < totalPages && page < 50) { // Limit to 50 pages for safety
+        page++;
+        try {
+          // Fetch subsequent pages using the same filter strategy determined at start
+          response = await fetchPage(page, !shouldUseFilters);
+
+          if (!response.ok) {
+            console.warn(`Failed to fetch page ${page}: ${response.status}`);
+            break;
+          }
+
+          result = await response.json();
+          if (Array.isArray(result.data)) {
+            allSips = [...allSips, ...result.data];
+          }
+        } catch (e) {
+          console.error(`Error fetching page ${page}`, e);
+          break;
+        }
+      }
+
       // Filter to only show SIPs with due dates
       const sipsWithDueDates = allSips.filter((sip: DueSipItem) => sip.nextInstallmentDate);
       setDueSips(sipsWithDueDates);

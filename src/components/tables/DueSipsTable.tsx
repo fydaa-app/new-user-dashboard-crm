@@ -84,7 +84,7 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto overflow-y-auto max-h-[500px]">
         <div className="min-w-[1400px]">
           {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && sips.length > 0 ? (
@@ -188,7 +188,7 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
             !error && (
               <div className="m-4 p-8 text-center">
                 <p className="text-gray-500 dark:text-gray-400">No due SIPs found for the selected period.</p>
-              </div>             
+              </div>
             )
           )}
         </div>
