@@ -38,6 +38,7 @@ interface Transaction {
   processedAmount: number;
   status: string;
   createdAt: string;
+  type: string;
   orders: Order[];
 }
 
@@ -128,13 +129,16 @@ export default function TransactionsListPage() {
 
     console.log("[DEBUG] Search params changed:", { query, type });
 
+    // Reset readyToFetch first to prevent fetch with old states
+    setReadyToFetch(false);
+    
     // Batch setting states then set readyToFetch true in next tick
     setSearchQuery(query);
     setReportType(type);
     setPage(1);
 
     // Delay marking ready (allows states to update before fetch)
-    const id = setTimeout(() => setReadyToFetch(true), 0);
+    const id = setTimeout(() => setReadyToFetch(true), 10);
     return () => clearTimeout(id);
   }, [searchParams]);
 
