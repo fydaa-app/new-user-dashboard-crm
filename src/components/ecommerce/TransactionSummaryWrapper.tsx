@@ -7,29 +7,78 @@ import { useGlobalContext } from "@/context/GlobalState";
 interface SummaryData {
   totalOrders: number;
   totalTransactions: number;
+  transactionCounts: {
+    total: number;
+    purchases: number;
+    redemptions: number;
+  };
   fullySuccessful: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   failed: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   partiallySuccessful: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   inProcess: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   overallStats: {
     totalAmount: number;
     totalProcessedAmount: number;
+    totalBuyAmount: number;
+    totalSellAmount: number;
+    totalProcessedBuyAmount: number;
+    totalProcessedSellAmount: number;
     successRate: number;
   };
   dailyBreakdown: Array<{
@@ -74,7 +123,7 @@ const TransactionSummaryWrapper = () => {
 
       try {
         let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/transactions-summary-mf?`;
-    
+
         if (selectedOption === 'custom') {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
         } else {
@@ -91,8 +140,8 @@ const TransactionSummaryWrapper = () => {
         });
 
         if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
+          Cookies.remove('authToken');
+          window.location.href = "/signin";
         }
 
         if (!response.ok) {
@@ -100,7 +149,7 @@ const TransactionSummaryWrapper = () => {
         }
 
         const result = await response.json();
-        
+
         if (result.success && result.data?.summary) {
           setSummaryData(result.data.summary);
         }
