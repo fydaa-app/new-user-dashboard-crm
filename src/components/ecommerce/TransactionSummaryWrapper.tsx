@@ -10,6 +10,7 @@ interface SummaryData {
   transactionCounts: {
     total: number;
     purchases: number;
+    lumpsum: number;
     redemptions: number;
   };
   fullySuccessful: {
@@ -21,6 +22,7 @@ interface SummaryData {
       amount: number;
       processedAmount: number;
     };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
     sell: {
       count: number;
       amount: number;
@@ -36,6 +38,7 @@ interface SummaryData {
       amount: number;
       processedAmount: number;
     };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
     sell: {
       count: number;
       amount: number;
@@ -51,6 +54,7 @@ interface SummaryData {
       amount: number;
       processedAmount: number;
     };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
     sell: {
       count: number;
       amount: number;
@@ -66,6 +70,7 @@ interface SummaryData {
       amount: number;
       processedAmount: number;
     };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
     sell: {
       count: number;
       amount: number;
@@ -76,8 +81,10 @@ interface SummaryData {
     totalAmount: number;
     totalProcessedAmount: number;
     totalBuyAmount: number;
+    totalLumpsumAmount: number;
     totalSellAmount: number;
     totalProcessedBuyAmount: number;
+    totalLumpsumProcessed: number;
     totalProcessedSellAmount: number;
     successRate: number;
   };
