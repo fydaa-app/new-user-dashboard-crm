@@ -213,8 +213,14 @@ export default function SalesCRM() {
             assignedToId: parseInt(selectedEmployee)
           });
         }
+      } else if (selectedEmployee === 'all') {
+        // [FIX] Explicitly handle 'all' selection
+        // Do NOT apply employeeId or assignedToId filters here.
+        // This allows the backend to return ALL records (global view).
+        console.log('👤 Show All Employees selected - Global view applied');
       } else if (user?.id) {
-        // When no specific employee is selected, apply to logged-in user
+        // When no specific employee is selected AND 'all' was not explicitly chosen
+        // Default behavior: apply to logged-in user
         if (viewMode === 'all') {
           // Show all leads under logged-in user (hierarchy + assigned)
           enhancedFilters.employeeId = user.id;
@@ -229,6 +235,7 @@ export default function SalesCRM() {
           });
         }
       }
+
 
       // Add designation filtering (this will need to be handled on backend)
       // Exclude 'assign_to_yourself' as it's not a designation level
@@ -395,6 +402,10 @@ export default function SalesCRM() {
             assignedToId: parseInt(selectedEmployee)
           });
         }
+      } else if (selectedEmployee === 'all') {
+        // [FIX] Explicitly handle 'all' selection
+        // Do NOT apply filtering.
+        console.log('📊 Show All Employees selected for Stats - Global view applied');
       } else if (user?.id) {
         if (viewMode === 'all') {
           // Show stats for all leads under logged-in user (hierarchy + assigned)
@@ -416,6 +427,7 @@ export default function SalesCRM() {
           });
         }
       }
+
 
       console.log('📊 Loading stats with filters:', statsFilters);
       const statsData = await leadService.getLeadStats(Object.keys(statsFilters).length > 0 ? statsFilters : undefined);
