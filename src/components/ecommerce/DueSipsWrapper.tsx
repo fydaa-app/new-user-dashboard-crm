@@ -5,7 +5,7 @@ import { DueSipItem } from "@/components/tables/DueSipsTable";
 import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from "js-cookie";
 
-type DuePeriod = 'today' | 'thisWeek' | 'nextWeek' | 'thisMonth' | 'nextMonth';
+type DuePeriod = 'overdue' | 'today' | 'thisWeek' | 'thisMonth' | 'nextMonth';
 
 const DueSipsWrapper = () => {
   const [dueSips, setDueSips] = useState<DueSipItem[]>([]);
@@ -32,22 +32,9 @@ const DueSipsWrapper = () => {
     return endOfWeek;
   };
 
-  // Helper function to get start of next calendar week
-  const getStartOfNextWeek = (date: Date): Date => {
-    const currentWeekEnd = getEndOfWeek(date);
-    const nextWeekStart = new Date(currentWeekEnd);
-    nextWeekStart.setDate(currentWeekEnd.getDate() + 1);
-    nextWeekStart.setHours(0, 0, 0, 0);
-    return nextWeekStart;
-  };
-
-  // Helper function to get end of next calendar week
-  const getEndOfNextWeek = (date: Date): Date => {
-    const nextWeekStart = getStartOfNextWeek(date);
-    const nextWeekEnd = new Date(nextWeekStart);
-    nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
-    nextWeekEnd.setHours(23, 59, 59, 999);
-    return nextWeekEnd;
+  // Helper function to get start of month
+  const getStartOfMonth = (year: number, month: number): Date => {
+    return new Date(year, month, 1, 0, 0, 0, 0);
   };
 
   // Helper function to get end of month (handles leap years automatically)
@@ -56,9 +43,12 @@ const DueSipsWrapper = () => {
     return new Date(year, month + 1, 0, 23, 59, 59, 999);
   };
 
-  // Filter sips based on selected period (CUMULATIVE - shows everything up to that period)
+  // Filter sips based on selected period (shows only items FROM that period, not UP TO)
   const filterSipsByDueDate = (sips: DueSipItem[], period: DuePeriod): DueSipItem[] => {
     const today = new Date();
+    const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const startOfToday = new Date(todayOnly.getFullYear(), todayOnly.getMonth(), todayOnly.getDate(), 0, 0, 0, 0);
+    const endOfToday = new Date(todayOnly.getFullYear(), todayOnly.getMonth(), todayOnly.getDate(), 23, 59, 59, 999);
 
     return sips.filter(sip => {
       if (!sip.nextInstallmentDate) return false;
@@ -67,33 +57,38 @@ const DueSipsWrapper = () => {
       const dueDateOnly = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
 
       switch (period) {
+        case 'overdue':
+          // Show only items due before today, but not older than last month
+          const lastMonth = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
+          const lastMonthYear = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
+          const startOfLastMonth = getStartOfMonth(lastMonthYear, lastMonth);
+          return dueDateOnly >= startOfLastMonth && dueDateOnly < startOfToday;
+
+
         case 'today':
-          // Show everything due up to and including today
-          const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
-          return dueDateOnly <= endOfToday;
+          // Show only items due today
+          return dueDateOnly >= startOfToday && dueDateOnly <= endOfToday;
 
         case 'thisWeek':
-          // Show everything due up to end of this calendar week (Sunday)
+          // Show only items due this week (Monday to Sunday)
+          const startOfThisWeek = getStartOfWeek(today);
           const endOfThisWeek = getEndOfWeek(today);
-          return dueDateOnly <= endOfThisWeek;
-
-        case 'nextWeek':
-          // Show everything due up to end of next calendar week
-          const endOfNextWeek = getEndOfNextWeek(today);
-          return dueDateOnly <= endOfNextWeek;
+          return dueDateOnly >= startOfThisWeek && dueDateOnly <= endOfThisWeek;
 
         case 'thisMonth':
-          // Show everything due up to end of this calendar month (handles leap years)
+          // Show only items due this month
+          const startOfThisMonth = getStartOfMonth(today.getFullYear(), today.getMonth());
           const endOfThisMonth = getEndOfMonth(today.getFullYear(), today.getMonth());
-          return dueDateOnly <= endOfThisMonth;
+          return dueDateOnly >= startOfThisMonth && dueDateOnly <= endOfThisMonth;
 
         case 'nextMonth':
-          // Show everything due up to end of next calendar month (handles leap years)
+          // Show only items due next month
           const nextMonth = today.getMonth() + 1;
           const nextMonthYear = nextMonth > 11 ? today.getFullYear() + 1 : today.getFullYear();
           const adjustedNextMonth = nextMonth > 11 ? 0 : nextMonth;
+          const startOfNextMonth = getStartOfMonth(nextMonthYear, adjustedNextMonth);
           const endOfNextMonth = getEndOfMonth(nextMonthYear, adjustedNextMonth);
-          return dueDateOnly <= endOfNextMonth;
+          return dueDateOnly >= startOfNextMonth && dueDateOnly <= endOfNextMonth;
 
         default:
           return false;

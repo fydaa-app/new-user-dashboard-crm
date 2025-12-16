@@ -3,7 +3,7 @@ import DueSipsTable, { DueSipItem } from "@/components/tables/DueSipsTable";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 
-type DuePeriod = 'today' | 'thisWeek' | 'nextWeek' | 'thisMonth' | 'nextMonth';
+type DuePeriod = 'overdue' | 'today' | 'thisWeek' | 'thisMonth' | 'nextMonth';
 
 interface DueSipsProps {
   filteredSips: DueSipItem[];
@@ -21,25 +21,25 @@ export default function DueSips({
   onPeriodChange 
 }: DueSipsProps) {
   const periodOptions = [
+    { value: 'overdue', label: 'Overdue' },
     { value: 'today', label: 'Today' },
     { value: 'thisWeek', label: 'This Week' },
-    { value: 'nextWeek', label: 'Next Week' },
     { value: 'thisMonth', label: 'This Month' },
     { value: 'nextMonth', label: 'Next Month' },
   ];
 
   const getDescriptionText = (period: DuePeriod): string => {
     switch (period) {
+      case 'overdue':
+        return 'SIPs overdue';
       case 'today':
-        return 'SIPs due up to today';
+        return 'SIPs due today';
       case 'thisWeek':
-        return 'SIPs due up to end of this week';
-      case 'nextWeek':
-        return 'SIPs due up to end of next week';
+        return 'SIPs due this week';
       case 'thisMonth':
-        return 'SIPs due up to end of this month';
+        return 'SIPs due this month';
       case 'nextMonth':
-        return 'SIPs due up to end of next month';
+        return 'SIPs due next month';
       default:
         return 'SIPs due';
     }
