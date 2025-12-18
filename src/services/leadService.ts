@@ -155,18 +155,39 @@ class LeadService {
         if (error.data && typeof error.data === 'object') {
           const errorData = error.data as Record<string, unknown>;
           
+          // Check for mobile number conflict (409 status)
+          if (error.status === 409) {
+            // Check for errors.mobileNumber first (more specific)
+            if (errorData.errors && typeof errorData.errors === 'object') {
+              const errors = errorData.errors as Record<string, unknown>;
+              if (errors.mobileNumber && typeof errors.mobileNumber === 'string') {
+                throw new Error(errors.mobileNumber);
+              }
+            }
+            // Fall back to main message
+            if (errorData.message && typeof errorData.message === 'string') {
+              throw new Error(errorData.message);
+            }
+          }
+          
           // Check for validation errors
           if (errorData.message && typeof errorData.message === 'string') {
-            throw new Error(`Validation Error: ${errorData.message}`);
+            throw new Error(errorData.message);
           }
-          if (errorData.errors) {
+          if (errorData.errors && typeof errorData.errors === 'object') {
+            const errors = errorData.errors as Record<string, unknown>;
+            // Try to get the first error message
+            const firstError = Object.values(errors)[0];
+            if (typeof firstError === 'string') {
+              throw new Error(firstError);
+            }
             throw new Error(`Validation Errors: ${JSON.stringify(errorData.errors)}`);
           }
           // Check for nested error structure
           if (errorData.error && typeof errorData.error === 'object') {
             const nestedError = errorData.error as Record<string, unknown>;
             if (nestedError.message && typeof nestedError.message === 'string') {
-              throw new Error(`Validation Error: ${nestedError.message}`);
+              throw new Error(nestedError.message);
             }
           }
         }
@@ -195,34 +216,66 @@ class LeadService {
     } catch (error) {
       console.error('❌ Error updating lead:', error);
       
-      // Check if it's a specific API error
-      if (error && typeof error === 'object' && 'response' in error) {
-        const apiError = error as { 
-          response?: { 
-            status?: number; 
-            statusText?: string; 
-            data?: { message?: string } 
-          }; 
-          config?: { url?: string; method?: string } 
-        };
+      // Check if it's an ApiError instance
+      if (error instanceof ApiError) {
         console.error('📡 API Error Details:', {
-          status: apiError.response?.status,
-          statusText: apiError.response?.statusText,
-          data: apiError.response?.data,
-          url: apiError.config?.url,
-          method: apiError.config?.method
+          status: error.status,
+          message: error.message,
+          data: error.data
         });
         
-        // Return more specific error message
-        if (apiError.response?.data?.message) {
-          throw new Error(apiError.response.data.message);
-        } else if (apiError.response?.status === 404) {
+        // Try to extract error message from data
+        if (error.data && typeof error.data === 'object') {
+          const errorData = error.data as Record<string, unknown>;
+          
+          // Check for mobile number conflict (409 status)
+          if (error.status === 409) {
+            // Check for errors.mobileNumber first (more specific)
+            if (errorData.errors && typeof errorData.errors === 'object') {
+              const errors = errorData.errors as Record<string, unknown>;
+              if (errors.mobileNumber && typeof errors.mobileNumber === 'string') {
+                throw new Error(errors.mobileNumber);
+              }
+            }
+            // Fall back to main message
+            if (errorData.message && typeof errorData.message === 'string') {
+              throw new Error(errorData.message);
+            }
+          }
+          
+          // Check for validation errors
+          if (errorData.message && typeof errorData.message === 'string') {
+            throw new Error(errorData.message);
+          }
+          if (errorData.errors && typeof errorData.errors === 'object') {
+            const errors = errorData.errors as Record<string, unknown>;
+            // Try to get the first error message
+            const firstError = Object.values(errors)[0];
+            if (typeof firstError === 'string') {
+              throw new Error(firstError);
+            }
+            throw new Error(`Validation Errors: ${JSON.stringify(errorData.errors)}`);
+          }
+          // Check for nested error structure
+          if (errorData.error && typeof errorData.error === 'object') {
+            const nestedError = errorData.error as Record<string, unknown>;
+            if (nestedError.message && typeof nestedError.message === 'string') {
+              throw new Error(nestedError.message);
+            }
+          }
+        }
+        
+        // Handle specific status codes
+        if (error.status === 404) {
           throw new Error('Lead not found. It may have been deleted.');
-        } else if (apiError.response?.status === 401) {
+        } else if (error.status === 401) {
           throw new Error('Unauthorized. Please login again.');
-        } else if (apiError.response?.status === 403) {
+        } else if (error.status === 403) {
           throw new Error('You do not have permission to update this lead.');
         }
+        
+        // Use the error message if available
+        throw new Error(error.message || 'Failed to update lead. Please try again.');
       }
       
       throw new Error('Failed to update lead. Please try again.');

@@ -5,6 +5,8 @@ import { Lead, UpdateLeadData } from "@/services/leadService";
 import { Modal } from "@/components/ui/modal";
 import Button from "@/components/ui/button/Button";
 import DatePicker from "@/components/form/DatePicker";
+import Select from "@/components/form/Select";
+import { ChevronDownIcon } from "@/icons";
 
 interface EditLeadModalProps {
   isOpen: boolean;
@@ -29,9 +31,28 @@ export default function EditLeadModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDesignation, setSelectedDesignation] = useState<string>('');
+  const [emailError, setEmailError] = useState<string>('');
+  const [phoneError, setPhoneError] = useState<string>('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [selectedSourceOption, setSelectedSourceOption] = useState<string>("Website");
+  const [customSource, setCustomSource] = useState("");
+
+  // Email regex pattern
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // Phone regex pattern - exactly 10 digits
+  const phoneRegex = /^\d{10}$/;
 
   useEffect(() => {
     if (lead && isOpen) {
+      const predefinedSources = ["Website", "Referral", "Cold Call", "Social Media", "Event", "Other"];
+      const sourceValue =
+        lead.source && predefinedSources.includes(lead.source)
+          ? lead.source
+          : lead.source
+          ? "Other"
+          : "Website";
+
       setFormData({
         name: lead.name,
         email: lead.email,
@@ -47,11 +68,46 @@ export default function EditLeadModal({
       });
       setError(null);
       setSelectedDesignation(''); // Reset designation when modal opens
+      setSelectedSourceOption(sourceValue);
+      setCustomSource(sourceValue === "Other" ? lead.source || "" : "");
+      // Reset validation states
+      setEmailError('');
+      setPhoneError('');
+      setEmailTouched(false);
+      setPhoneTouched(false);
     }
   }, [lead, isOpen]);
 
   const handleInputChange = (field: keyof UpdateLeadData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validate email
+    if (field === 'email') {
+      setEmailTouched(true);
+      const emailValue = value as string;
+      if (emailValue && !emailRegex.test(emailValue)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
+    
+    // Validate phone number
+    if (field === 'mobileNumber') {
+      setPhoneTouched(true);
+      const phoneValue = value as string;
+      // Clear any previous backend error when user starts typing
+      if (error && (error.toLowerCase().includes('mobile number') || error.toLowerCase().includes('phone number') || error.toLowerCase().includes('already exists'))) {
+        setError(null);
+      }
+      // Remove any non-digit characters for validation
+      const digitsOnly = phoneValue.replace(/\D/g, '');
+      if (phoneValue && digitsOnly.length !== 10) {
+        setPhoneError('Phone number must be exactly 10 digits');
+      } else {
+        setPhoneError('');
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +146,22 @@ export default function EditLeadModal({
       await onSave(lead.id, cleanedData);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to update lead';
-      setError(errorMessage);
+      
+      // Check if error is related to mobile number conflict
+      const isMobileNumberError = errorMessage.toLowerCase().includes('mobile number') || 
+                                   errorMessage.toLowerCase().includes('phone number') ||
+                                   errorMessage.toLowerCase().includes('already exists');
+      
+      if (isMobileNumberError) {
+        // Set phone error to show below the phone input
+        setPhoneError(errorMessage);
+        setPhoneTouched(true);
+        // Also set general error for visibility
+        setError(errorMessage);
+      } else {
+        setError(errorMessage);
+      }
+      
       console.error('Error updating lead:', err);
     } finally {
       setIsLoading(false);
@@ -121,7 +192,20 @@ export default function EditLeadModal({
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-              <p className="text-red-800 dark:text-red-200">{error}</p>
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-200">{error}</p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -147,9 +231,16 @@ export default function EditLeadModal({
                 type="tel"
                 value={formData.mobileNumber || ""}
                 onChange={(e) => handleInputChange("mobileNumber", e.target.value)}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
+                  phoneTouched && phoneError 
+                    ? 'border-red-500 dark:border-red-500' 
+                    : 'border-stroke dark:border-strokedark'
+                } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                 required
               />
+              {phoneTouched && phoneError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">{phoneError}</p>
+              )}
             </div>
 
             <div>
@@ -160,112 +251,172 @@ export default function EditLeadModal({
                 type="email"
                 value={formData.email || ""}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
+                  emailTouched && emailError 
+                    ? 'border-red-500 dark:border-red-500' 
+                    : 'border-stroke dark:border-strokedark'
+                } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                 required
               />
+              {emailTouched && emailError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">{emailError}</p>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
                 Source
               </label>
-              <select
-                value={formData.source || ""}
-                onChange={(e) => handleInputChange("source", e.target.value)}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              >
-                <option>Website</option>
-                <option>Referral</option>
-                <option>Cold Call</option>
-                <option>Social Media</option>
-                <option>Event</option>
-                <option>Other</option>
-              </select>
+              <div className="relative">
+                <Select
+                  options={[
+                    { value: "Website", label: "Website" },
+                    { value: "Referral", label: "Referral" },
+                    { value: "Cold Call", label: "Cold Call" },
+                    { value: "Social Media", label: "Social Media" },
+                    { value: "Event", label: "Event" },
+                    { value: "Other", label: "Other" },
+                  ]}
+                  placeholder="Select Source"
+                  value={selectedSourceOption}
+                  onChange={(option) => {
+                    const value = option?.value || "Website";
+                    setSelectedSourceOption(value);
+                    const predefinedSources = ["Website", "Referral", "Cold Call", "Social Media", "Event", "Other"];
+                    if (value === "Other") {
+                      const existing = formData.source && !predefinedSources.includes(formData.source)
+                        ? String(formData.source)
+                        : "";
+                      setCustomSource(existing);
+                      handleInputChange("source", existing);
+                    } else {
+                      setCustomSource("");
+                      handleInputChange("source", value);
+                    }
+                  }}
+                  className="dark:bg-dark"
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
+
+              {selectedSourceOption === "Other" && (
+                <div className="mt-2">
+                  <label className="block text-xs font-medium text-black/70 dark:text-white/70 mb-1">
+                    Other Source
+                  </label>
+                  <input
+                    type="text"
+                    value={customSource}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setCustomSource(value);
+                      handleInputChange("source", value);
+                    }}
+                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    placeholder="Enter custom source"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
                 Status
               </label>
-              <select
-                value={formData.status || ""}
-                onChange={(e) => handleInputChange("status", e.target.value)}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              >
-                <option value="new">New</option>
-                <option value="in-progress">In Progress</option>
-                <option value="converted">Converted</option>
-                <option value="lost">Lost</option>
-              </select>
+              <div className="relative">
+                <Select
+                  options={[
+                    { value: "new", label: "New" },
+                    { value: "in-progress", label: "In Progress" },
+                    { value: "converted", label: "Converted" },
+                    { value: "lost", label: "Lost" },
+                  ]}
+                  placeholder="Select Status"
+                  value={formData.status || ""}
+                  onChange={(option) => handleInputChange("status", option?.value || "")}
+                  className="dark:bg-dark"
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
                 Assign to Designation
               </label>
-              <select
-                value={selectedDesignation}
-                onChange={(e) => {
-                  setSelectedDesignation(e.target.value);
-                  // If "assign to yourself" is selected, automatically set the current user
-                  if (e.target.value === 'assign_to_yourself' && currentUser?.id) {
-                    handleInputChange("assignedToId", currentUser.id);
-                  } else {
-                    handleInputChange("assignedToId", undefined);
-                  }
-                }}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-              >
-                <option value="">Select Designation</option>
-                {/* Assign to Yourself Option */}
-                <option 
-                  value="assign_to_yourself" 
-                  className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium"
-                >
-                  🙋‍♂️ Assign to Yourself
-                </option>
-                {designations.map((designation) => (
-                  <option key={designation.value} value={designation.value}>
-                    {designation.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <Select
+                  options={[
+                    { value: "", label: "Select Designation" },
+                    { value: "assign_to_yourself", label: "🙋‍♂️ Assign to Yourself" },
+                    ...designations,
+                  ]}
+                  placeholder="Select Designation"
+                  value={selectedDesignation}
+                  onChange={(option) => {
+                    const value = option?.value || "";
+                    setSelectedDesignation(value);
+                    // If "assign to yourself" is selected, automatically set the current user
+                    if (value === "assign_to_yourself" && currentUser?.id) {
+                      handleInputChange("assignedToId", currentUser.id);
+                    } else {
+                      handleInputChange("assignedToId", undefined);
+                    }
+                  }}
+                  className="dark:bg-dark"
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
                 Assigned To
               </label>
-              <select
-                value={formData.assignedToId?.toString() || ""}
-                onChange={(e) => handleInputChange("assignedToId", e.target.value ? parseInt(e.target.value) : undefined)}
-                className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none ${
-                  selectedDesignation === 'assign_to_yourself' ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                disabled={selectedDesignation === 'assign_to_yourself'}
-              >
-                {selectedDesignation === 'assign_to_yourself' ? (
-                  <option value={currentUser?.id || ''}>
-                    ✅ Assigned to You ({currentUser?.name || 'You'})
-                  </option>
-                ) : (
-                  <>
-                    <option value="">Unassigned</option>
-                    {/* All available users */}
-                    {userOptions.length > 0 && (
-                      <>
-                        <optgroup label="Team Members">
-                          {userOptions.map((user) => (
-                            <option key={user.value} value={user.value}>
-                              {user.label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      </>
-                    )}
-                  </>
-                )}
-              </select>
+              <div className="relative">
+                <Select
+                  options={
+                    selectedDesignation === "assign_to_yourself"
+                      ? currentUser?.id
+                        ? [
+                            {
+                              value: String(currentUser.id),
+                              label: `✅ Assigned to You (${currentUser.name || "You"})`,
+                            },
+                          ]
+                        : []
+                      : [
+                          { value: "", label: "Unassigned" },
+                          ...(userOptions || []),
+                        ]
+                  }
+                  placeholder="Select Assignee"
+                  value={
+                    selectedDesignation === "assign_to_yourself"
+                      ? currentUser?.id?.toString() || ""
+                      : formData.assignedToId?.toString() || ""
+                  }
+                  onChange={(option) => {
+                    if (selectedDesignation === "assign_to_yourself") return;
+                    const id = option?.value ? parseInt(option.value, 10) : undefined;
+                    handleInputChange("assignedToId", id);
+                  }}
+                  className={`dark:bg-dark ${
+                    selectedDesignation === "assign_to_yourself"
+                      ? "opacity-50 cursor-not-allowed pointer-events-none"
+                      : ""
+                  }`}
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
               {selectedDesignation === 'assign_to_yourself' && (
                 <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                   💡 Lead will be assigned to you automatically
@@ -337,7 +488,16 @@ export default function EditLeadModal({
             <Button
               variant="primary"
               type="submit"
-              disabled={isLoading || !formData.name || !formData.mobileNumber || !formData.email}
+              disabled={
+                isLoading || 
+                !formData.name || 
+                !formData.mobileNumber || 
+                !formData.email ||
+                !!emailError ||
+                !!phoneError ||
+                !emailRegex.test(formData.email || '') ||
+                !phoneRegex.test((formData.mobileNumber || '').replace(/\D/g, ''))
+              }
               className="flex-1"
             >
               {isLoading ? "Updating..." : "Update Lead"}
