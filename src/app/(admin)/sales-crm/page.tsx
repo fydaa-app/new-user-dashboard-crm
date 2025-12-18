@@ -22,6 +22,8 @@ import Pagination from '@/components/tables/Pagination';
 import EditLeadModal from '@/components/leads/EditLeadModal';
 import DeleteLeadModal from '@/components/leads/DeleteLeadModal';
 import DatePicker from '@/components/form/DatePicker';
+import Select from '@/components/form/Select';
+import { ChevronDownIcon } from '@/icons';
 
 // Interfaces for designation and employee data
 interface DesignationItem {
@@ -55,7 +57,7 @@ export default function SalesCRM() {
   const [userMap, setUserMap] = useState<{ [key: number]: string }>({});
   const [backendUserNames, setBackendUserNames] = useState<{ [key: number]: string }>({});
   const [userOptions, setUserOptions] = useState<{ value: string; label: string }[]>([]);
-  const [viewMode, setViewMode] = useState<'all' | 'assigned'>('assigned');
+  const [viewMode, setViewMode] = useState<'all' | 'assigned'>('all');
 
   // Create a combined userMap that includes both local userMap and backend names
   const combinedUserMap = useMemo(() => {
@@ -95,6 +97,19 @@ export default function SalesCRM() {
     nextFollowUpAt: '',
     notes: ''
   });
+
+  // Validation states for Add Lead Modal
+  const [emailError, setEmailError] = useState<string>('');
+  const [phoneError, setPhoneError] = useState<string>('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [selectedSourceOption, setSelectedSourceOption] = useState<string>('Website');
+  const [customSource, setCustomSource] = useState('');
+
+  // Email regex pattern
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  // Phone regex pattern - exactly 10 digits
+  const phoneRegex = /^\d{10}$/;
 
   const loadLeads = useCallback(async (filtersToUse?: LeadFilters) => {
     try {
@@ -792,10 +807,30 @@ export default function SalesCRM() {
         });
         setSelectedDesignation('');
         setEmployees([]);
+        // Reset validation states
+        setEmailError('');
+        setPhoneError('');
+        setEmailTouched(false);
+        setPhoneTouched(false);
         setShowAddLead(false);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to create lead. Please try again.';
-        setError(errorMessage);
+        
+        // Check if error is related to mobile number conflict
+        const isMobileNumberError = errorMessage.toLowerCase().includes('mobile number') || 
+                                     errorMessage.toLowerCase().includes('phone number') ||
+                                     errorMessage.toLowerCase().includes('already exists');
+        
+        if (isMobileNumberError) {
+          // Set phone error to show below the phone input
+          setPhoneError(errorMessage);
+          setPhoneTouched(true);
+          // Also set general error for visibility
+          setError(errorMessage);
+        } else {
+          setError(errorMessage);
+        }
+        
         console.error('Error creating lead:', err);
       } finally {
         setLoading(false);
@@ -1016,6 +1051,11 @@ export default function SalesCRM() {
           onClose={() => {
             setShowAddLead(false);
             setError(null); // Clear error when closing
+            // Reset validation states
+            setEmailError('');
+            setPhoneError('');
+            setEmailTouched(false);
+            setPhoneTouched(false);
           }}
           showCloseButton={true}
           className="max-w-2xl w-full mx-auto my-8"
@@ -1065,111 +1105,182 @@ export default function SalesCRM() {
                   <input
                     type="tel"
                     value={newLead.mobileNumber || ''}
-                    onChange={(e) => setNewLead({...newLead, mobileNumber: e.target.value})}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewLead({...newLead, mobileNumber: value});
+                      setPhoneTouched(true);
+                      // Clear any previous backend error when user starts typing
+                      if (error && (error.toLowerCase().includes('mobile number') || error.toLowerCase().includes('phone number') || error.toLowerCase().includes('already exists'))) {
+                        setError(null);
+                      }
+                      // Remove any non-digit characters for validation
+                      const digitsOnly = value.replace(/\D/g, '');
+                      if (value && digitsOnly.length !== 10) {
+                        setPhoneError('Phone number must be exactly 10 digits');
+                      } else {
+                        setPhoneError('');
+                      }
+                    }}
+                    className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
+                      phoneTouched && phoneError 
+                        ? 'border-red-500 dark:border-red-500' 
+                        : 'border-stroke dark:border-strokedark'
+                    } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                   />
+                  {phoneTouched && phoneError && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">{phoneError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">Email</label>
                   <input
                     type="email"
                     value={newLead.email || ''}
-                    onChange={(e) => setNewLead({...newLead, email: e.target.value})}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setNewLead({...newLead, email: value});
+                      setEmailTouched(true);
+                      if (value && !emailRegex.test(value)) {
+                        setEmailError('Please enter a valid email address');
+                      } else {
+                        setEmailError('');
+                      }
+                    }}
+                    className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
+                      emailTouched && emailError 
+                        ? 'border-red-500 dark:border-red-500' 
+                        : 'border-stroke dark:border-strokedark'
+                    } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                   />
+                  {emailTouched && emailError && (
+                    <p className="text-sm text-red-600 dark:text-red-400 mt-1">{emailError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">Source</label>
-                  <select
-                    value={newLead.source || 'Website'}
-                    onChange={(e) => setNewLead({...newLead, source: e.target.value})}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                  >
-                    <option>Website</option>
-                    <option>Referral</option>
-                    <option>Cold Call</option>
-                    <option>Social Media</option>
-                    <option>Event</option>
-                    <option>Other</option>
-                  </select>
+                  <div className="relative">
+                    <Select
+                      options={[
+                        { value: 'Website', label: 'Website' },
+                        { value: 'Referral', label: 'Referral' },
+                        { value: 'Cold Call', label: 'Cold Call' },
+                        { value: 'Social Media', label: 'Social Media' },
+                        { value: 'Event', label: 'Event' },
+                        { value: 'Other', label: 'Other' },
+                      ]}
+                      placeholder="Select Source"
+                      value={selectedSourceOption}
+                      onChange={(option) => {
+                        const value = option?.value || 'Website';
+                        setSelectedSourceOption(value);
+                        if (value === 'Other') {
+                          setCustomSource('');
+                          setNewLead({ ...newLead, source: '' });
+                        } else {
+                          setCustomSource('');
+                          setNewLead({ ...newLead, source: value });
+                        }
+                      }}
+                      className="dark:bg-dark"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                      <ChevronDownIcon />
+                    </span>
+                  </div>
+                  {selectedSourceOption === 'Other' && (
+                    <div className="mt-2">
+                      <label className="block text-xs font-medium text-black/70 dark:text-white/70 mb-1">
+                        Other Source
+                      </label>
+                      <input
+                        type="text"
+                        value={customSource}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCustomSource(value);
+                          setNewLead({ ...newLead, source: value });
+                        }}
+                        className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        placeholder="Enter custom source"
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">Assign to Designation</label>
-                  <select
-                    value={selectedDesignation}
-                    onChange={(e) => {
-                      setSelectedDesignation(e.target.value);
-                      // If "assign to yourself" is selected, automatically set the current user
-                      if (e.target.value === 'assign_to_yourself' && user?.id) {
-                        setNewLead({...newLead, assignedToId: user.id});
-                      } else {
-                        setNewLead({...newLead, assignedToId: undefined});
-                      }
-                    }}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
-                    disabled={isLoadingDesignations}
-                  >
-                    <option value="">
-                      {isLoadingDesignations ? "Loading designations..." : "Select Designation"}
-                    </option>
-                    {/* Assign to Yourself Option */}
-                    <option 
-                      value="assign_to_yourself" 
-                      className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 font-medium"
-                    >
-                      🙋‍♂️ Assign to Yourself
-                    </option>
-                    {designations.map((designation) => (
-                      <option key={designation.value} value={designation.value}>
-                        {designation.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <Select
+                      options={[
+                        {
+                          value: '',
+                          label: isLoadingDesignations ? 'Loading designations...' : 'Select Designation',
+                        },
+                        { value: 'assign_to_yourself', label: '🙋‍♂️ Assign to Yourself' },
+                        ...designations,
+                      ]}
+                      placeholder="Select Designation"
+                      value={selectedDesignation}
+                      onChange={(option) => {
+                        const value = option?.value || '';
+                        setSelectedDesignation(value);
+                        // If "assign to yourself" is selected, automatically set the current user
+                        if (value === 'assign_to_yourself' && user?.id) {
+                          setNewLead({ ...newLead, assignedToId: user.id });
+                        } else {
+                          setNewLead({ ...newLead, assignedToId: undefined });
+                        }
+                      }}
+                      className={`dark:bg-dark ${isLoadingDesignations ? 'pointer-events-none opacity-60' : ''}`}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                      <ChevronDownIcon />
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-black dark:text-white mb-2">Assign to Employee</label>
-                  <select
-                    value={newLead.assignedToId || ''}
-                    onChange={(e) => setNewLead({...newLead, assignedToId: e.target.value ? Number(e.target.value) : undefined})}
-                    className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none ${
-                      selectedDesignation === 'assign_to_yourself' ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                    disabled={selectedDesignation === 'assign_to_yourself' || isLoadingEmployees}
-                  >
-                    {selectedDesignation === 'assign_to_yourself' ? (
-                      <option value={user?.id || ''}>
-                        ✅ Assigned to You ({user?.name || 'You'})
-                      </option>
-                    ) : (
-                      <>
-                        <option value="">Unassigned</option>
-                        {/* Designation-based employees */}
-                        {selectedDesignation && !isLoadingEmployees && employees.length > 0 && (
-                          <>
-                            <optgroup label="Team Members">
-                              {employees.map((employee) => (
-                                <option key={employee.value} value={employee.value}>
-                                  {employee.label}
-                                </option>
-                              ))}
-                            </optgroup>
-                          </>
-                        )}
-                        {/* All available employees if no designation selected */}
-                        {!selectedDesignation && userOptions.length > 0 && (
-                          <>
-                            <optgroup label="All Employees">
-                              {userOptions.map((user) => (
-                                <option key={user.value} value={user.value}>
-                                  {user.label}
-                                </option>
-                              ))}
-                            </optgroup>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </select>
+                  <div className="relative">
+                    <Select
+                      options={
+                        selectedDesignation === 'assign_to_yourself'
+                          ? user?.id
+                            ? [
+                                {
+                                  value: String(user.id),
+                                  label: `✅ Assigned to You (${user.name || 'You'})`,
+                                },
+                              ]
+                            : []
+                          : [
+                              { value: '', label: 'Unassigned' },
+                              ...(selectedDesignation && !isLoadingEmployees && employees.length > 0
+                                ? employees
+                                : !selectedDesignation && userOptions.length > 0
+                                ? userOptions
+                                : []),
+                            ]
+                      }
+                      placeholder="Select Employee"
+                      value={
+                        selectedDesignation === 'assign_to_yourself'
+                          ? user?.id?.toString() || ''
+                          : (newLead.assignedToId && String(newLead.assignedToId)) || ''
+                      }
+                      onChange={(option) => {
+                        if (selectedDesignation === 'assign_to_yourself') return;
+                        const id = option?.value ? Number(option.value) : undefined;
+                        setNewLead({ ...newLead, assignedToId: id });
+                      }}
+                      className={`dark:bg-dark ${
+                        selectedDesignation === 'assign_to_yourself' || isLoadingEmployees
+                          ? 'opacity-50 cursor-not-allowed pointer-events-none'
+                          : ''
+                      }`}
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                      <ChevronDownIcon />
+                    </span>
+                  </div>
                   {isLoadingEmployees && (
                     <p className="text-sm text-gray-500 mt-1">Loading employees...</p>
                   )}
@@ -1218,7 +1329,16 @@ export default function SalesCRM() {
                 <Button
                   variant="primary"
                   onClick={handleAddLead}
-                  disabled={!newLead.name || !newLead.mobileNumber || !newLead.email || loading}
+                  disabled={
+                    !newLead.name || 
+                    !newLead.mobileNumber || 
+                    !newLead.email || 
+                    loading ||
+                    !!emailError ||
+                    !!phoneError ||
+                    !emailRegex.test(newLead.email || '') ||
+                    !phoneRegex.test((newLead.mobileNumber || '').replace(/\D/g, ''))
+                  }
                   className="flex-1"
                 >
                   {loading ? 'Adding...' : 'Add Lead'}
