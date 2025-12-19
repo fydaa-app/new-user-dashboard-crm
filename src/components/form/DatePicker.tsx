@@ -158,8 +158,8 @@ export default function DatePicker({
 
       {/* Calendar Dropdown */}
       {isOpen && !disabled && (
-        <div className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg w-80 dark:border-white/[0.05] dark:bg-white/[0.03]">
-          {/* Calendar Header */}
+        <div className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg w-80 dark:border-gray-700 dark:bg-gray-900/90">
+        {/* Calendar Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/[0.06]">
             <button
               type="button"
