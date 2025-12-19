@@ -146,7 +146,7 @@ export default function DatePicker({
       {/* Date Input Display */}
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer flex items-center justify-between ${
+        className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none cursor-pointer flex items-center justify-between ${
           disabled ? 'opacity-50 cursor-not-allowed' : ''
         } ${className}`}
       >
@@ -158,9 +158,9 @@ export default function DatePicker({
 
       {/* Calendar Dropdown */}
       {isOpen && !disabled && (
-        <div className="absolute z-50 mt-1 bg-white dark:bg-dark border border-stroke dark:border-strokedark rounded-lg shadow-lg w-80">
+        <div className="absolute z-50 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg w-80 dark:border-white/[0.05] dark:bg-white/[0.03]">
           {/* Calendar Header */}
-          <div className="flex items-center justify-between p-4 border-b border-stroke dark:border-strokedark">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/[0.06]">
             <button
               type="button"
               onClick={() => navigateMonth('prev')}
@@ -218,7 +218,7 @@ export default function DatePicker({
             </div>
 
             {/* Quick Actions */}
-            <div className="flex gap-2 mt-4 pt-3 border-t border-stroke dark:border-strokedark">
+            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-white/[0.06]">
               <button
                 type="button"
                 onClick={handleToday}

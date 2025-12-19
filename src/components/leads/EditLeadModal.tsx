@@ -7,6 +7,8 @@ import Button from "@/components/ui/button/Button";
 import DatePicker from "@/components/form/DatePicker";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
+import { apiClient } from "@/services/api-client";
+import { AdminEndpoints } from "@/config/api-endpoints";
 
 interface EditLeadModalProps {
   isOpen: boolean;
@@ -31,6 +33,8 @@ export default function EditLeadModal({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDesignation, setSelectedDesignation] = useState<string>('');
+  const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [emailError, setEmailError] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string>('');
   const [emailTouched, setEmailTouched] = useState(false);
@@ -68,6 +72,7 @@ export default function EditLeadModal({
       });
       setError(null);
       setSelectedDesignation(''); // Reset designation when modal opens
+      setEmployees([]); // Reset employees when modal opens
       setSelectedSourceOption(sourceValue);
       setCustomSource(sourceValue === "Other" ? lead.source || "" : "");
       // Reset validation states
@@ -77,6 +82,36 @@ export default function EditLeadModal({
       setPhoneTouched(false);
     }
   }, [lead, isOpen]);
+
+  // Fetch employees when designation changes (similar to Add Lead modal)
+  useEffect(() => {
+    if (selectedDesignation && selectedDesignation !== 'all' && selectedDesignation !== 'assign_to_yourself') {
+      const fetchEmployees = async () => {
+        setIsLoadingEmployees(true);
+        try {
+          const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${selectedDesignation}`;
+          const response = await apiClient.get<{ success: boolean; data: { id: number; name: string }[] }>(endpoint);
+
+          if (response.data.success) {
+            const employeeOptions = response.data.data.map((item) => ({
+              value: item.id.toString(),
+              label: item.name
+            }));
+            setEmployees(employeeOptions);
+          }
+        } catch (error) {
+          console.error("Failed to fetch employees:", error);
+          setEmployees([]);
+        } finally {
+          setIsLoadingEmployees(false);
+        }
+      };
+
+      fetchEmployees();
+    } else {
+      setEmployees([]);
+    }
+  }, [selectedDesignation]);
 
   const handleInputChange = (field: keyof UpdateLeadData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -184,8 +219,8 @@ export default function EditLeadModal({
       showCloseButton={true}
       className="max-w-2xl w-full mx-auto my-8"
     >
-      <div className="bg-white dark:bg-dark rounded-xl border border-stroke dark:border-strokedark max-h-[90vh] overflow-y-auto">
-        <div className="p-6 border-b border-stroke dark:border-strokedark">
+      <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-y-auto shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
           <h2 className="text-2xl font-bold text-black dark:text-white">Edit Lead: {lead.name}</h2>
         </div>
 
@@ -218,7 +253,7 @@ export default function EditLeadModal({
                 type="text"
                 value={formData.name || ""}
                 onChange={(e) => handleInputChange("name", e.target.value)}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 required
               />
             </div>
@@ -234,7 +269,7 @@ export default function EditLeadModal({
                 className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
                   phoneTouched && phoneError 
                     ? 'border-red-500 dark:border-red-500' 
-                    : 'border-stroke dark:border-strokedark'
+                    : 'border-stroke dark:border-gray-700'
                 } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                 required
               />
@@ -254,7 +289,7 @@ export default function EditLeadModal({
                 className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
                   emailTouched && emailError 
                     ? 'border-red-500 dark:border-red-500' 
-                    : 'border-stroke dark:border-strokedark'
+                    : 'border-stroke dark:border-gray-700'
                 } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                 required
               />
@@ -294,7 +329,7 @@ export default function EditLeadModal({
                       handleInputChange("source", value);
                     }
                   }}
-                  className="dark:bg-dark"
+                  className="dark:bg-dark-900"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   <ChevronDownIcon />
@@ -314,7 +349,7 @@ export default function EditLeadModal({
                       setCustomSource(value);
                       handleInputChange("source", value);
                     }}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                     placeholder="Enter custom source"
                   />
                 </div>
@@ -336,7 +371,7 @@ export default function EditLeadModal({
                   placeholder="Select Status"
                   value={formData.status || ""}
                   onChange={(option) => handleInputChange("status", option?.value || "")}
-                  className="dark:bg-dark"
+                  className="dark:bg-dark-900"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   <ChevronDownIcon />
@@ -367,7 +402,7 @@ export default function EditLeadModal({
                       handleInputChange("assignedToId", undefined);
                     }
                   }}
-                  className="dark:bg-dark"
+                  className="dark:bg-dark-900"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                   <ChevronDownIcon />
@@ -393,7 +428,11 @@ export default function EditLeadModal({
                         : []
                       : [
                           { value: "", label: "Unassigned" },
-                          ...(userOptions || []),
+                          ...(selectedDesignation && !isLoadingEmployees && employees.length > 0
+                            ? employees
+                            : !selectedDesignation && userOptions.length > 0
+                            ? userOptions
+                            : []),
                         ]
                   }
                   placeholder="Select Assignee"
@@ -407,8 +446,8 @@ export default function EditLeadModal({
                     const id = option?.value ? parseInt(option.value, 10) : undefined;
                     handleInputChange("assignedToId", id);
                   }}
-                  className={`dark:bg-dark ${
-                    selectedDesignation === "assign_to_yourself"
+                  className={`dark:bg-dark-900 ${
+                    selectedDesignation === "assign_to_yourself" || isLoadingEmployees
                       ? "opacity-50 cursor-not-allowed pointer-events-none"
                       : ""
                   }`}
@@ -417,6 +456,9 @@ export default function EditLeadModal({
                   <ChevronDownIcon />
                 </span>
               </div>
+              {isLoadingEmployees && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Loading employees...</p>
+              )}
               {selectedDesignation === 'assign_to_yourself' && (
                 <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                   💡 Lead will be assigned to you automatically
@@ -433,7 +475,7 @@ export default function EditLeadModal({
                 value={formData.potentialInvestment || ""}
                 onChange={(e) => handleInputChange("potentialInvestment", e.target.value ? parseFloat(e.target.value) : undefined)}
                 placeholder="500000"
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               />
             </div>
 
@@ -446,7 +488,7 @@ export default function EditLeadModal({
                 value={formData.convertedAmount || ""}
                 onChange={(e) => handleInputChange("convertedAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
                 placeholder="450000"
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Actual amount invested (usually filled after conversion)
@@ -470,7 +512,7 @@ export default function EditLeadModal({
                 value={formData.notes || ""}
                 onChange={(e) => handleInputChange("notes", e.target.value)}
                 rows={3}
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 placeholder="Add notes about this lead..."
               />
             </div>
