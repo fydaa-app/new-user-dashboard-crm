@@ -31,7 +31,7 @@ export default function LeadsFilters({
   };
 
   return (
-    <div className="bg-white dark:bg-dark rounded-lg border border-stroke dark:border-strokedark p-4 mb-6">
+    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6 shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03]">
       {/* Search Bar with Status Filter */}
       <div className="flex flex-col md:flex-row gap-4">
         {/* View Mode Buttons */}

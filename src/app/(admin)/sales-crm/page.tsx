@@ -910,7 +910,7 @@ export default function SalesCRM() {
       
       <div className="grid gap-6">
         {/* Header */}
-        <div className="bg-white dark:bg-dark rounded-lg border border-stroke dark:border-strokedark p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 dark:border-white/[0.05] dark:bg-white/[0.03] shadow-theme-xs">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Sales CRM</h1>
@@ -928,9 +928,9 @@ export default function SalesCRM() {
           </div>
 
           {/* Stats */}
-          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row gap-4">
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIcon />
                 <h2 className="numbers-sale text-gray-900">{stats?.total || 0}</h2>
                 <p className="total-sale-text">
@@ -943,7 +943,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconOrange />
                 <h2 className="numbers-sale text-gray-900">{stats?.new || 0}</h2>
                 <p className="total-sale-text">
@@ -956,7 +956,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconGreen />
                 <h2 className="numbers-sale text-gray-900">{stats?.["in-progress"] || 0}</h2>
                 <p className="total-sale-text">
@@ -969,7 +969,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconViolet />
                 <h2 className="numbers-sale text-gray-900">{stats?.converted || 0}</h2>
                 <p className="total-sale-text">
@@ -982,7 +982,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconOrange />
                 <h2 className="numbers-sale text-gray-900">{stats?.lost || 0}</h2>
                 <p className="total-sale-text">
@@ -995,7 +995,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIcon />
                 <h2 className="numbers-sale text-gray-900">{stats?.conversionRate || 0}%</h2>
                 <p className="total-sale-text">
