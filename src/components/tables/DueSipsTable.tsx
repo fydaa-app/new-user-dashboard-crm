@@ -14,6 +14,8 @@ export interface DueSipItem {
   userName: string;
   userMobileNumber: string;
   userOnboardingDate: Date;
+  relationshipManager?: string;
+  advisor?: string;
   sipName: string;
   userSipName: string;
   sipAmount: number;
@@ -85,7 +87,7 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto overflow-y-auto max-h-[500px]">
-        <div className="min-w-[1400px]">
+        <div className="min-w-[1600px]">
           {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && sips.length > 0 ? (
             <Table>
@@ -100,6 +102,12 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Mobile
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Relationship Manager
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Advisor
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     SIP Name
@@ -145,6 +153,12 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {sip.userMobileNumber}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {sip.relationshipManager || 'Not Assigned'}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                      {sip.advisor || 'Not Assigned'}
                     </TableCell>
                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                       {sip.goalName || '-'}

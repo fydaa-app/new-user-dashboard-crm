@@ -54,8 +54,8 @@ export default function DeleteLeadModal({
       showCloseButton={true}
       className="max-w-md w-full mx-auto my-8"
     >
-      <div className="bg-white dark:bg-dark rounded-xl border border-stroke dark:border-strokedark">
-        <div className="p-6 border-b border-stroke dark:border-strokedark">
+      <div className="bg-white border border-gray-200 rounded-xl shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03]">
+        <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0">
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/20">
@@ -83,7 +83,7 @@ export default function DeleteLeadModal({
           </p>
 
           {/* Lead Info */}
-          <div className="bg-gray-50 dark:bg-gray/10 border border-stroke dark:border-strokedark rounded-lg p-4">
+          <div className="bg-gray-50 dark:bg-white/[0.03] border border-stroke dark:border-white/[0.06] rounded-lg p-4">
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-body dark:text-bodydark">Name:</span>

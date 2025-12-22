@@ -910,7 +910,7 @@ export default function SalesCRM() {
       
       <div className="grid gap-6">
         {/* Header */}
-        <div className="bg-white dark:bg-dark rounded-lg border border-stroke dark:border-strokedark p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6 dark:border-white/[0.05] dark:bg-white/[0.03] shadow-theme-xs">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Sales CRM</h1>
@@ -928,9 +928,9 @@ export default function SalesCRM() {
           </div>
 
           {/* Stats */}
-          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row gap-4">
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIcon />
                 <h2 className="numbers-sale text-gray-900">{stats?.total || 0}</h2>
                 <p className="total-sale-text">
@@ -943,7 +943,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconOrange />
                 <h2 className="numbers-sale text-gray-900">{stats?.new || 0}</h2>
                 <p className="total-sale-text">
@@ -956,7 +956,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconGreen />
                 <h2 className="numbers-sale text-gray-900">{stats?.["in-progress"] || 0}</h2>
                 <p className="total-sale-text">
@@ -969,7 +969,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconViolet />
                 <h2 className="numbers-sale text-gray-900">{stats?.converted || 0}</h2>
                 <p className="total-sale-text">
@@ -982,7 +982,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIconOrange />
                 <h2 className="numbers-sale text-gray-900">{stats?.lost || 0}</h2>
                 <p className="total-sale-text">
@@ -995,7 +995,7 @@ export default function SalesCRM() {
             </div>
 
             <div className="col-span-4">
-              <div className="box-total-sales h-full">
+              <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIcon />
                 <h2 className="numbers-sale text-gray-900">{stats?.conversionRate || 0}%</h2>
                 <p className="total-sale-text">
@@ -1060,8 +1060,8 @@ export default function SalesCRM() {
           showCloseButton={true}
           className="max-w-2xl w-full mx-auto my-8"
         >
-          <div className="bg-white dark:bg-dark rounded-xl border border-stroke dark:border-strokedark max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-stroke dark:border-strokedark">
+          <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-y-auto shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
               <h2 className="text-2xl font-bold text-black dark:text-white">Add New Lead</h2>
             </div>
             <div className="p-6 space-y-4">
@@ -1097,7 +1097,7 @@ export default function SalesCRM() {
                     type="text"
                     value={newLead.name || ''}
                     onChange={(e) => setNewLead({...newLead, name: e.target.value})}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div>
@@ -1124,7 +1124,7 @@ export default function SalesCRM() {
                     className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
                       phoneTouched && phoneError 
                         ? 'border-red-500 dark:border-red-500' 
-                        : 'border-stroke dark:border-strokedark'
+                        : 'border-stroke dark:border-gray-700'
                     } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                   />
                   {phoneTouched && phoneError && (
@@ -1149,7 +1149,7 @@ export default function SalesCRM() {
                     className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
                       emailTouched && emailError 
                         ? 'border-red-500 dark:border-red-500' 
-                        : 'border-stroke dark:border-strokedark'
+                        : 'border-stroke dark:border-gray-700'
                     } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
                   />
                   {emailTouched && emailError && (
@@ -1181,7 +1181,7 @@ export default function SalesCRM() {
                           setNewLead({ ...newLead, source: value });
                         }
                       }}
-                      className="dark:bg-dark"
+                      className="dark:bg-dark-900"
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                       <ChevronDownIcon />
@@ -1200,7 +1200,7 @@ export default function SalesCRM() {
                           setCustomSource(value);
                           setNewLead({ ...newLead, source: value });
                         }}
-                        className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                        className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                         placeholder="Enter custom source"
                       />
                     </div>
@@ -1230,7 +1230,7 @@ export default function SalesCRM() {
                           setNewLead({ ...newLead, assignedToId: undefined });
                         }
                       }}
-                      className={`dark:bg-dark ${isLoadingDesignations ? 'pointer-events-none opacity-60' : ''}`}
+                      className={`dark:bg-dark-900 ${isLoadingDesignations ? 'pointer-events-none opacity-60' : ''}`}
                     />
                     <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                       <ChevronDownIcon />
@@ -1271,7 +1271,7 @@ export default function SalesCRM() {
                         const id = option?.value ? Number(option.value) : undefined;
                         setNewLead({ ...newLead, assignedToId: id });
                       }}
-                      className={`dark:bg-dark ${
+                      className={`dark:bg-dark-900 ${
                         selectedDesignation === 'assign_to_yourself' || isLoadingEmployees
                           ? 'opacity-50 cursor-not-allowed pointer-events-none'
                           : ''
@@ -1297,7 +1297,7 @@ export default function SalesCRM() {
                     value={newLead.potentialInvestment || ''}
                     onChange={(e) => setNewLead({...newLead, potentialInvestment: e.target.value ? Number(e.target.value) : undefined})}
                     placeholder="500000"
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -1314,7 +1314,7 @@ export default function SalesCRM() {
                     value={newLead.notes || ''}
                     onChange={(e) => setNewLead({...newLead, notes: e.target.value})}
                     rows={3}
-                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-strokedark focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                    className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
               </div>
