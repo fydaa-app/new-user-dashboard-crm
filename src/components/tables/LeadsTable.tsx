@@ -21,6 +21,7 @@ export interface LeadsTableProps {
   currentSort?: { sortBy: string; sortOrder: "ASC" | "DESC" };
   userMap?: { [key: number]: string }; // Map for user ID to user name
   currentUserId?: number; // ID of the logged-in user for special styling
+  isAdmin?: boolean; // Whether the current user is an admin (role: 0)
 }
 
 const formatCurrency = (value: number | string | null | undefined): string => {
@@ -82,7 +83,8 @@ export default function LeadsTable({
   onSortChange,
   currentSort = { sortBy: "createdAt", sortOrder: "DESC" },
   userMap = {},
-  currentUserId
+  currentUserId,
+  isAdmin = false
 }: LeadsTableProps) {
 
   const handleEditLead = (lead: Lead) => {
@@ -420,19 +422,20 @@ export default function LeadsTable({
                           <PencilIcon />
                           <span className="sr-only">Edit</span>
                         </button>
-                        
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteLead(lead.id)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-2 text-theme-sm font-medium text-red-700 shadow-theme-xs hover:bg-red-50 hover:text-red-800 dark:border-red-700 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/10 dark:hover:text-red-300"
-                          aria-label={`Delete lead ${lead.name}`}
-                          title={`Delete lead ${lead.name}`}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span className="sr-only">Delete</span>
-                        </button>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLead(lead.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-red-300 bg-white px-3 py-2 text-theme-sm font-medium text-red-700 shadow-theme-xs hover:bg-red-50 hover:text-red-800 dark:border-red-700 dark:bg-gray-800 dark:text-red-400 dark:hover:bg-red-900/10 dark:hover:text-red-300"
+                            aria-label={`Delete lead ${lead.name}`}
+                            title={`Delete lead ${lead.name}`}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span className="sr-only">Delete</span>
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

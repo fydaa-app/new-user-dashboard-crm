@@ -58,6 +58,7 @@ export default function SalesCRM() {
   const [backendUserNames, setBackendUserNames] = useState<{ [key: number]: string }>({});
   const [userOptions, setUserOptions] = useState<{ value: string; label: string }[]>([]);
   const [viewMode, setViewMode] = useState<'all' | 'assigned'>('all');
+  const isAdmin = user?.role === '0';
 
   // Create a combined userMap that includes both local userMap and backend names
   const combinedUserMap = useMemo(() => {
@@ -1030,6 +1031,7 @@ export default function SalesCRM() {
           currentSort={{ sortBy: filters.sortBy || "createdAt", sortOrder: filters.sortOrder || "DESC" }}
           userMap={combinedUserMap}
           currentUserId={user?.id}
+          isAdmin={isAdmin}
         />
 
         {/* Pagination */}
