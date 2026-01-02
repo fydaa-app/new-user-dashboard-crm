@@ -39,7 +39,8 @@ async function fetchActiveSips(
     selectedOption: string, 
     selectedEmployee: string = "",
     customDates: { start: string; end: string },
-    searchQuery: string = ""
+    searchQuery: string = "",
+    selectedType: string = ""
 ): 
     Promise<{ 
         sips: Sip[]; 
@@ -63,6 +64,9 @@ async function fetchActiveSips(
         
         if (selectedEmployee) {
             url += `&employeeId=${selectedEmployee}`;
+        }
+        if (selectedType) {
+            url += `&type=${selectedType}`;
         }
 
         console.log("URL:", url);
@@ -100,7 +104,7 @@ async function fetchActiveSips(
 export default function ActiveSipListPage() {
     const [sips, setSips] = useState<Sip[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -123,7 +127,8 @@ export default function ActiveSipListPage() {
                 selectedOption, 
                 selectedEmployee, 
                 customDates, 
-                searchQuery
+                searchQuery,
+                selectedType as unknown as string
             );
             setSips(sips);
             setError(error);
@@ -140,7 +145,7 @@ export default function ActiveSipListPage() {
             setError("Failed to load data");
             setIsSearching(false);
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedType]);
 
     useEffect(() => {
         fetchData();
@@ -148,7 +153,7 @@ export default function ActiveSipListPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery]);
+    }, [selectedOption, customDates, searchQuery, selectedType as unknown as string]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

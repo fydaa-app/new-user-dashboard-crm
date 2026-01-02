@@ -54,7 +54,7 @@ export const SipEndpoints = {
 // Dashboard & Analytics Endpoints
 export const DashboardEndpoints = {
   // Cards & Summary
-  CARD_DATA: "/referrals/cards-Data", // Matches .env NEXT_PUBLIC_CARD_ENDPOINT (case sensitive!)
+  CARD_DATA: "/referrals/cards-data", // Matches .env NEXT_PUBLIC_CARD_ENDPOINT (case sensitive!)
   CARD_DATA_MF: "/referrals/cards-data-mf",
   SIP_CARDS_DATA_MF: "/referrals/sip-cards-data-mf",
   TRANSACTIONS_SUMMARY_MF: "/referrals/transactions-summary-mf",

@@ -47,7 +47,8 @@ async function fetchTransactions(
   selectedEmployee: string = "",
   customDates: { start: string; end: string },
   searchQuery: string = "",
-  reportType: string = ""
+  selectedType: string = "team",
+  reportType: string = "", 
 ): Promise<{
   transactions: Transaction[];
   error: string | null;
@@ -74,6 +75,10 @@ async function fetchTransactions(
 
     if (selectedEmployee) {
       queryParams += `&employeeId=${selectedEmployee}`;
+    }
+
+    if (selectedType) {
+      queryParams += `&type=${selectedType}`;
     }
 
     const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
@@ -108,7 +113,7 @@ async function fetchTransactions(
 export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -149,6 +154,7 @@ export default function TransactionsListPage() {
       searchQuery,
       reportType,
       selectedEmployee,
+      selectedType,
     });
 
     try {
@@ -165,11 +171,12 @@ export default function TransactionsListPage() {
         selectedEmployee,
         customDates,
         searchQuery,
-        effectiveReportType
+        selectedType as unknown as string,
+        effectiveReportType,        
       );
 
-      setTransactions(transactions);
-      setError(error);
+        setTransactions(transactions);
+        setError(error);
 
       if (apiTotalPages) setTotalPages(apiTotalPages);
       if (apiTotalItems) setTotalItems(apiTotalItems);
@@ -178,7 +185,7 @@ export default function TransactionsListPage() {
       setError("Failed to load data");
     }
     setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, selectedEmployee, readyToFetch]);
+  }, [page, selectedOption, customDates, searchQuery, reportType, selectedEmployee, readyToFetch, selectedType]);
 
   useEffect(() => {
     fetchData();

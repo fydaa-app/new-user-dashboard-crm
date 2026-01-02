@@ -13,7 +13,7 @@ const DueSipsWrapper = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<DuePeriod>('today');
 
-  const { selectedDesignation, selectedEmployee } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee,selectedType } = useGlobalContext();
 
   // Helper function to get start of calendar week (Monday)
   const getStartOfWeek = (date: Date): Date => {
@@ -125,6 +125,9 @@ const DueSipsWrapper = () => {
       if (selectedEmployee) {
         url += `&employeeId=${selectedEmployee}`;
       }
+      if (selectedType) {
+        url += `&type=${selectedType}`;
+      }
 
       const response = await fetch(url, {
         headers: {
@@ -180,7 +183,7 @@ const DueSipsWrapper = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDesignation, selectedEmployee]);
+  }, [selectedDesignation, selectedEmployee,selectedType]);
 
   useEffect(() => {
     fetchDueSips();

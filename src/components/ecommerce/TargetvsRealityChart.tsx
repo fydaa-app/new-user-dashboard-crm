@@ -28,7 +28,7 @@ export default function TargetVsRealityChart() {
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedType } = useGlobalContext();
   const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   
   useEffect(() => {
@@ -46,7 +46,9 @@ export default function TargetVsRealityChart() {
         if (selectedEmployee) {
           url += `&employeeId=${selectedEmployee}`;
         }
-
+        if (selectedType) {
+          url += `&type=${selectedType}`;
+        }
         const response = await fetch(url,
           {
             headers: {
@@ -84,7 +86,7 @@ export default function TargetVsRealityChart() {
     };
 
     fetchData();
-  }, [selectedOption,customDates,currentView,selectedEmployee]);
+  }, [selectedOption,customDates,currentView,selectedEmployee,selectedType]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],

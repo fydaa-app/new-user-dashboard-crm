@@ -53,6 +53,8 @@ const AppHeader: React.FC = () => {
     setSelectedDesignation,
     selectedEmployee,
     setSelectedEmployee,
+    selectedType,
+    setSelectedType,
     appType,
     setAppType
   } = useGlobalContext();
@@ -157,6 +159,11 @@ const AppHeader: React.FC = () => {
     { value: "Savestment", label: "Savestment" },
   ];
 
+  const typeOptions = [
+    { value: "team", label: "Team" },
+    { value: "individual", label: "Individual" }
+  ];
+
   const handleSelectChange = (option: { value: string; label: string } | null) => {     
     if (option) {
       setSelectedOption(option.value);
@@ -180,6 +187,12 @@ const handleDesignationChange = (option: { value: string; label: string } | null
 
   const handleEmployeeChange = (option: { value: string; label: string } | null) => {
     setSelectedEmployee(option?.value || "");
+  };
+  
+  const handleTypeChange = (option: { value: string; label: string } | null) => {
+    if (option) {
+      setSelectedType([option.value]);
+    }
   };
 
   const handleAppTypeChange = (option: { value: string; label: string } | null) => {
@@ -350,6 +363,20 @@ const handleDesignationChange = (option: { value: string; label: string } | null
               </span>
             </div>
           )}
+          <div className="relative w-48">
+            <Select 
+              options={typeOptions}
+              placeholder="Select Type"
+              onChange={handleTypeChange}
+              value={Array.isArray(selectedType) ? (selectedType[0] || null) : selectedType || null}
+              className="dark:bg-dark-900"
+            />
+            <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <ChevronDownIcon/>
+            </span>
+          </div>
+          
+          
           <div className="relative w-48">
             <Select 
               options={options}

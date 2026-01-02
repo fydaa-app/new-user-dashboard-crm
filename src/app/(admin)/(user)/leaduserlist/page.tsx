@@ -24,7 +24,8 @@ async function fetchUsers(
     selectedEmployee: string ="",
     customDates: { start: string; end: string },
     searchQuery: string = "",
-    appType: string = ""
+    appType: string = "",
+    selectedType: string = "team"
 ): 
     Promise<{ 
         users: User[]; 
@@ -54,6 +55,10 @@ async function fetchUsers(
             url += `&employeeId=${selectedEmployee}`;
         }
 
+        if (selectedType) {
+            url += `&type=${selectedType}`;
+        }
+
         const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -81,7 +86,7 @@ async function fetchUsers(
 export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, appType } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, appType, selectedType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -99,7 +104,7 @@ export default function UserTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, customDates, searchQuery, appType, selectedType as unknown as string);
             setUsers(users);
             setError(error);
             
@@ -112,7 +117,7 @@ export default function UserTablesPage() {
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType, selectedType]);
 
     useEffect(() => {
         fetchData();
@@ -120,7 +125,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery,selectedEmployee]);
+    }, [selectedOption, customDates, searchQuery,selectedEmployee, selectedType]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

@@ -14,7 +14,7 @@ export default function TopGoalsMf() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchTopGoals = async () => {
@@ -31,7 +31,9 @@ export default function TopGoalsMf() {
         if (selectedEmployee) {
           url += `&employeeId=${selectedEmployee}`;
         }
-
+        if (selectedType) {
+          url += `&type=${selectedType}`;
+        }
         const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -57,7 +59,7 @@ export default function TopGoalsMf() {
     };
 
     fetchTopGoals();
-  }, [selectedOption, customDates, selectedEmployee]);
+  }, [selectedOption, customDates, selectedEmployee,selectedType]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">

@@ -27,7 +27,8 @@ async function fetchTransactions(
     selectedEmployee:string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
-    appType: string = ""
+    appType: string = "",
+    selectedType: string = ""
 ):
     Promise<{ 
         transactions: Transaction[]; 
@@ -58,6 +59,10 @@ async function fetchTransactions(
             queryParams += `&employeeId=${selectedEmployee}`;
         }
 
+        if (selectedType) {
+            queryParams += `&type=${selectedType}`;
+        }
+
         const url = `${endpoint}?${queryParams}`;
         const response = await apiClient.get<{ transactions: Transaction[]; totalTransactions?: number; limit?: number }>(url);
 
@@ -76,7 +81,7 @@ async function fetchTransactions(
 export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption,customDates ,selectedEmployee } = useGlobalContext();
+    const { selectedOption,customDates ,selectedEmployee,selectedType } = useGlobalContext();
     const { appType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -95,7 +100,7 @@ export default function TransactionTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, customDates, searchQuery, appType);
+            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, customDates, searchQuery, appType, selectedType as unknown as string);
             setTransactions(transactions);
             setError(error);
             
@@ -111,7 +116,7 @@ export default function TransactionTablesPage() {
             setIsSearching(false);
         }
 
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType, selectedType]);
     
         useEffect(() => {
             fetchData();
@@ -119,7 +124,7 @@ export default function TransactionTablesPage() {
     
         useEffect(() => {
             setPage(1);
-        }, [selectedOption, customDates, searchQuery]);
+        }, [selectedOption, customDates, searchQuery, selectedType ]);
 
         const handlePageChange = (newPage: number) => {
             setPage(newPage);

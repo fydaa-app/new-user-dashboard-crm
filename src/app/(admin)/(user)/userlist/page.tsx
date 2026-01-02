@@ -28,7 +28,8 @@ async function fetchUsers(
     selectedEmployee:string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
-    appType: string = ""
+    appType: string = "",
+    selectedType: string = "team"
 ): 
     Promise<{ 
         users: User[]; 
@@ -57,6 +58,10 @@ async function fetchUsers(
         
         if (selectedEmployee) {
             queryParams += `&employeeId=${selectedEmployee}`;
+        }
+
+        if (selectedType) {
+            queryParams += `&type=${selectedType}`;
         }
 
         const url = `${endpoint}?${queryParams}`;
@@ -94,7 +99,7 @@ export default function UserTablesPage() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, appType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, appType, selectedType } = useGlobalContext();
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -109,6 +114,7 @@ export default function UserTablesPage() {
     selectedEmployee,
     customDates,
     appType,
+    selectedType,
   });
 
   // When navigating back from the user detail page, skip the first automatic page reset
@@ -129,7 +135,8 @@ export default function UserTablesPage() {
         selectedEmployee,
         customDates,
         searchQuery,
-        appType
+        appType,
+        selectedType as unknown as string
       );
       setUsers(users);
       setError(error);
@@ -145,7 +152,7 @@ export default function UserTablesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType, selectedType]);
 
   useEffect(() => {
     fetchData();
@@ -160,7 +167,8 @@ export default function UserTablesPage() {
       prev.selectedEmployee !== selectedEmployee ||
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
-      prev.appType !== appType;
+      prev.appType !== appType ||
+      prev.selectedType !== selectedType;
 
     previousFiltersRef.current = { 
       searchQuery, 
@@ -168,6 +176,7 @@ export default function UserTablesPage() {
       selectedEmployee,
       customDates,
       appType,
+      selectedType,
     };
 
     if (!hasChanged) return;
@@ -178,7 +187,7 @@ export default function UserTablesPage() {
     }
 
     setPage(1);
-  }, [searchQuery, selectedOption, selectedEmployee, customDates, appType]);
+  }, [searchQuery, selectedOption, selectedEmployee, customDates, appType, selectedType]);
 
   // Keep URL query parameters in sync with pagination and search state
   useEffect(() => {

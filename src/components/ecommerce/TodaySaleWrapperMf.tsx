@@ -36,7 +36,7 @@ const TodaySaleWrapper = () => {
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption,customDates,selectedEmployee } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -59,6 +59,9 @@ const TodaySaleWrapper = () => {
         }
         if (selectedEmployee) {
           url += `&employeeId=${selectedEmployee}`;
+        }
+        if (selectedType) {
+          url += `&type=${selectedType}`;
         }
 
         const response = await fetch(url,
