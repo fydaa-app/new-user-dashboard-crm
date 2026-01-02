@@ -14,6 +14,7 @@ import {
   LeaderboardIcon,
   SettingIcon,
   ShoppingCartIcon,
+  
 } from "../icons/index";
 
 type NavItem = {
@@ -28,6 +29,11 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/",
+  },
+  {
+    icon: <LeaderboardIcon />,
+    name: "Sales CRM",
+    path: "/sales-crm",
   },
   {
     icon: <LeaderboardIcon />,

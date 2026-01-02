@@ -8,6 +8,7 @@ import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from 'js-cookie';
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
+import { UserEndpoints } from "@/config/api-endpoints";
 
 interface User {
   userId:number;
@@ -35,9 +36,9 @@ async function fetchUsers(
     }> {
     try {
         // Use different endpoint based on app type
-        let endpoint = process.env.NEXT_PUBLIC_LEAD_USER_LIST_ENDPOINT;
+        let endpoint: string = UserEndpoints.LEAD_USER_LIST;
         if (appType === "Fydaa") {
-            endpoint = "/referrals/lead-user-list-mf";
+            endpoint = UserEndpoints.LEAD_USER_LIST_MF;
         }
 
         let url = `${process.env.NEXT_PUBLIC_API_URL}${endpoint}?page=${page}`;

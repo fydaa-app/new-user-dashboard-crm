@@ -10,6 +10,8 @@ import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/services/api-client";
 import { TransactionEndpoints } from "@/config/api-endpoints";
+import Select from "@/components/form/Select";
+import { ChevronDownIcon } from "@/icons";
 
 interface Order {
   id: number;
@@ -38,8 +40,28 @@ interface Transaction {
   processedAmount: number;
   status: string;
   createdAt: string;
+  type: string;
   orders: Order[];
 }
+
+interface FilterOption {
+  value: string;
+  label: string;
+}
+
+const REPORT_TYPE_OPTIONS: FilterOption[] = [
+  { value: "FULLY_SUCCESSFUL", label: "Fully Successful" },
+  { value: "PARTIALLY_SUCCESSFUL", label: "Partially Successful" },
+  { value: "FAILED", label: "Failed" },
+  { value: "IN_PROCESS", label: "In Process" },
+];
+
+const TRANSACTION_TYPE_OPTIONS: FilterOption[] = [
+  { value: "PURCHASES", label: "All Purchases" },
+  { value: "BUY", label: "Buy (Purchases)" },
+  { value: "ADDITIONAL_PURCHASE", label: "Lumpsum (Additional Purchases)" },
+  { value: "SELL", label: "Sell (Redemption)" },
+];
 
 async function fetchTransactions(
   page: number,
@@ -47,8 +69,9 @@ async function fetchTransactions(
   selectedEmployee: string = "",
   customDates: { start: string; end: string },
   searchQuery: string = "",
-  selectedType: string = "team",
-  reportType: string = "", 
+  reportType: string = "",
+  transactionType: string = "",
+  selectedType: string = ""
 ): Promise<{
   transactions: Transaction[];
   error: string | null;
@@ -71,6 +94,10 @@ async function fetchTransactions(
 
     if (reportType) {
       queryParams += `&reportType=${reportType}`;
+    }
+
+    if (transactionType) {
+      queryParams += `&transactionType=${transactionType}`;
     }
 
     if (selectedEmployee) {
@@ -113,12 +140,13 @@ async function fetchTransactions(
 export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedType } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [reportType, setReportType] = useState<string | null>(null);
+  const [transactionType, setTransactionType] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [readyToFetch, setReadyToFetch] = useState(false); // New flag to gate fetch
 
@@ -130,16 +158,21 @@ export default function TransactionsListPage() {
   useEffect(() => {
     const query = searchParams.get("search") || "";
     const type = searchParams.get("reportType");
+    const txnType = searchParams.get("transactionType");
 
-    console.log("[DEBUG] Search params changed:", { query, type });
+    console.log("[DEBUG] Search params changed:", { query, type, txnType });
+
+    // Reset readyToFetch first to prevent fetch with old states
+    setReadyToFetch(false);
 
     // Batch setting states then set readyToFetch true in next tick
     setSearchQuery(query);
     setReportType(type);
+    setTransactionType(txnType);
     setPage(1);
 
     // Delay marking ready (allows states to update before fetch)
-    const id = setTimeout(() => setReadyToFetch(true), 0);
+    const id = setTimeout(() => setReadyToFetch(true), 10);
     return () => clearTimeout(id);
   }, [searchParams]);
 
@@ -153,12 +186,13 @@ export default function TransactionsListPage() {
       customDates,
       searchQuery,
       reportType,
+      transactionType,
       selectedEmployee,
-      selectedType,
     });
 
     try {
       const effectiveReportType = reportType ?? "";
+      const effectiveTransactionType = transactionType ?? "";
 
       const {
         transactions,
@@ -171,12 +205,13 @@ export default function TransactionsListPage() {
         selectedEmployee,
         customDates,
         searchQuery,
-        selectedType as unknown as string,
-        effectiveReportType,        
+        effectiveReportType,
+        effectiveTransactionType,
+        selectedType as unknown as string
       );
 
-        setTransactions(transactions);
-        setError(error);
+      setTransactions(transactions);
+      setError(error);
 
       if (apiTotalPages) setTotalPages(apiTotalPages);
       if (apiTotalItems) setTotalItems(apiTotalItems);
@@ -185,7 +220,7 @@ export default function TransactionsListPage() {
       setError("Failed to load data");
     }
     setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, selectedEmployee, readyToFetch, selectedType]);
+  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, readyToFetch, selectedType as unknown as string]);
 
   useEffect(() => {
     fetchData();
@@ -206,13 +241,16 @@ export default function TransactionsListPage() {
     if (reportType) {
       params.set("reportType", reportType);
     }
+    if (transactionType) {
+      params.set("transactionType", transactionType);
+    }
 
     setReadyToFetch(false); // reset ready flag during navigation
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleReportTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newReportType = e.target.value || null;
+  const handleReportTypeChange = (option: FilterOption | null) => {
+    const newReportType = option?.value || null;
     setReportType(newReportType);
 
     const params = new URLSearchParams();
@@ -221,6 +259,28 @@ export default function TransactionsListPage() {
     }
     if (newReportType) {
       params.set("reportType", newReportType);
+    }
+    if (transactionType) {
+      params.set("transactionType", transactionType);
+    }
+
+    setReadyToFetch(false); // reset ready flag during navigation
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const handleTransactionTypeChange = (option: FilterOption | null) => {
+    const newTransactionType = option?.value || null;
+    setTransactionType(newTransactionType);
+
+    const params = new URLSearchParams();
+    if (searchQuery) {
+      params.set("search", searchQuery);
+    }
+    if (reportType) {
+      params.set("reportType", reportType);
+    }
+    if (newTransactionType) {
+      params.set("transactionType", newTransactionType);
     }
 
     setReadyToFetch(false); // reset ready flag during navigation
@@ -246,9 +306,9 @@ export default function TransactionsListPage() {
       <PageBreadcrumb pageTitle="Transactions List" />
       <div className="space-y-6">
         <ComponentCard title="SIP Transactions">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Search Box */}
-            <form onSubmit={handleSearch}>
+            <form onSubmit={handleSearch} className="md:col-span-1">
               <div className="relative search-box">
                 <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                   {/* Search icon SVG here */}
@@ -269,19 +329,32 @@ export default function TransactionsListPage() {
               </div>
             </form>
 
-            {/* Report Type Filter */}
-            <div>
-              <select
+            {/* Report Type Filter (Status) */}
+            <div className="relative">
+              <Select
+                options={REPORT_TYPE_OPTIONS}
+                placeholder="All Statuses"
                 value={reportType || ""}
                 onChange={handleReportTypeChange}
-                className="h-11 w-full rounded-lg border border-gray-200 bg-white px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:focus:border-brand-800"
-              >
-                <option value="">All Transaction Types</option>
-                <option value="FULLY_SUCCESSFUL">Fully Successful</option>
-                <option value="PARTIALLY_SUCCESSFUL">Partially Successful</option>
-                <option value="FAILED">Failed</option>
-                <option value="IN_PROCESS">In Process</option>
-              </select>
+                className="dark:bg-dark-900"
+              />
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                <ChevronDownIcon />
+              </span>
+            </div>
+
+            {/* Transaction Type Filter */}
+            <div className="relative">
+              <Select
+                options={TRANSACTION_TYPE_OPTIONS}
+                placeholder="All Transaction Types"
+                value={transactionType || ""}
+                onChange={handleTransactionTypeChange}
+                className="dark:bg-dark-900"
+              />
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                <ChevronDownIcon />
+              </span>
             </div>
           </div>
 

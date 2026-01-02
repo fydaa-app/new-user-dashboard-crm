@@ -111,11 +111,13 @@ const AppHeader: React.FC = () => {
           const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
           if (response.ok && response.data.success) {
-            const employeeOptions = response.data.data.map((item: EmployeeItem) => ({
+            const employeeOptions = response.data.data
+            .map((item: EmployeeItem) => ({
               value: item.id.toString(),
               label: item.name
-            }));
-            setEmployees(employeeOptions);
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label)); // Sort Employees Alphabatically 
+          setEmployees(employeeOptions);
           }
         } catch (error) {
           console.error("Failed to fetch employees:", error);

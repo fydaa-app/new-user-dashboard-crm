@@ -18,6 +18,7 @@ interface Order {
   processed_amount: number;
   failure_code: string | null;
   last_error: string | null;
+  type?: string;
 }
 
 interface Transaction {
@@ -36,6 +37,7 @@ interface Transaction {
   processedAmount: number;
   status: string;
   createdAt: string;
+  type: string;
   orders: Order[];
   referredUserInfo?: {
     id: number;
@@ -81,6 +83,18 @@ const getStatusColor = (status: string): 'success' | 'warning' | 'error' => {
   }
 };
 
+const getTypeColor = (type: string): 'success' | 'error' | 'warning' => {
+  if (type === 'purchase') return 'success';
+  if (type === 'redemption') return 'error';
+  return 'warning';
+};
+
+const getTypeLabel = (type: string): string => {
+  if (type === 'purchase') return 'Buy';
+  if (type === 'redemption') return 'Sell';
+  return type || '-';
+};
+
 const getOrderStateColor = (state: string): 'success' | 'error' => {
   return state === 'successful' ? 'success' : 'error';
 };
@@ -124,6 +138,10 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                     Transaction ID
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Type
+                  </TableCell>
+
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
@@ -156,6 +174,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                 </TableRow>
               </TableHeader>
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+
                 {transactions.map((transaction) => {
                   const isExpanded = expandedRows.has(transaction.transactionId);
                   return (
@@ -187,6 +206,12 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                             {transaction.transactionId}
                           </span>
                         </TableCell>
+                        <TableCell className="px-5 py-4 text-start">
+                          <Badge color={getTypeColor(transaction.type)} size="sm">
+                            {getTypeLabel(transaction.type)}
+                          </Badge>
+                        </TableCell>
+
                         <TableCell className="px-5 py-4 text-start">
                           <span className="font-medium text-gray-800 dark:text-white/90">
                             {transaction.userInfo.firstName} {transaction.userInfo.lastName}
@@ -222,7 +247,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                           {formatDate(transaction.createdAt)}
                         </TableCell>
                       </TableRow>
-                      
+
                       {/* Expanded Orders Details */}
                       {isExpanded && (
                         <TableRow>
@@ -235,6 +260,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                                 <table className="min-w-full">
                                   <thead>
                                     <tr className="border-b border-gray-200 dark:border-gray-700">
+                                      <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Type</th>
                                       <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Scheme</th>
                                       <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">Scheme Name</th>
                                       <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 dark:text-gray-400">State</th>
@@ -246,6 +272,11 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                                   <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                                     {transaction.orders.map((order) => (
                                       <tr key={order.id} className="hover:bg-gray-100 dark:hover:bg-white/[0.03]">
+                                        <td className="px-3 py-2 text-xs">
+                                          <Badge color={getTypeColor(order.type || transaction.type)} size="sm">
+                                            {getTypeLabel(order.type || transaction.type)}
+                                          </Badge>
+                                        </td>
                                         <td className="px-3 py-2 text-xs font-mono text-gray-600 dark:text-gray-400">
                                           {order.scheme}
                                         </td>
@@ -284,7 +315,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
             !error &&
             <div className="m-4">
               <p>No transactions found.</p>
-            </div>             
+            </div>
           )}
         </div>
       </div>

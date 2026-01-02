@@ -2,44 +2,53 @@ import React from "react";
 import DueSipsTable, { DueSipItem } from "@/components/tables/DueSipsTable";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
+import Pagination from "@/components/tables/Pagination";
 
-type DuePeriod = 'today' | 'thisWeek' | 'nextWeek' | 'thisMonth' | 'nextMonth';
+type DuePeriod = 'overdue' | 'today' | 'thisWeek' | 'thisMonth' | 'nextMonth';
 
 interface DueSipsProps {
-  filteredSips: DueSipItem[];
+  sips: DueSipItem[];
   error: string | null;
   loading: boolean;
   selectedPeriod: DuePeriod;
   onPeriodChange: (period: DuePeriod) => void;
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
 }
 
 export default function DueSips({ 
-  filteredSips, 
+  sips, 
   error, 
   loading, 
   selectedPeriod, 
-  onPeriodChange 
+  onPeriodChange,
+  page,
+  totalPages,
+  totalItems,
+  onPageChange,
 }: DueSipsProps) {
   const periodOptions = [
+    { value: 'overdue', label: 'Overdue' },
     { value: 'today', label: 'Today' },
     { value: 'thisWeek', label: 'This Week' },
-    { value: 'nextWeek', label: 'Next Week' },
     { value: 'thisMonth', label: 'This Month' },
     { value: 'nextMonth', label: 'Next Month' },
   ];
 
   const getDescriptionText = (period: DuePeriod): string => {
     switch (period) {
+      case 'overdue':
+        return 'SIPs overdue';
       case 'today':
-        return 'SIPs due up to today';
+        return 'SIPs due today';
       case 'thisWeek':
-        return 'SIPs due up to end of this week';
-      case 'nextWeek':
-        return 'SIPs due up to end of next week';
+        return 'SIPs due this week';
       case 'thisMonth':
-        return 'SIPs due up to end of this month';
+        return 'SIPs due this month';
       case 'nextMonth':
-        return 'SIPs due up to end of next month';
+        return 'SIPs due next month';
       default:
         return 'SIPs due';
     }
@@ -54,8 +63,8 @@ export default function DueSips({
   return (
     <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       {/* Header with title and filter dropdown */}
-      <div className="flex items-center justify-between select-none pt-[1.25rem] pb-[0.625rem] px-6 overflow-visible">
-        <div className="flex flex-col">
+      <div className="flex flex-col gap-4 pt-[1.25rem] pb-[0.625rem] px-6 overflow-visible md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:basis-1/3">
           <span className="text-lg font-semibold text-gray-800 dark:text-white/90">
             Due SIPs
           </span>
@@ -63,7 +72,16 @@ export default function DueSips({
             {getDescriptionText(selectedPeriod)}
           </span>
         </div>
-        <div className="relative w-48 z-50">
+        {totalItems > 0 && totalPages > 1 && (
+          <div className="flex justify-center md:basis-1/3">
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          </div>
+        )}
+        <div className="relative w-48 z-50 md:basis-1/3 md:flex md:justify-end">
           <Select 
             options={periodOptions}
             placeholder="Select Period"
@@ -80,7 +98,7 @@ export default function DueSips({
       {/* Content */}
       <div className="p-0 overflow-hidden rounded-b-xl">
         <DueSipsTable 
-          sips={filteredSips} 
+          sips={sips} 
           error={error} 
           loading={loading}
         />

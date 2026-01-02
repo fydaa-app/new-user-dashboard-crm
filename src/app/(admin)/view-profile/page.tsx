@@ -6,6 +6,7 @@ import UserMetaCard from "@/components/view-user-profile/UserMetaCard";
 import UseRreferralDetail from "@/components/view-user-profile/UseRreferralDetail";
 import React, { useState, useEffect } from "react";
 import Cookies from 'js-cookie';
+import { UserEndpoints } from "@/config/api-endpoints";
 
 interface User {
   firstName: string;
@@ -27,8 +28,14 @@ async function fetchUserDetails(): Promise<{ user: User | null; error: string | 
       .find((row) => row.startsWith("authToken="))
       ?.split("=")[1] || "";
 
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    
+    if (!apiUrl) {
+      throw new Error("Missing API URL configuration");
+    }
+    
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_VIEW_USER_PROFILE_ENDPOINT}`,
+      `${apiUrl}${UserEndpoints.VIEW_USER_PROFILE}`,
       {
         headers: { Authorization: `Bearer ${token}` },
       }

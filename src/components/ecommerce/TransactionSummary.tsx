@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
-import { 
-  CheckCircleIcon, 
-  XCircleIcon, 
+import {
+  CheckCircleIcon,
+  XCircleIcon,
   ExclamationTriangleIcon,
   ChartBarIcon,
   CurrencyRupeeIcon,
@@ -14,29 +14,85 @@ import Link from "next/link";
 interface SummaryData {
   totalOrders: number;
   totalTransactions: number;
+  transactionCounts: {
+    total: number;
+    purchases: number;
+    lumpsum: number;
+    redemptions: number;
+  };
   fullySuccessful: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   failed: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   partiallySuccessful: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   inProcess: {
     count: number;
     amount: number;
     processedAmount: number;
+    buy: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
+    lumpsum: { count: number; amount: number; processedAmount: number; };
+    sell: {
+      count: number;
+      amount: number;
+      processedAmount: number;
+    };
   };
   overallStats: {
     totalAmount: number;
     totalProcessedAmount: number;
+    totalBuyAmount: number;
+    totalLumpsumAmount: number;
+    totalSellAmount: number;
+    totalProcessedBuyAmount: number;
+    totalLumpsumProcessed: number;
+    totalProcessedSellAmount: number;
     successRate: number;
   };
   stateBreakdown: {
@@ -51,13 +107,19 @@ interface SummaryData {
   };
 }
 
-const TransactionSummary = ({ 
-  data, 
-  loading 
-}: { 
-  data: SummaryData | null; 
-  loading: boolean 
+const TransactionSummary = ({
+  data,
+  loading
+}: {
+  data: SummaryData | null;
+  loading: boolean
 }) => {
+  // Format currency to always show .00 even for whole numbers
+  const formatCurrency = (value: number | undefined | null): string => {
+    if (value === undefined || value === null) return '0.00';
+    return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
   if (loading) {
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -90,9 +152,9 @@ const TransactionSummary = ({
               Comprehensive overview of all transactions
             </span>
           </div>
-          
-          <a 
-            href="/siptransaction" 
+
+          <a
+            href="/siptransaction"
             className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-300 group"
           >
             View All
@@ -100,43 +162,80 @@ const TransactionSummary = ({
           </a>
         </div>
 
-        {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 gap-4">
-          
-          {/* Total Transactions */}
-          <a href="/siptransaction" className="block">
-            <div className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 border border-purple-200 dark:border-purple-800 hover:scale-102 transition-all duration-300 ease-in-out cursor-pointer">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                    {data.totalTransactions}
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
-                </div>
-              </div>
-            </div>
-          </a>
+        {/* Main Stats Grid - Top Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-          {/* Success Rate */}
-          
-
-          {/* Total Orders */}
-          {/* <div className="rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 border border-blue-200 dark:border-blue-800">
+          {/* Total Transactions - All transactions */}
+          <Link
+            href="/siptransaction"
+            className="rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 border border-purple-200 dark:border-purple-800 hover:scale-[1.02] transition-all duration-300 ease-in-out"
+          >
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 rounded-lg bg-blue-500/10">
-                <DocumentTextIcon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 rounded-lg bg-purple-500/10">
+                <ChartBarIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
-                  {data.totalOrders}
+                  {data.transactionCounts?.total || data.totalTransactions}
                 </h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total Orders</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Transactions</p>
               </div>
             </div>
-          </div> */}
+          </Link>
+
+          {/* Total Purchases - Buy Only */}
+          <Link
+            href="/siptransaction?transactionType=BUY"
+            className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 border border-green-200 dark:border-green-800 hover:scale-[1.02] transition-all duration-300 ease-in-out"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-green-500/10">
+                <CurrencyRupeeIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {data.transactionCounts?.purchases || 0}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Purchases</p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Total Lumpsum - Additional Purchases */}
+          <Link
+            href="/siptransaction?transactionType=ADDITIONAL_PURCHASE"
+            className="rounded-xl bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-4 border border-indigo-200 dark:border-indigo-800 hover:scale-[1.02] transition-all duration-300 ease-in-out"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-indigo-500/10">
+                <CurrencyRupeeIcon className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {data.transactionCounts?.lumpsum || 0}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Lumpsum</p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Total Redemptions - Sell */}
+          <Link
+            href="/siptransaction?transactionType=SELL"
+            className="rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 border border-orange-200 dark:border-orange-800 hover:scale-[1.02] transition-all duration-300 ease-in-out"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-lg bg-orange-500/10">
+                <ArrowRightIcon className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                  {data.transactionCounts?.redemptions || 0}
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Redemptions</p>
+              </div>
+            </div>
+          </Link>
 
         </div>
 
@@ -153,24 +252,68 @@ const TransactionSummary = ({
                 <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Count:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  {data.fullySuccessful.count}
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-1 pb-2 border-b border-green-200 dark:border-green-800/30">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Count:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white text-lg">
+                    {data.fullySuccessful.count}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>{data.fullySuccessful.buy?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>{data.fullySuccessful.lumpsum?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>{data.fullySuccessful.sell?.count || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  ₹{data.fullySuccessful.amount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Processed:</span>
-                <span className="font-semibold text-green-600 dark:text-green-400">
-                  ₹{data.fullySuccessful.processedAmount.toLocaleString()}
-                </span>
+{/* 
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    ₹{formatCurrency(data.fullySuccessful.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.buy?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.lumpsum?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.sell?.amount)}</span>
+                </div>
+              </div> */}
+
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Processed Amount:</span>
+                  <span className="font-bold text-green-600 dark:text-green-400">
+                    ₹{formatCurrency(data.fullySuccessful.processedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.buy?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.lumpsum?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.fullySuccessful.sell?.processedAmount)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -186,24 +329,68 @@ const TransactionSummary = ({
                 <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Count:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  {data.partiallySuccessful.count}
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-1 pb-2 border-b border-yellow-200 dark:border-yellow-800/30">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Count:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white text-lg">
+                    {data.partiallySuccessful.count}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>{data.partiallySuccessful.buy?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>{data.partiallySuccessful.lumpsum?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>{data.partiallySuccessful.sell?.count || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  ₹{data.partiallySuccessful.amount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Processed:</span>
-                <span className="font-semibold text-yellow-600 dark:text-yellow-400">
-                  ₹{data.partiallySuccessful.processedAmount.toLocaleString()}
-                </span>
+
+              {/* <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    ₹{formatCurrency(data.partiallySuccessful.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.buy?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.lumpsum?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.sell?.amount)}</span>
+                </div>
+              </div> */}
+
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Processed Amount:</span>
+                  <span className="font-bold text-yellow-600 dark:text-yellow-400">
+                    ₹{formatCurrency(data.partiallySuccessful.processedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.buy?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.lumpsum?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.partiallySuccessful.sell?.processedAmount)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -219,24 +406,68 @@ const TransactionSummary = ({
                 <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Count:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  {data.failed.count}
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-1 pb-2 border-b border-red-200 dark:border-red-800/30">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Count:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white text-lg">
+                    {data.failed.count}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>{data.failed.buy?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>{data.failed.lumpsum?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>{data.failed.sell?.count || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  ₹{data.failed.amount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Processed:</span>
-                <span className="font-semibold text-red-600 dark:text-red-400">
-                  ₹{data.failed.processedAmount.toLocaleString()}
-                </span>
+{/* 
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    ₹{formatCurrency(data.failed.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.failed.buy?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.failed.lumpsum?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.failed.sell?.amount)}</span>
+                </div>
+              </div> */}
+
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Processed Amount:</span>
+                  <span className="font-bold text-red-600 dark:text-red-400">
+                    ₹{formatCurrency(data.failed.processedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.failed.buy?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.failed.lumpsum?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.failed.sell?.processedAmount)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -252,24 +483,68 @@ const TransactionSummary = ({
                 <ArrowRightIcon className="w-4 h-4 text-gray-600 dark:text-gray-400 group-hover:translate-x-1 transition-transform duration-300" />
               </Link>
             </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Count:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  {data.inProcess.count}
-                </span>
+            <div className="space-y-3">
+              <div className="space-y-1 pb-2 border-b border-blue-200 dark:border-blue-800/30">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Total Count:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white text-lg">
+                    {data.inProcess.count}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>{data.inProcess.buy?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>{data.inProcess.lumpsum?.count || 0}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>{data.inProcess.sell?.count || 0}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
-                <span className="font-semibold text-gray-800 dark:text-white">
-                  ₹{data.inProcess.amount.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm text-gray-600 dark:text-gray-400">Processed:</span>
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  ₹{data.inProcess.processedAmount.toLocaleString()}
-                </span>
+
+              {/* <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount:</span>
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    ₹{formatCurrency(data.inProcess.amount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.inProcess.buy?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.inProcess.lumpsum?.amount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.inProcess.sell?.amount)}</span>
+                </div>
+              </div> */}
+
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Processed Amount:</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    ₹{formatCurrency(data.inProcess.processedAmount)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-green-300 dark:border-green-700">
+                  <span>Buy:</span>
+                  <span>₹{formatCurrency(data.inProcess.buy?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-indigo-300 dark:border-indigo-700">
+                  <span>Lumpsum:</span>
+                  <span>₹{formatCurrency(data.inProcess.lumpsum?.processedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 pl-2 border-l-2 border-orange-300 dark:border-orange-700">
+                  <span>Sell:</span>
+                  <span>₹{formatCurrency(data.inProcess.sell?.processedAmount)}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -285,8 +560,22 @@ const TransactionSummary = ({
               </h4>
             </div>
             <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-              ₹{data.overallStats.totalAmount.toLocaleString()}
+              ₹{formatCurrency(data.overallStats.totalAmount)}
             </p>
+            <div className="mt-2 space-y-1 text-xs">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Total Buy:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalBuyAmount)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Total Lumpsum:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalLumpsumAmount)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Total Sell:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalSellAmount)}</span>
+              </div>
+            </div>
           </div>
 
           <div className="rounded-xl bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 p-4 border border-teal-200 dark:border-teal-800">
@@ -297,11 +586,25 @@ const TransactionSummary = ({
               </h4>
             </div>
             <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">
-              ₹{data.overallStats.totalProcessedAmount.toLocaleString()}
+              ₹{formatCurrency(data.overallStats.totalProcessedAmount)}
             </p>
+            <div className="mt-2 space-y-1 text-xs">
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Buy Processed:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalProcessedBuyAmount)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Lumpsum Processed:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalLumpsumProcessed)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                <span>Sell Processed:</span>
+                <span className="font-medium">₹{formatCurrency(data.overallStats.totalProcessedSellAmount)}</span>
+              </div>
+            </div>
           </div>
 
-           <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 border border-green-200 dark:border-green-800">
+          <div className="rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 border border-green-200 dark:border-green-800">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-green-500/10">
                 <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -316,8 +619,8 @@ const TransactionSummary = ({
           </div>
         </div>
 
-        {/* Breakdown Section */}        
-        <div className="grid grid-cols-12 gap-4 mt-6">          
+        {/* Breakdown Section */}
+        <div className="grid grid-cols-12 gap-4 mt-6">
           {/* Transaction Type Breakdown */}
           <div className="rounded-xl bg-gray-50 dark:bg-gray-900/20 p-4 border border-gray-200 dark:border-gray-800 xl:col-span-6 col-span-12">
             <h4 className="font-semibold text-gray-800 dark:text-white mb-3">
@@ -326,7 +629,7 @@ const TransactionSummary = ({
             <div className="grid grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                   {data.totalOrders}
+                  {data.totalOrders}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Total</p>
               </div>
@@ -378,7 +681,7 @@ const TransactionSummary = ({
             </div>
           </div>
         </div>
-        
+
       </div>
     </div>
   );
