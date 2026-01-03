@@ -70,7 +70,8 @@ async function fetchTransactions(
   customDates: { start: string; end: string },
   searchQuery: string = "",
   reportType: string = "",
-  transactionType: string = ""
+  transactionType: string = "",
+  selectedType: string = ""
 ): Promise<{
   transactions: Transaction[];
   error: string | null;
@@ -101,6 +102,10 @@ async function fetchTransactions(
 
     if (selectedEmployee) {
       queryParams += `&employeeId=${selectedEmployee}`;
+    }
+
+    if (selectedType) {
+      queryParams += `&type=${selectedType}`;
     }
 
     const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
@@ -135,7 +140,7 @@ async function fetchTransactions(
 export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedType } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -201,7 +206,8 @@ export default function TransactionsListPage() {
         customDates,
         searchQuery,
         effectiveReportType,
-        effectiveTransactionType
+        effectiveTransactionType,
+        selectedType as unknown as string
       );
 
       setTransactions(transactions);
@@ -214,7 +220,7 @@ export default function TransactionsListPage() {
       setError("Failed to load data");
     }
     setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, readyToFetch]);
+  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, readyToFetch, selectedType as unknown as string]);
 
   useEffect(() => {
     fetchData();

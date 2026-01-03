@@ -39,7 +39,7 @@ const SipWrapper = () => {
     totalCancelledSips: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
 
 
   useEffect(() => {
@@ -65,7 +65,9 @@ const SipWrapper = () => {
         if (selectedEmployee) {
           url += `&employeeId=${selectedEmployee}`;
         }
-
+        if (selectedType) {
+          url += `&type=${selectedType}`;
+        }
         // Fetch SIP data from API
         const response = await fetch(url, {
           headers: {
@@ -109,7 +111,7 @@ const SipWrapper = () => {
     };
 
     fetchSipData();
-  }, [selectedOption, customDates, selectedEmployee]);
+  }, [selectedOption, customDates, selectedEmployee,selectedType]);
 
 
   return <Sip data={sipData} loading={loading} />;

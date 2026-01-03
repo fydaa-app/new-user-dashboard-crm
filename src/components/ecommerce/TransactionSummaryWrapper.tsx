@@ -116,7 +116,7 @@ interface SummaryData {
 const TransactionSummaryWrapper = () => {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -139,7 +139,9 @@ const TransactionSummaryWrapper = () => {
         if (selectedEmployee) {
           url += `&employeeId=${selectedEmployee}`;
         }
-
+        if (selectedType) {
+          url += `&type=${selectedType}`;
+        }
         const response = await fetch(url, {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -168,7 +170,7 @@ const TransactionSummaryWrapper = () => {
     };
 
     fetchSummaryData();
-  }, [selectedOption, customDates, selectedEmployee]);
+  }, [selectedOption, customDates, selectedEmployee,selectedType]);
 
   return <TransactionSummary data={summaryData} loading={loading} />;
 };

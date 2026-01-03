@@ -11,6 +11,8 @@ interface GlobalContextProps {
   setSelectedDesignation: (value: string | undefined) => void;
   selectedEmployee: string | undefined;
   setSelectedEmployee: (value: string | undefined) => void;
+  selectedType: string[] | undefined;
+  setSelectedType: (value: string[] | undefined) => void;
   appType: string;
   setAppType: (value: string) => void;
 }
@@ -56,6 +58,18 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     return undefined;
   });
 
+  const [selectedType, setSelectedTypeState] = useState<string[] | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selectedType");
+      try {
+        return stored ? JSON.parse(stored) : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
+  });
+  
   // App type with localStorage persistence
   const [appType, setAppTypeState] = useState<string>(() => {
     if (typeof window !== "undefined") {
@@ -153,6 +167,19 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       return prev;
     });
   }, []);
+  const setSelectedType = useCallback((value: string[] | undefined) => {
+    setSelectedTypeState(prev => {
+      if (value !== prev) {
+        if (value !== undefined) {
+          localStorage.setItem("selectedType", JSON.stringify(value));
+        } else {
+          localStorage.removeItem("selectedType");
+        }
+        return value;
+      }
+      return prev;
+    });
+  }, []);
 
   const setAppType = useCallback((value: string) => {
     setAppTypeState(prev => {
@@ -205,8 +232,11 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setSelectedDesignation,
         selectedEmployee,
         setSelectedEmployee,
+        selectedType,
+        setSelectedType,
         appType,
-        setAppType
+        setAppType,
+        
       }}
     >
       {children}

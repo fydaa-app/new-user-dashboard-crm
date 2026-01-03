@@ -16,7 +16,7 @@ const DueSipsWrapper = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const { selectedDesignation, selectedEmployee } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee, selectedType } = useGlobalContext();
 
   const fetchDueSips = useCallback(async () => {
     const AUTH_TOKEN = Cookies.get("authToken");
@@ -53,6 +53,7 @@ const DueSipsWrapper = () => {
 
       if (selectedDesignation) url += `&designationId=${selectedDesignation}`;
       if (selectedEmployee) url += `&employeeId=${selectedEmployee}`;
+      if (selectedType) url += `&type=${selectedType}`;
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
@@ -86,7 +87,7 @@ const DueSipsWrapper = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDesignation, selectedEmployee, selectedPeriod, page]);
+  }, [selectedDesignation, selectedEmployee, selectedPeriod, page, selectedType]);
 
   useEffect(() => {
     fetchDueSips();
@@ -95,7 +96,7 @@ const DueSipsWrapper = () => {
   // Reset to first page when period or filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedPeriod, selectedDesignation, selectedEmployee]);
+  }, [selectedPeriod, selectedDesignation, selectedEmployee, selectedType]);
 
   return (
     <DueSips
