@@ -43,7 +43,8 @@ export default function SalesCRM() {
     customDates, 
     selectedDesignation, 
     setSelectedDesignation,
-    selectedEmployee 
+    selectedEmployee,
+    selectedType
   } = useGlobalContext();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,6 +263,11 @@ export default function SalesCRM() {
         }
       }
 
+      // Add type filter (team | individual) from AppHeader
+      if (Array.isArray(selectedType) && selectedType.length > 0) {
+        enhancedFilters.type = selectedType[0];
+      }
+
       console.log('🔍 Enhanced filters being applied:', enhancedFilters);
       
       const response = await leadService.getLeads(enhancedFilters);
@@ -291,7 +297,7 @@ export default function SalesCRM() {
     } finally {
       setLoading(false);
     }
-  }, [filters, selectedOption, customDates, selectedEmployee, selectedDesignation, viewMode]);
+  }, [filters, selectedOption, customDates, selectedEmployee, selectedDesignation, selectedType]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -453,7 +459,7 @@ export default function SalesCRM() {
       console.error('❌ Error loading stats:', err);
       setError('Failed to load lead statistics. Please check your authentication.');
     }
-  }, [isAuthenticated, user, token, selectedOption, customDates, selectedEmployee, viewMode]);
+  }, [isAuthenticated, user, token, selectedOption, customDates, selectedEmployee, selectedType]);
 
   // New handler functions for the integrated components
   const handleFiltersChange = (newFilters: LeadFilters) => {
