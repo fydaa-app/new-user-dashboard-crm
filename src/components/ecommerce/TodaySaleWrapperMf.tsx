@@ -104,7 +104,7 @@ const TodaySaleWrapper = () => {
     };
 
     fetchSalesData();
-  }, [selectedOption,customDates,selectedEmployee]);
+  }, [selectedOption, customDates, selectedEmployee, selectedType]);
 
   return <TodaySale data={salesData} loading={loading} />;
 };
