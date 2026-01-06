@@ -44,6 +44,8 @@ export interface UpdateLeadData extends Partial<CreateLeadData> {
 }
 
 export interface LeadFilters {
+  followUpTimeframe?: 'overdue' | 'today' | 'week' | 'month' | 'year' | 'till_date';
+  type?: string; // team | individual (from AppHeader)
   page?: number;
   limit?: number;
   search?: string;
