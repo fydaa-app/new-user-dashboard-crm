@@ -100,6 +100,27 @@ export default function LeadsFilters({
             <ChevronDownIcon/>
           </span>
         </div>
+
+        {/* Follow-up Timeframe Filter */}
+        <div className="relative w-56">
+          <Select 
+            options={[
+              { value: "overdue", label: "Overdue" },
+              { value: "today", label: "Today" },
+              { value: "week", label: "This Week" },
+              { value: "month", label: "This Month" },
+              { value: "year", label: "This Year" },
+              { value: "till_date", label: "Till Date" },
+            ]}
+            placeholder="Follow-up Due"
+            onChange={(option) => handleFilterChange("followUpTimeframe", option?.value || undefined)}
+            value={filters.followUpTimeframe || null}
+            className="dark:bg-dark-900"
+          />
+          <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+            <ChevronDownIcon/>
+          </span>
+        </div>
       </div>
     </div>
   );
