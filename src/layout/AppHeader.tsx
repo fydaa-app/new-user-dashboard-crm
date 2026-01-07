@@ -66,6 +66,9 @@ const AppHeader: React.FC = () => {
     setSelectedDesignation,
     selectedEmployee,
     setSelectedEmployee,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    selectedTeamMember,
+    setSelectedTeamMember,
     selectedType,
     setSelectedType,
     appType,
@@ -256,14 +259,17 @@ const AppHeader: React.FC = () => {
       return updated;
     });
 
+    // Update selectedTeamMember to trigger dashboard updates
+    // This keeps the main employee dropdown unchanged
+    if (newValue) {
+      setSelectedTeamMember(newValue);
+    } else {
+      setSelectedTeamMember(undefined);
+    }
+
     // Check if this is the last level in hierarchy
     const currentIndex = hierarchyLevels.findIndex(hl => hl.level === level);
     const isLastLevel = currentIndex === hierarchyLevels.length - 1;
-    
-    // If this is the last level, set as selectedEmployee
-    if (isLastLevel && newValue) {
-      setSelectedEmployee(newValue);
-    }
 
     // Fetch next level employees if selection exists and not last level
     if (newValue && !isLastLevel) {
@@ -272,7 +278,7 @@ const AppHeader: React.FC = () => {
         fetchTeamEmployeesForLevel(nextLevel.level, newValue);
       }
     }
-  }, [hierarchyLevels, fetchTeamEmployeesForLevel, setSelectedEmployee]);
+  }, [hierarchyLevels, fetchTeamEmployeesForLevel, setSelectedTeamMember]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -338,9 +344,10 @@ const AppHeader: React.FC = () => {
         setTeamSelections({});
         setTeamEmployees({});
         setHierarchyLevels([]);
+        setSelectedTeamMember(undefined);
       }
     }
-  }, [setSelectedType]);
+  }, [setSelectedType, setSelectedTeamMember]);
 
   const handleAppTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {

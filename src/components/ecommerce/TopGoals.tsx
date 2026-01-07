@@ -14,7 +14,7 @@ export default function TopGoals() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchTopGoals = async () => {
@@ -28,11 +28,14 @@ export default function TopGoals() {
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
         const response = await fetch(url, {
           headers: {
@@ -59,7 +62,7 @@ export default function TopGoals() {
     };
 
     fetchTopGoals();
-  }, [selectedOption, customDates, selectedEmployee,selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">

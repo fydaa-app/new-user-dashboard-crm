@@ -39,7 +39,7 @@ const SipWrapper = () => {
     totalCancelledSips: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
 
 
   useEffect(() => {
@@ -62,11 +62,14 @@ const SipWrapper = () => {
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
         // Fetch SIP data from API
         const response = await fetch(url, {
@@ -111,7 +114,7 @@ const SipWrapper = () => {
     };
 
     fetchSipData();
-  }, [selectedOption, customDates, selectedEmployee,selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
 
   return <Sip data={sipData} loading={loading} />;

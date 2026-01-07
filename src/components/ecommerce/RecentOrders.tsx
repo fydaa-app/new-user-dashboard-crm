@@ -23,7 +23,7 @@ interface Order {
 
 export default function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -37,11 +37,14 @@ export default function RecentOrders() {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
 
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
 
         const response = await fetch(url, {
@@ -67,7 +70,7 @@ export default function RecentOrders() {
     };
 
     fetchOrders();
-  }, [selectedOption, customDates, selectedEmployee,selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {

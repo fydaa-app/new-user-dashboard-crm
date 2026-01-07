@@ -44,6 +44,7 @@ export default function SalesCRM() {
     selectedDesignation, 
     setSelectedDesignation,
     selectedEmployee,
+    selectedTeamMember,
     selectedType
   } = useGlobalContext();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -213,24 +214,27 @@ export default function SalesCRM() {
       }
 
       // Add employee filtering based on view mode
-      if (selectedEmployee && selectedEmployee !== 'all') {
+      // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+      const employeeId = selectedTeamMember || selectedEmployee;
+      
+      if (employeeId && employeeId !== 'all') {
         // When a specific employee is selected from header dropdown
         if (viewMode === 'all') {
           // Show all leads under that employee (hierarchy + assigned)
-          enhancedFilters.employeeId = parseInt(selectedEmployee);
+          enhancedFilters.employeeId = parseInt(employeeId);
           console.log('👤 Show All mode - Employee hierarchy filter applied:', {
-            selectedEmployee,
-            employeeId: parseInt(selectedEmployee)
+            employeeId: employeeId,
+            parsedId: parseInt(employeeId)
           });
         } else {
           // Show only leads assigned to that employee
-          enhancedFilters.assignedToId = parseInt(selectedEmployee);
+          enhancedFilters.assignedToId = parseInt(employeeId);
           console.log('👤 Assigned mode - Employee assignedTo filter applied:', {
-            selectedEmployee,
-            assignedToId: parseInt(selectedEmployee)
+            employeeId: employeeId,
+            parsedId: parseInt(employeeId)
           });
         }
-      } else if (selectedEmployee === 'all') {
+      } else if (employeeId === 'all') {
         // [FIX] Explicitly handle 'all' selection
         // Do NOT apply employeeId or assignedToId filters here.
         // This allows the backend to return ALL records (global view).
@@ -297,7 +301,7 @@ export default function SalesCRM() {
     } finally {
       setLoading(false);
     }
-  }, [filters, selectedOption, customDates, selectedEmployee, selectedDesignation, selectedType]);
+  }, [filters, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedDesignation, selectedType]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -402,29 +406,32 @@ export default function SalesCRM() {
       }
 
       // Apply employee filter based on view mode (same logic as leads)
-      if (selectedEmployee && selectedEmployee !== 'all') {
+      // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+      const employeeId = selectedTeamMember || selectedEmployee;
+      
+      if (employeeId && employeeId !== 'all') {
         if (viewMode === 'all') {
           // Show stats for all leads under that employee (hierarchy + assigned)
           statsFilters = {
             ...statsFilters,
-            employeeId: parseInt(selectedEmployee)
+            employeeId: parseInt(employeeId)
           };
           console.log('📊 Show All mode - Stats employee hierarchy filter applied:', {
-            selectedEmployee,
-            employeeId: parseInt(selectedEmployee)
+            employeeId: employeeId,
+            parsedId: parseInt(employeeId)
           });
         } else {
           // Show stats for only leads assigned to that employee
           statsFilters = {
             ...statsFilters,
-            assignedToId: parseInt(selectedEmployee)
+            assignedToId: parseInt(employeeId)
           };
           console.log('📊 Assigned mode - Stats employee assignedTo filter applied:', {
-            selectedEmployee,
-            assignedToId: parseInt(selectedEmployee)
+            employeeId: employeeId,
+            parsedId: parseInt(employeeId)
           });
         }
-      } else if (selectedEmployee === 'all') {
+      } else if (employeeId === 'all') {
         // [FIX] Explicitly handle 'all' selection
         // Do NOT apply filtering.
         console.log('📊 Show All Employees selected for Stats - Global view applied');
@@ -459,7 +466,7 @@ export default function SalesCRM() {
       console.error('❌ Error loading stats:', err);
       setError('Failed to load lead statistics. Please check your authentication.');
     }
-  }, [isAuthenticated, user, token, selectedOption, customDates, selectedEmployee, selectedType]);
+  }, [isAuthenticated, user, token, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
   // New handler functions for the integrated components
   const handleFiltersChange = (newFilters: LeadFilters) => {
@@ -751,7 +758,7 @@ export default function SalesCRM() {
   useEffect(() => {
     console.log('🔄 AppHeader filters changed, resetting to page 1');
     setFilters(prev => ({ ...prev, page: 1 }));
-  }, [selectedOption, selectedEmployee, selectedDesignation, customDates, viewMode]);
+  }, [selectedOption, selectedEmployee, selectedTeamMember, selectedDesignation, customDates, viewMode]);
 
   // Load stats when filters change
   useEffect(() => {

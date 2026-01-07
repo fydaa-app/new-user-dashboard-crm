@@ -25,7 +25,7 @@ interface LeaderboardData {
 }
 
 export default function LeaderboardPage() {
-  const { selectedEmployee, appType } = useGlobalContext();
+  const { selectedEmployee, selectedTeamMember, appType } = useGlobalContext();
   const searchParams = useSearchParams();
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData>({
     leaderboard: [],
@@ -42,7 +42,9 @@ export default function LeaderboardPage() {
         // const authToken = Cookies.get("authToken") || "";
         
         // Note: If you have a separate MF leaderboard endpoint for Fydaa, add it to LeaderboardEndpoints
-        const endpoint = `${LeaderboardEndpoints.LEADERBOARD_LIST}?criteria=${criteria}&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        const endpoint = `${LeaderboardEndpoints.LEADERBOARD_LIST}?criteria=${criteria}&employeeId=${employeeId}`;
         
         const response = await apiClient.get<{ leaderboard: LeaderboardEntry[] }>(endpoint);
 
@@ -67,7 +69,7 @@ export default function LeaderboardPage() {
     };
 
     fetchData();
-  }, [criteria, selectedEmployee, appType]);
+  }, [criteria, selectedEmployee, selectedTeamMember, appType]);
 
   if (loading) {
     return <div>Loading...</div>;

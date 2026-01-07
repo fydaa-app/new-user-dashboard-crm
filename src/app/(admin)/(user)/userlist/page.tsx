@@ -26,6 +26,7 @@ async function fetchUsers(
     page: number, 
     selectedOption: string, 
     selectedEmployee:string = "",
+    selectedTeamMember:string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
@@ -56,8 +57,10 @@ async function fetchUsers(
             queryParams += `&search=${encodeURIComponent(searchQuery)}`;
         }
         
-        if (selectedEmployee) {
-            queryParams += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+            queryParams += `&employeeId=${employeeId}`;
         }
 
         if (selectedType) {
@@ -99,7 +102,7 @@ export default function UserTablesPage() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, appType, selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType } = useGlobalContext();
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -112,6 +115,7 @@ export default function UserTablesPage() {
     searchQuery: initialSearchQuery,
     selectedOption,
     selectedEmployee,
+    selectedTeamMember,
     customDates,
     appType,
     selectedType,
@@ -133,6 +137,7 @@ export default function UserTablesPage() {
         page,
         selectedOption,
         selectedEmployee,
+        selectedTeamMember,
         customDates,
         searchQuery,
         appType,
@@ -152,7 +157,7 @@ export default function UserTablesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType, selectedType]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType]);
 
   useEffect(() => {
     fetchData();
@@ -165,6 +170,7 @@ export default function UserTablesPage() {
       prev.searchQuery !== searchQuery ||
       prev.selectedOption !== selectedOption ||
       prev.selectedEmployee !== selectedEmployee ||
+      prev.selectedTeamMember !== selectedTeamMember ||
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
       prev.appType !== appType ||
@@ -174,6 +180,7 @@ export default function UserTablesPage() {
       searchQuery, 
       selectedOption, 
       selectedEmployee,
+      selectedTeamMember,
       customDates,
       appType,
       selectedType,
@@ -187,7 +194,7 @@ export default function UserTablesPage() {
     }
 
     setPage(1);
-  }, [searchQuery, selectedOption, selectedEmployee, customDates, appType, selectedType]);
+  }, [searchQuery, selectedOption, selectedEmployee, selectedTeamMember, customDates, appType, selectedType]);
 
   // Keep URL query parameters in sync with pagination and search state
   useEffect(() => {
