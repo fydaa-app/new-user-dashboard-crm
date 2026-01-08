@@ -116,7 +116,7 @@ interface SummaryData {
 const TransactionSummaryWrapper = () => {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -136,11 +136,14 @@ const TransactionSummaryWrapper = () => {
         } else {
           url += `timeframe=${selectedOption || "yearly"}`;
         }
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
         const response = await fetch(url, {
           headers: {
@@ -170,7 +173,7 @@ const TransactionSummaryWrapper = () => {
     };
 
     fetchSummaryData();
-  }, [selectedOption, customDates, selectedEmployee,selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
   return <TransactionSummary data={summaryData} loading={loading} />;
 };

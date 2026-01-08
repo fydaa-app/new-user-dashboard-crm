@@ -22,7 +22,8 @@ interface User {
 async function fetchUsers(
     page: number, 
     selectedOption: string, 
-    selectedEmployee: string ="",
+    selectedEmployee: string = "",
+    selectedTeamMember: string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
@@ -52,8 +53,10 @@ async function fetchUsers(
         if (searchQuery) {
             url += `&search=${encodeURIComponent(searchQuery)}`;
         }
-        if (selectedEmployee) {
-            url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+            url += `&employeeId=${employeeId}`;
         }
 
         if (selectedType) {
@@ -87,7 +90,7 @@ async function fetchUsers(
 export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, appType, selectedType } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -105,7 +108,7 @@ export default function UserTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, customDates, searchQuery, appType, selectedType as unknown as string);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string);
             setUsers(users);
             setError(error);
             
@@ -118,7 +121,7 @@ export default function UserTablesPage() {
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, appType, selectedType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType]);
 
     useEffect(() => {
         fetchData();
@@ -126,7 +129,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery,selectedEmployee, selectedType]);
+    }, [selectedOption, customDates, searchQuery,selectedEmployee, selectedTeamMember, selectedType]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

@@ -16,7 +16,7 @@ const DueSipsWrapper = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const { selectedDesignation, selectedEmployee, selectedType } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
 
   const fetchDueSips = useCallback(async () => {
     const AUTH_TOKEN = Cookies.get("authToken");
@@ -52,8 +52,13 @@ const DueSipsWrapper = () => {
       let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/due-sip-list-mf?page=${page}&limit=10&timeframe=${timeframe}`;
 
       if (selectedDesignation) url += `&designationId=${selectedDesignation}`;
-      if (selectedEmployee) url += `&employeeId=${selectedEmployee}`;
-      if (selectedType) url += `&type=${selectedType}`;
+      // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) url += `&employeeId=${employeeId}`;
+      if (selectedType && selectedType.length > 0) {
+        const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+        url += `&type=${typeValue}`;
+      }
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
@@ -87,7 +92,7 @@ const DueSipsWrapper = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDesignation, selectedEmployee, selectedPeriod, page, selectedType]);
+  }, [selectedDesignation, selectedEmployee, selectedTeamMember, selectedPeriod, page, selectedType]);
 
   useEffect(() => {
     fetchDueSips();
@@ -96,7 +101,7 @@ const DueSipsWrapper = () => {
   // Reset to first page when period or filters change
   useEffect(() => {
     setPage(1);
-  }, [selectedPeriod, selectedDesignation, selectedEmployee, selectedType]);
+  }, [selectedPeriod, selectedDesignation, selectedEmployee, selectedTeamMember, selectedType]);
 
   return (
     <DueSips

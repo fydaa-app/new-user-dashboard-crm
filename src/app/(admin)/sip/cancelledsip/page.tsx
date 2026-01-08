@@ -38,6 +38,7 @@ async function fetchCancelledSips(
     page: number, 
     selectedOption: string, 
     selectedEmployee: string = "",
+    selectedTeamMember: string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
     selectedType: string = ""
@@ -63,8 +64,10 @@ async function fetchCancelledSips(
             url += `&search=${encodeURIComponent(searchQuery)}`;
         }
         
-        if (selectedEmployee) {
-            url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+            url += `&employeeId=${employeeId}`;
         }
         if (selectedType) {
             url += `&type=${selectedType}`;
@@ -108,7 +111,7 @@ async function fetchCancelledSips(
 export default function CancelledSipListPage() {
     const [sips, setSips] = useState<Sip[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, selectedType } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -132,7 +135,8 @@ export default function CancelledSipListPage() {
             const { sips, error, totalItems: apiTotalItems, totalPages: apiTotalPages } = await fetchCancelledSips(
                 page, 
                 selectedOption, 
-                selectedEmployee, 
+                selectedEmployee,
+                selectedTeamMember,
                 customDates, 
                 searchQuery,
                 selectedType as unknown as string
@@ -152,7 +156,7 @@ export default function CancelledSipListPage() {
             setError("Failed to load data");
             setIsSearching(false);
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType]);
 
 
     useEffect(() => {

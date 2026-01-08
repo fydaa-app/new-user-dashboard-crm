@@ -5,7 +5,7 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
@@ -26,6 +26,12 @@ interface DesignationItem {
 interface EmployeeItem {
   id: number;
   name: string;
+  role?: string;
+}
+
+interface HierarchyLevel {
+  hierarchyName: string;
+  level: number;
 }
 
 const AppHeader: React.FC = () => {
@@ -37,6 +43,13 @@ const AppHeader: React.FC = () => {
   const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  
+  // Team hierarchy states
+  const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
+  const [teamSelections, setTeamSelections] = useState<{[key: number]: string}>({});
+  const [teamEmployees, setTeamEmployees] = useState<{[key: number]: {value: string, label: string}[]}>({});
+  const [loadingLevels, setLoadingLevels] = useState<{[key: number]: boolean}>({});
+
   const { 
     isMobileOpen, 
     toggleSidebar, 
@@ -53,6 +66,9 @@ const AppHeader: React.FC = () => {
     setSelectedDesignation,
     selectedEmployee,
     setSelectedEmployee,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    selectedTeamMember,
+    setSelectedTeamMember,
     selectedType,
     setSelectedType,
     appType,
@@ -72,6 +88,10 @@ const AppHeader: React.FC = () => {
   }
   const isPartner = userRole === "5";
 
+  // Check if type is team
+  const isTeamType = Array.isArray(selectedType) 
+    ? selectedType.includes("team") 
+    : selectedType === "team";
 
   // Fetch designations on component mount
   useEffect(() => {
@@ -102,25 +122,25 @@ const AppHeader: React.FC = () => {
   // Fetch employees when designation changes
   useEffect(() => {
     if (selectedDesignation) {
-      //setSelectedEmployee("");
-      
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
+        setSelectedEmployee(""); // Reset employee selection
         try {
           const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${selectedDesignation}`;
           const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
           if (response.ok && response.data.success) {
             const employeeOptions = response.data.data
-            .map((item: EmployeeItem) => ({
-              value: item.id.toString(),
-              label: item.name
-            }))
-            .sort((a, b) => a.label.localeCompare(b.label)); // Sort Employees Alphabatically 
-          setEmployees(employeeOptions);
+              .map((item: EmployeeItem) => ({
+                value: item.id.toString(),
+                label: item.name
+              }))
+              .sort((a, b) => a.label.localeCompare(b.label));
+            setEmployees(employeeOptions);
           }
         } catch (error) {
           console.error("Failed to fetch employees:", error);
+          setEmployees([]);
         } finally {
           setIsLoadingEmployees(false);
         }
@@ -129,9 +149,136 @@ const AppHeader: React.FC = () => {
       fetchEmployees();
     } else {
       setEmployees([]);
-      // setSelectedEmployee("");
+      setSelectedEmployee("");
     }
-  }, [selectedDesignation]);
+  }, [selectedDesignation, setSelectedEmployee]);
+
+  // Fetch hierarchy levels when employee and team type are selected
+  useEffect(() => {
+    if (selectedEmployee && isTeamType) {
+      const fetchHierarchyLevels = async () => {
+        try {
+          const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
+            `/referrals/get-employees-designation/${selectedEmployee}`
+          );
+
+          if (response.ok && response.data.success) {
+            const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
+            setHierarchyLevels(sortedLevels);
+            setTeamSelections({});
+            setTeamEmployees({});
+            setLoadingLevels({});
+            
+            if (sortedLevels.length > 0) {
+              fetchTeamEmployeesForLevel(sortedLevels[0].level, selectedEmployee);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch hierarchy levels:", error);
+          setHierarchyLevels([]);
+        }
+      };
+
+      fetchHierarchyLevels();
+    } else {
+      setHierarchyLevels([]);
+      setTeamSelections({});
+      setTeamEmployees({});
+      setLoadingLevels({});
+    }
+  }, [selectedEmployee, isTeamType]);
+
+  // Fetch employees for a specific hierarchy level
+  const fetchTeamEmployeesForLevel = useCallback(async (level: number, employeeId: string) => {
+    setLoadingLevels(prev => ({ ...prev, [level]: true }));
+    
+    try {
+      const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(
+        `/referrals/get-manager-wise-employes/${employeeId}`
+      );
+
+      if (response.ok && response.data.success) {
+        const employeeOptions = response.data.data
+          .map((item: EmployeeItem) => ({
+            value: item.id.toString(),
+            label: item.name
+          }))
+          .sort((a, b) => a.label.localeCompare(b.label));
+        
+        setTeamEmployees(prev => ({
+          ...prev,
+          [level]: employeeOptions
+        }));
+      }
+    } catch (error) {
+      console.error(`Failed to fetch employees for level ${level}:`, error);
+      setTeamEmployees(prev => ({
+        ...prev,
+        [level]: []
+      }));
+    } finally {
+      setLoadingLevels(prev => ({ ...prev, [level]: false }));
+    }
+  }, []);
+
+  // Handle team employee selection at a specific level
+  const handleTeamEmployeeChange = useCallback((level: number, option: { value: string; label: string } | null) => {
+    const newValue = option?.value || "";
+    
+    setTeamSelections(prev => {
+      const updated = { ...prev, [level]: newValue };
+      
+      // Clear subsequent levels
+      hierarchyLevels.forEach((hl) => {
+        if (hl.level > level) {
+          delete updated[hl.level];
+        }
+      });
+      
+      return updated;
+    });
+
+    // Clear subsequent level data
+    setTeamEmployees(prev => {
+      const updated = { ...prev };
+      hierarchyLevels.forEach((hl) => {
+        if (hl.level > level) {
+          delete updated[hl.level];
+        }
+      });
+      return updated;
+    });
+
+    setLoadingLevels(prev => {
+      const updated = { ...prev };
+      hierarchyLevels.forEach((hl) => {
+        if (hl.level > level) {
+          delete updated[hl.level];
+        }
+      });
+      return updated;
+    });
+
+    // Update selectedTeamMember to trigger dashboard updates
+    // This keeps the main employee dropdown unchanged
+    if (newValue) {
+      setSelectedTeamMember(newValue);
+    } else {
+      setSelectedTeamMember(undefined);
+    }
+
+    // Check if this is the last level in hierarchy
+    const currentIndex = hierarchyLevels.findIndex(hl => hl.level === level);
+    const isLastLevel = currentIndex === hierarchyLevels.length - 1;
+
+    // Fetch next level employees if selection exists and not last level
+    if (newValue && !isLastLevel) {
+      if (currentIndex !== -1 && currentIndex < hierarchyLevels.length - 1) {
+        const nextLevel = hierarchyLevels[currentIndex + 1];
+        fetchTeamEmployeesForLevel(nextLevel.level, newValue);
+      }
+    }
+  }, [hierarchyLevels, fetchTeamEmployeesForLevel, setSelectedTeamMember]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -166,7 +313,7 @@ const AppHeader: React.FC = () => {
     { value: "individual", label: "Individual" }
   ];
 
-  const handleSelectChange = (option: { value: string; label: string } | null) => {     
+  const handleSelectChange = useCallback((option: { value: string; label: string } | null) => {     
     if (option) {
       setSelectedOption(option.value);
       if (option.value === "custom") {
@@ -175,44 +322,46 @@ const AppHeader: React.FC = () => {
         setCustomDates({ start: "", end: "" });
       }
     }    
-  };
+  }, [setSelectedOption, setCustomDates, openModal]);
 
-const handleDesignationChange = (option: { value: string; label: string } | null) => {
-  const newValue = option?.value || "";
-  if (newValue !== selectedDesignation) {
-    // Reset employee only on real change
-    setSelectedEmployee("");
-  }
-  setSelectedDesignation(newValue);
-};
+  const handleDesignationChange = useCallback((option: { value: string; label: string } | null) => {
+    const newValue = option?.value || "";
+    setSelectedDesignation(newValue);
+    if (newValue === "") {
+      setSelectedEmployee("");
+    }
+  }, [setSelectedDesignation, setSelectedEmployee]);
 
-
-  const handleEmployeeChange = (option: { value: string; label: string } | null) => {
+  const handleEmployeeChange = useCallback((option: { value: string; label: string } | null) => {
     setSelectedEmployee(option?.value || "");
-  };
+  }, [setSelectedEmployee]);
   
-  const handleTypeChange = (option: { value: string; label: string } | null) => {
+  const handleTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
       setSelectedType([option.value]);
+      // Reset team selections when type changes
+      if (option.value !== "team") {
+        setTeamSelections({});
+        setTeamEmployees({});
+        setHierarchyLevels([]);
+        setSelectedTeamMember(undefined);
+      }
     }
-  };
+  }, [setSelectedType, setSelectedTeamMember]);
 
-  const handleAppTypeChange = (option: { value: string; label: string } | null) => {
+  const handleAppTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
       setAppType(option.value);
     }
-  };
+  }, [setAppType]);
 
-  const handleSaveDates = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSaveDates = () => {
     if (validateDates(startDate, endDate)) {      
       setCustomDates({ start: startDate, end: endDate });
+      closeModal();
     } else {
       alert("Invalid date range: Start date must be before end date");
     }
-    
-    closeModal();
   };
 
   useEffect(() => {
@@ -239,10 +388,10 @@ const handleDesignationChange = (option: { value: string; label: string } | null
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
+      <div className="flex flex-col items-center justify-between w-full lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
-            className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="flex items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11 lg:border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -298,7 +447,7 @@ const handleDesignationChange = (option: { value: string; label: string } | null
 
           <button
             onClick={toggleApplicationMenu}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden transition-colors"
           >
             <svg
               width="24"
@@ -320,84 +469,136 @@ const handleDesignationChange = (option: { value: string; label: string } | null
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          } items-center justify-between w-full gap-3 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none flex-wrap lg:gap-4`}
         >
-          <div className="relative w-48">
+          {/* App Type Select */}
+          <div className="relative w-full sm:w-48">
             <Select 
               options={appTypeOptions}
               placeholder="Select App Type"
               onChange={handleAppTypeChange}
               value={appType || null}
               className="dark:bg-dark-900"
+              key={`apptype-${appType}`}
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
               <ChevronDownIcon/>
             </span>
           </div>
+
+          {/* Designation Select - Hidden for Partners */}
           {!isPartner && (
-            <div className="relative w-48">
+            <div className="relative w-full sm:w-48">
               <Select 
                 options={designations}
-                placeholder={isLoadingDesignations ? "Loading designations..." : "Select Designation"}
+                placeholder={isLoadingDesignations ? "Loading..." : "Select Designation"}
                 onChange={handleDesignationChange}
                 value={selectedDesignation || null}
                 className="dark:bg-dark-900"
+                isDisabled={isLoadingDesignations}
+                key={`designation-${selectedDesignation}`}
               />
               <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
                 <ChevronDownIcon/>
               </span>
             </div>
           )}
+
+          {/* Employee Select - Hidden for Partners */}
           {!isPartner && (
-            <div className="relative w-48">
+            <div className="relative w-full sm:w-48">
               <Select 
                 options={employees}
                 placeholder={
                   !selectedDesignation ? "Select designation first" : 
-                  isLoadingEmployees ? "Loading employees..." : "Select Employee"
+                  isLoadingEmployees ? "Loading..." : "Select Employee"
                 }
                 onChange={handleEmployeeChange}
                 value={selectedEmployee || null}
                 className="dark:bg-dark-900"
+                isDisabled={!selectedDesignation || isLoadingEmployees}
+                key={`employee-${selectedEmployee}-${selectedDesignation}`}
               />
               <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
                 <ChevronDownIcon/>
               </span>
             </div>
           )}
-          <div className="relative w-48">
+
+          {/* Type Select */}
+          <div className="relative w-full sm:w-48">
             <Select 
               options={typeOptions}
               placeholder="Select Type"
               onChange={handleTypeChange}
               value={Array.isArray(selectedType) ? (selectedType[0] || null) : selectedType || null}
               className="dark:bg-dark-900"
+              key={`type-${Array.isArray(selectedType) ? selectedType[0] : selectedType}`}
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
               <ChevronDownIcon/>
             </span>
           </div>
+
+          {/* Dynamic Team Hierarchy Dropdowns */}
+          {isTeamType && hierarchyLevels.map((hierarchy, index) => {
+            const previousLevel = index > 0 ? hierarchyLevels[index - 1].level : null;
+            const shouldShow = index === 0 || (previousLevel !== null && teamSelections[previousLevel]);
+            
+            if (!shouldShow) return null;
+
+            const hasEmployees = teamEmployees[hierarchy.level] && teamEmployees[hierarchy.level].length > 0;
+            const isLoading = loadingLevels[hierarchy.level];
+
+            return (
+              <div key={`hierarchy-${hierarchy.level}`} className="relative w-full sm:w-48">
+                <Select 
+                  options={teamEmployees[hierarchy.level] || []}
+                  placeholder={
+                    isLoading
+                      ? "Loading..." 
+                      : !hasEmployees && index > 0
+                      ? `No ${hierarchy.hierarchyName}`
+                      : `Select ${hierarchy.hierarchyName}`
+                  }
+                  onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}
+                  value={teamSelections[hierarchy.level] || null}
+                  className="dark:bg-dark-900"
+                  isDisabled={isLoading || (!hasEmployees && index > 0)}
+                  key={`team-${hierarchy.level}-${teamSelections[hierarchy.level]}`}
+                />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon/>
+                </span>
+              </div>
+            );
+          })}
           
-          
-          <div className="relative w-48">
+          {/* Date Range Select */}
+          <div className="relative w-full sm:w-48">
             <Select 
               options={options}
               placeholder="Select Option"
               onChange={handleSelectChange}
               value={selectedOption || null}
               className="dark:bg-dark-900"
+              key={`dateoption-${selectedOption}`}
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
               <ChevronDownIcon/>
             </span>
           </div>
+
+          {/* Theme, Notification & User Dropdown */}
           <div className="flex items-center gap-2 2xsm:gap-3">            
             <ThemeToggleButton />           
-            <NotificationDropdown />            
+            <NotificationDropdown />
+            <UserDropdown />
           </div>
-          <UserDropdown /> 
         </div>
       </div>
+
+      {/* Custom Date Modal */}
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
         <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
           <div className="px-2 pr-14">
@@ -408,7 +609,7 @@ const handleDesignationChange = (option: { value: string; label: string } | null
               Please choose your custom start and end dates.
             </p>
           </div>
-          <form className="flex flex-col" onSubmit={handleSaveDates}>
+          <div className="flex flex-col">
             <div className="px-2 overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
@@ -433,9 +634,9 @@ const handleDesignationChange = (option: { value: string; label: string } | null
               <Button size="sm" variant="outline" onClick={closeModal}>
                 Cancel
               </Button>            
-              <Button size="sm" type="submit">Save Dates</Button>
+              <Button size="sm" onClick={handleSaveDates}>Save Dates</Button>
             </div>
-          </form>
+          </div>
         </div>
       </Modal>
     </header>

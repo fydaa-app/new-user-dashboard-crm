@@ -28,7 +28,7 @@ export default function TargetVsRealityChart() {
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
   const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   
   useEffect(() => {
@@ -43,11 +43,14 @@ export default function TargetVsRealityChart() {
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
         const response = await fetch(url,
           {
@@ -86,7 +89,7 @@ export default function TargetVsRealityChart() {
     };
 
     fetchData();
-  }, [selectedOption,customDates,currentView,selectedEmployee,selectedType]);
+  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],

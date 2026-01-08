@@ -67,6 +67,7 @@ async function fetchTransactions(
   page: number,
   selectedOption: string,
   selectedEmployee: string = "",
+  selectedTeamMember: string = "",
   customDates: { start: string; end: string },
   searchQuery: string = "",
   reportType: string = "",
@@ -100,8 +101,10 @@ async function fetchTransactions(
       queryParams += `&transactionType=${transactionType}`;
     }
 
-    if (selectedEmployee) {
-      queryParams += `&employeeId=${selectedEmployee}`;
+    // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+    const employeeId = selectedTeamMember || selectedEmployee;
+    if (employeeId) {
+      queryParams += `&employeeId=${employeeId}`;
     }
 
     if (selectedType) {
@@ -140,7 +143,7 @@ async function fetchTransactions(
 export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -203,6 +206,7 @@ export default function TransactionsListPage() {
         page,
         selectedOption,
         selectedEmployee,
+        selectedTeamMember,
         customDates,
         searchQuery,
         effectiveReportType,
@@ -220,7 +224,7 @@ export default function TransactionsListPage() {
       setError("Failed to load data");
     }
     setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, readyToFetch, selectedType as unknown as string]);
+  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, selectedTeamMember, readyToFetch, selectedType as unknown as string]);
 
   useEffect(() => {
     fetchData();

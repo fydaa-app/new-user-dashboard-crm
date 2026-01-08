@@ -36,7 +36,7 @@ const TodaySaleWrapper = () => {
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption,customDates,selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -57,11 +57,15 @@ const TodaySaleWrapper = () => {
         } else {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          // Handle array type properly
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
 
         const response = await fetch(url,
@@ -104,7 +108,7 @@ const TodaySaleWrapper = () => {
     };
 
     fetchSalesData();
-  }, [selectedOption, customDates, selectedEmployee, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
 
   return <TodaySale data={salesData} loading={loading} />;
 };

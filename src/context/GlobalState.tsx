@@ -11,6 +11,8 @@ interface GlobalContextProps {
   setSelectedDesignation: (value: string | undefined) => void;
   selectedEmployee: string | undefined;
   setSelectedEmployee: (value: string | undefined) => void;
+  selectedTeamMember: string | undefined;
+  setSelectedTeamMember: (value: string | undefined) => void;
   selectedType: string[] | undefined;
   setSelectedType: (value: string[] | undefined) => void;
   appType: string;
@@ -53,6 +55,14 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [selectedEmployee, setSelectedEmployeeState] = useState<string | undefined>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("selectedEmployee");
+      return stored ? stored : undefined;
+    }
+    return undefined;
+  });
+
+  const [selectedTeamMember, setSelectedTeamMemberState] = useState<string | undefined>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("selectedTeamMember");
       return stored ? stored : undefined;
     }
     return undefined;
@@ -167,6 +177,21 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       return prev;
     });
   }, []);
+
+  const setSelectedTeamMember = useCallback((value: string | undefined) => {
+    setSelectedTeamMemberState(prev => {
+      if (value !== prev) {
+        if (value !== undefined) {
+          localStorage.setItem("selectedTeamMember", value);
+        } else {
+          localStorage.removeItem("selectedTeamMember");
+        }
+        return value;
+      }
+      return prev;
+    });
+  }, []);
+
   const setSelectedType = useCallback((value: string[] | undefined) => {
     setSelectedTypeState(prev => {
       if (value !== prev) {
@@ -211,6 +236,9 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       if (e.key === "selectedEmployee") {
         setSelectedEmployeeState(e.newValue || undefined);
       }
+      if (e.key === "selectedTeamMember") {
+        setSelectedTeamMemberState(e.newValue || undefined);
+      }
       if (e.key === "appType") {
         setAppTypeState(e.newValue || "Fydaa");
       }
@@ -232,6 +260,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setSelectedDesignation,
         selectedEmployee,
         setSelectedEmployee,
+        selectedTeamMember,
+        setSelectedTeamMember,
         selectedType,
         setSelectedType,
         appType,

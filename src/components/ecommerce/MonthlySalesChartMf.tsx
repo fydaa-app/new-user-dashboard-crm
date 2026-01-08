@@ -31,7 +31,7 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption,customDates,selectedEmployee,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
@@ -45,11 +45,14 @@ export default function MonthlySalesChart() {
           url += `timeframe=${selectedOption || "monthly"}`;
         }
 
-        if (selectedEmployee) {
-          url += `&employeeId=${selectedEmployee}`;
+        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
         }
-        if (selectedType) {
-          url += `&type=${selectedType}`;
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          url += `&type=${typeValue}`;
         }
 
         const response = await fetch(url,{
@@ -73,7 +76,7 @@ export default function MonthlySalesChart() {
     }
 
     fetchSalesData();
-  }, [selectedOption,customDates,selectedEmployee,selectedType]);
+  }, [selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType]);
 
   useEffect(() => {
     if (dataPoints.length === 0) return;
