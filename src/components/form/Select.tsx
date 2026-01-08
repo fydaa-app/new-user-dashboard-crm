@@ -13,6 +13,7 @@ interface SelectProps {
   defaultValue?: string;
   value?: string | null;
   isDisabled?: boolean;
+  menuAlign?: 'left' | 'right'; // New prop for alignment
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -23,6 +24,7 @@ const Select: React.FC<SelectProps> = ({
   defaultValue,
   value,
   isDisabled = false,
+  menuAlign = 'left', // Default to left alignment
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(() => {
     if (value !== undefined && value !== null) return value;
@@ -63,6 +65,9 @@ const Select: React.FC<SelectProps> = ({
   const selectedOption = options.find((opt) => opt.value === selectedValue);
   const displayText = selectedOption ? selectedOption.label : placeholder;
 
+  // Determine positioning classes based on alignment
+  const positionClasses = menuAlign === 'right' ? 'right-0' : 'left-0';
+
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
       {/* Select Button */}
@@ -81,7 +86,7 @@ const Select: React.FC<SelectProps> = ({
 
       {/* Dropdown Options */}
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto">
+        <div className={`absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto ${positionClasses}`}>
           {/* Placeholder option */}
           <div
             onClick={() => handleSelect(null)}
