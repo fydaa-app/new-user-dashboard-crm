@@ -24,7 +24,7 @@ import DeleteLeadModal from '@/components/leads/DeleteLeadModal';
 import DatePicker from '@/components/form/DatePicker';
 import Select from '@/components/form/Select';
 import { ChevronDownIcon } from '@/icons';
-import { exportLeadsToCSV } from '@/utils/csvExport';
+import { exportLeadsToCSV, exportLeadsToXLSX } from '@/utils/csvExport';
 
 // Interfaces for designation and employee data
 interface DesignationItem {
@@ -52,6 +52,7 @@ export default function SalesCRM() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddLead, setShowAddLead] = useState(false);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -645,6 +646,8 @@ export default function SalesCRM() {
     }
   };
 
+  // Function to fetch all leads without pagination for CSV export
+
   const handleExportCSV = async () => {
     try {
       console.log('📊 Starting CSV export...');
@@ -655,6 +658,25 @@ export default function SalesCRM() {
       
       console.log('📊 Exporting leads to CSV...', { count: allLeads.length });
       exportLeadsToCSV(allLeads, combinedUserMap);
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error exporting leads:', error);
+      setError('Failed to export leads. Please try again.');
+      setLoading(false);
+    }
+  };
+
+  const handleExportXLSX = async () => {
+    try {
+      console.log('📊 Starting XLSX export...');
+      setLoading(true);
+      
+      // Fetch all leads across all pages
+      const allLeads = await fetchAllLeadsForExport();
+      
+      console.log('📊 Exporting leads to XLSX...', { count: allLeads.length });
+      exportLeadsToXLSX(allLeads, combinedUserMap);
       
       setLoading(false);
     } catch (error) {
@@ -961,6 +983,7 @@ export default function SalesCRM() {
         if (newLead.assignedToId && typeof newLead.assignedToId === 'number' && !isNaN(newLead.assignedToId)) {
           leadData.assignedToId = newLead.assignedToId;
         }
+
         if (newLead.potentialInvestment && typeof newLead.potentialInvestment === 'number' && !isNaN(newLead.potentialInvestment)) {
           leadData.potentialInvestment = newLead.potentialInvestment;
         }
@@ -1101,26 +1124,75 @@ export default function SalesCRM() {
               <p className="text-body dark:text-bodydark">Lead & Conversion Tracking</p>
             </div>
             <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={handleExportCSV}
-                disabled={loading || pagination.total === 0}
-              >
-                <svg 
-                  className="w-5 h-5 mr-2" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
+              {/* Export Dropdown */}
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  disabled={loading || pagination.total === 0}
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
-                  />
-                </svg>
-                {loading ? 'Exporting...' : `Export CSV ${pagination.total > 0 ? `(${pagination.total})` : ''}`}
-              </Button>
+                  <svg 
+                    className="w-5 h-5 mr-2" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                    />
+                  </svg>
+                  <span>{loading ? 'Exporting...' : `Export ${pagination.total > 0 ? `(${pagination.total})` : ''}`}</span>
+                  <svg 
+                    className="w-4 h-4 ml-2" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M19 9l-7 7-7-7" 
+                    />
+                  </svg>
+                </Button>
+                
+                {/* Dropdown Menu */}
+                {showExportDropdown && !loading && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setShowExportDropdown(false);
+                          handleExportCSV();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export as CSV
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowExportDropdown(false);
+                          handleExportXLSX();
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Export as XLSX
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               <Button
                 variant="primary"
                 onClick={() => setShowAddLead(true)}

@@ -1,12 +1,13 @@
 /**
- * CSV Export Utility
- * Handles exporting data to CSV format
+ * CSV and XLSX Export Utility
+ * Handles exporting data to CSV and Excel formats
  */
 
 import { Lead } from '@/services/leadService';
+import * as XLSX from 'xlsx';
 
 /**
- * Format date with time for CSV export
+ * Format date with time for export
  */
 export const formatDateTimeForCSV = (dateString: string | null | undefined): string => {
   if (!dateString) return '';
@@ -25,7 +26,7 @@ export const formatDateTimeForCSV = (dateString: string | null | undefined): str
 };
 
 /**
- * Format date only (without time) for CSV export
+ * Format date only (without time) for export
  */
 export const formatDateOnlyForCSV = (dateString: string | null | undefined): string => {
   if (!dateString) return '';
@@ -49,6 +50,14 @@ const formatCurrencyForCSV = (value: number | string | null | undefined): string
     style: 'currency',
     currency: 'INR',
   }).format(Number(value));
+};
+
+/**
+ * Format currency for XLSX (as number)
+ */
+const formatCurrencyForXLSX = (value: number | string | null | undefined): number => {
+  if (!value || isNaN(Number(value))) return 0;
+  return Number(value);
 };
 
 /**
@@ -173,4 +182,91 @@ export const exportLeadsToCSV = (
   const timestamp = new Date().toISOString().slice(0, 10);
   const defaultFilename = `sales-crm-leads-${timestamp}.csv`;
   downloadCSV(csvContent, filename || defaultFilename);
+};
+
+/**
+ * Export leads to XLSX and trigger download
+ */
+export const exportLeadsToXLSX = (
+  leads: Lead[],
+  userMap: { [key: number]: string } = {},
+  filename?: string
+): void => {
+  // Prepare data for XLSX
+  const data = leads.map(lead => ({
+    'Entry Date': formatDateTimeForCSV(lead.createdAt),
+    'Lead ID': lead.id,
+    'Name': lead.name || '',
+    'Phone': lead.mobileNumber || '',
+    'Email': lead.email || '',
+    'Source': lead.source || '',
+    'Status': getStatusDisplayText(lead.status),
+    'Created By': getUserName(lead.generatedById, userMap),
+    'Assigned To': getUserName(lead.assignedToId, userMap),
+    'Expected Investment': formatCurrencyForXLSX(lead.potentialInvestment),
+    'Invested Amount': formatCurrencyForXLSX(lead.convertedAmount),
+    'Next Follow Up': formatDateOnlyForCSV(lead.nextFollowUpAt),
+    'Notes': lead.notes || ''
+  }));
+
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet(data);
+
+  // Set column widths
+  const columnWidths = [
+    { wch: 20 }, // Entry Date
+    { wch: 10 }, // Lead ID
+    { wch: 20 }, // Name
+    { wch: 15 }, // Phone
+    { wch: 25 }, // Email
+    { wch: 15 }, // Source
+    { wch: 12 }, // Status
+    { wch: 20 }, // Created By
+    { wch: 20 }, // Assigned To
+    { wch: 18 }, // Expected Investment
+    { wch: 18 }, // Invested Amount
+    { wch: 15 }, // Next Follow Up
+    { wch: 30 }  // Notes
+  ];
+  worksheet['!cols'] = columnWidths;
+
+  // Style header row (bold)
+  const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
+  for (let col = range.s.c; col <= range.e.c; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!worksheet[cellAddress]) continue;
+    worksheet[cellAddress].s = {
+      font: { bold: true },
+      fill: { fgColor: { rgb: "E0E0E0" } }
+    };
+  }
+
+  // Format currency columns
+  const currencyFormat = '₹#,##0.00';
+  for (let row = 1; row <= range.e.r; row++) {
+    // Expected Investment (column J - index 9)
+    const expInvCell = XLSX.utils.encode_cell({ r: row, c: 9 });
+    if (worksheet[expInvCell]) {
+      worksheet[expInvCell].z = currencyFormat;
+      worksheet[expInvCell].t = 'n';
+    }
+    
+    // Invested Amount (column K - index 10)
+    const invAmtCell = XLSX.utils.encode_cell({ r: row, c: 10 });
+    if (worksheet[invAmtCell]) {
+      worksheet[invAmtCell].z = currencyFormat;
+      worksheet[invAmtCell].t = 'n';
+    }
+  }
+
+  // Create workbook
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales CRM Leads');
+
+  // Generate filename
+  const timestamp = new Date().toISOString().slice(0, 10);
+  const defaultFilename = `sales-crm-leads-${timestamp}.xlsx`;
+
+  // Write and download file
+  XLSX.writeFile(workbook, filename || defaultFilename);
 };

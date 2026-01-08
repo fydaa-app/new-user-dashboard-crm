@@ -36,7 +36,8 @@
     "react-flatpickr": "^3.10.13",
     "react-toastify": "^11.0.5",
     "swiper": "^11.2.0",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
