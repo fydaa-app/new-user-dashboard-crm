@@ -45,6 +45,22 @@ const formatDate = (dateString: string | null | undefined): string => {
   }
 };
 
+const formatDateTime = (dateString: string | null | undefined): string => {
+  if (!dateString) return "Not set";
+  try {
+    return new Date(dateString).toLocaleString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
+    });
+  } catch {
+    return "Invalid date";
+  }
+};
+
 const getStatusBadgeColor = (status: string) => {
   switch (status?.toLowerCase()) {
     case "new":
@@ -309,7 +325,7 @@ export default function LeadsTable({
                     {/* Created At */}
                     <TableCell className="px-5 py-4 sm:px-6 text-start">
                       <div className="text-theme-sm text-gray-600 dark:text-gray-400">
-                        {formatDate(lead.createdAt)}
+                        {formatDateTime(lead.createdAt)}
                       </div>
                     </TableCell>
 

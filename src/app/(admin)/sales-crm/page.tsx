@@ -24,6 +24,7 @@ import DeleteLeadModal from '@/components/leads/DeleteLeadModal';
 import DatePicker from '@/components/form/DatePicker';
 import Select from '@/components/form/Select';
 import { ChevronDownIcon } from '@/icons';
+import { exportLeadsToCSV } from '@/utils/csvExport';
 
 // Interfaces for designation and employee data
 interface DesignationItem {
@@ -494,6 +495,175 @@ export default function SalesCRM() {
     console.log('🔄 App header selections reset');
   };
 
+  // Function to fetch all leads without pagination for CSV export
+  const fetchAllLeadsForExport = async (): Promise<Lead[]> => {
+    try {
+      // Build the same filters as loadLeads but without pagination
+      const enhancedFilters: LeadFilters = { 
+        sortBy: filters.sortBy || 'createdAt',
+        sortOrder: filters.sortOrder || 'DESC'
+      };
+
+      // Copy all the filter logic from loadLeads
+      // Add date filtering
+      if (selectedOption && selectedOption !== 'all' && selectedOption !== '' && selectedOption !== 'till_date') {
+        const now = new Date();
+        let startDate: Date | null;
+        let endDate: Date | null = now;
+
+        switch (selectedOption) {
+          case 'daily':
+          case 'today':
+            startDate = new Date();
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'yesterday':
+            startDate = new Date();
+            startDate.setDate(startDate.getDate() - 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setDate(endDate.getDate() - 1);
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'weekly':
+            startDate = new Date();
+            const dayOfWeek = startDate.getDay();
+            const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            startDate.setDate(startDate.getDate() - daysToMonday);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'monthly':
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'quarterly':
+            const quarterStart = Math.floor(now.getMonth() / 3) * 3;
+            startDate = new Date(now.getFullYear(), quarterStart, 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'yearly':
+            startDate = new Date(now.getFullYear(), 0, 1);
+            startDate.setHours(0, 0, 0, 0);
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            break;
+          case 'custom':
+            if (customDates.start && customDates.end) {
+              startDate = new Date(customDates.start);
+              startDate.setHours(0, 0, 0, 0);
+              endDate = new Date(customDates.end);
+              endDate.setHours(23, 59, 59, 999);
+            } else {
+              startDate = null;
+              endDate = null;
+            }
+            break;
+          default:
+            startDate = null;
+            endDate = null;
+        }
+
+        if (startDate && endDate && startDate.getTime() > 0) {
+          enhancedFilters.createdAfter = startDate.toISOString();
+          enhancedFilters.createdBefore = endDate.toISOString();
+        }
+      }
+
+      // Add employee filtering
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId && employeeId !== 'all') {
+        if (viewMode === 'all') {
+          enhancedFilters.employeeId = parseInt(employeeId);
+        } else {
+          enhancedFilters.assignedToId = parseInt(employeeId);
+        }
+      } else if (employeeId !== 'all' && user?.id) {
+        if (viewMode === 'all') {
+          enhancedFilters.employeeId = user.id;
+        } else {
+          enhancedFilters.assignedToId = user.id;
+        }
+      }
+
+      // Add designation filtering
+      if (selectedDesignation && selectedDesignation !== 'all' && selectedDesignation !== 'assign_to_yourself') {
+        const designationLevel = parseInt(selectedDesignation);
+        if (!isNaN(designationLevel)) {
+          enhancedFilters.designationLevel = designationLevel;
+        }
+      }
+
+      // Add type filter
+      if (Array.isArray(selectedType) && selectedType.length > 0) {
+        enhancedFilters.type = selectedType[0];
+      }
+
+      // Add search and status filters from the filters state
+      if (filters.search) {
+        enhancedFilters.search = filters.search;
+      }
+      if (filters.status) {
+        enhancedFilters.status = filters.status;
+      }
+      if (filters.followUpTimeframe) {
+        enhancedFilters.followUpTimeframe = filters.followUpTimeframe;
+      }
+
+      console.log('📊 Fetching all leads for export with filters:', enhancedFilters);
+
+      // Fetch all pages
+      let allLeads: Lead[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+
+      do {
+        const pageFilters = { ...enhancedFilters, page: currentPage, limit: 100 }; // Use larger page size for efficiency
+        const response = await leadService.getLeads(pageFilters);
+        
+        const pageLeads = response.leads || [];
+        allLeads = [...allLeads, ...pageLeads];
+        
+        totalPages = response.pagination?.totalPages || 1;
+        currentPage++;
+        
+        console.log(`📄 Fetched page ${currentPage - 1}/${totalPages}, Total leads so far: ${allLeads.length}`);
+      } while (currentPage <= totalPages);
+
+      console.log(`✅ Fetched all ${allLeads.length} leads for export`);
+      return allLeads;
+    } catch (error) {
+      console.error('❌ Error fetching leads for export:', error);
+      throw error;
+    }
+  };
+
+  const handleExportCSV = async () => {
+    try {
+      console.log('📊 Starting CSV export...');
+      setLoading(true);
+      
+      // Fetch all leads across all pages
+      const allLeads = await fetchAllLeadsForExport();
+      
+      console.log('📊 Exporting leads to CSV...', { count: allLeads.length });
+      exportLeadsToCSV(allLeads, combinedUserMap);
+      
+      setLoading(false);
+    } catch (error) {
+      console.error('Error exporting leads:', error);
+      setError('Failed to export leads. Please try again.');
+      setLoading(false);
+    }
+  };
+
   const handleEditLead = (lead: Lead) => {
     setSelectedLead(lead);
     setShowEditModal(true);
@@ -931,6 +1101,26 @@ export default function SalesCRM() {
               <p className="text-body dark:text-bodydark">Lead & Conversion Tracking</p>
             </div>
             <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleExportCSV}
+                disabled={loading || pagination.total === 0}
+              >
+                <svg 
+                  className="w-5 h-5 mr-2" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" 
+                  />
+                </svg>
+                {loading ? 'Exporting...' : `Export CSV ${pagination.total > 0 ? `(${pagination.total})` : ''}`}
+              </Button>
               <Button
                 variant="primary"
                 onClick={() => setShowAddLead(true)}
