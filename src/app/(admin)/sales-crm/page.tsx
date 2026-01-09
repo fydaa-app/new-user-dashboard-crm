@@ -260,19 +260,12 @@ export default function SalesCRM() {
       }
 
 
-      // Add designation filtering (this will need to be handled on backend)
-      // Exclude 'assign_to_yourself' as it's not a designation level
-      if (selectedDesignation && selectedDesignation !== 'all' && selectedDesignation !== 'assign_to_yourself') {
-        const designationLevel = parseInt(selectedDesignation);
-        if (!isNaN(designationLevel)) {
-          enhancedFilters.designationLevel = designationLevel;
-        }
-      }
+      // Don't send designationLevel - it was incorrectly filtering the list
+      // The designation dropdown is only for selecting which employee to view, not for filtering leads
+      // Stats show the correct full hierarchy count, list should match
 
-      // Add type filter (team | individual) from AppHeader
-      if (Array.isArray(selectedType) && selectedType.length > 0) {
-        enhancedFilters.type = selectedType[0];
-      }
+      // Don't send type parameter - use employeeId vs assignedToId to control behavior
+      // (The type parameter is not needed because viewMode already determines the filtering)
 
       console.log('🔍 Enhanced filters being applied:', enhancedFilters);
       
@@ -459,7 +452,6 @@ export default function SalesCRM() {
         }
       }
 
-
       console.log('📊 Loading stats with filters:', statsFilters);
       const statsData = await leadService.getLeadStats(Object.keys(statsFilters).length > 0 ? statsFilters : undefined);
       console.log('✅ Lead stats loaded:', statsData);
@@ -594,18 +586,9 @@ export default function SalesCRM() {
         }
       }
 
-      // Add designation filtering
-      if (selectedDesignation && selectedDesignation !== 'all' && selectedDesignation !== 'assign_to_yourself') {
-        const designationLevel = parseInt(selectedDesignation);
-        if (!isNaN(designationLevel)) {
-          enhancedFilters.designationLevel = designationLevel;
-        }
-      }
+      // Don't send designationLevel for export either - list should show full hierarchy
 
-      // Add type filter
-      if (Array.isArray(selectedType) && selectedType.length > 0) {
-        enhancedFilters.type = selectedType[0];
-      }
+      // Don't send type parameter for export either - use employeeId vs assignedToId
 
       // Add search and status filters from the filters state
       if (filters.search) {
