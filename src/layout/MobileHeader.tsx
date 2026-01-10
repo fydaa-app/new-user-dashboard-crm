@@ -5,16 +5,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSidebar } from "@/context/SidebarContext";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
-import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
 
 const MobileHeader: React.FC = () => {
-  const { toggleMobileSidebar } = useSidebar();
+  const { toggleMobileSidebar, toggleMobileFilters, isMobileFiltersOpen } = useSidebar();
 
   return (
     <header className="sticky top-0 z-99999 flex w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
       <div className="flex items-center justify-between w-full px-3 py-3 sm:px-4">
-        {/* Left: Sidebar toggle + Logo + Filters trigger */}
+        {/* Left: Sidebar toggle + Logo */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -39,57 +38,60 @@ const MobileHeader: React.FC = () => {
           </button>
 
           <Link href="/">
-            <div className="flex items-center gap-2">
-              <Image
-                width={120}
-                height={32}
-                className="dark:hidden"
-                src="/images/logo/logo2.png"
-                alt="Logo"
-              />
-              <Image
-                width={120}
-                height={32}
-                className="hidden dark:block"
-                src="/images/logo/logo.png"
-                alt="Logo"
-              />
-            </div>
+            <Image
+              width={32}
+              height={32}
+              src="/images/logo/icon.png"
+              alt="Logo"
+            />
           </Link>
-
-          {/* Filters trigger (opens mobile filters sidebar) */}
-          <button
-            type="button"
-            aria-label="Open filters"
-            className="flex items-center justify-center w-10 h-10 text-gray-500 border border-gray-200 rounded-lg dark:border-gray-800 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            onClick={() => {
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new Event("open-mobile-filters"));
-              }
-            }}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 6h16M7 12h10M10 18h4"
-              />
-            </svg>
-          </button>
         </div>
 
-        {/* Right: Theme toggle, notifications, user */}
+        {/* Right: Filters, theme toggle, user */}
         <div className="flex items-center gap-2 2xsm:gap-3">
+          {/* Filters trigger (toggles mobile filters sidebar) - moved to right */}
+          <div className="flex items-center gap-2 relative">
+            {/* Sliding "Filters" text - slides from left */}
+            <span
+              className={`absolute right-full mr-2 text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap transition-all duration-300 ease-out ${
+                isMobileFiltersOpen
+                  ? "opacity-100 translate-x-0"
+                  : "opacity-0 -translate-x-8 pointer-events-none"
+              }`}
+            >
+              Filters
+            </span>
+            
+            <button
+              type="button"
+              aria-label={isMobileFiltersOpen ? "Close filters" : "Open filters"}
+              className={`flex items-center justify-center w-10 h-10 border rounded-lg transition-colors ${
+                isMobileFiltersOpen
+                  ? "text-blue-600 border-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500 dark:text-blue-400"
+                  : "text-gray-500 border-gray-200 dark:border-gray-800 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
+              onClick={toggleMobileFilters}
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M7 12h10M10 18h4"
+                />
+              </svg>
+            </button>
+          </div>
+
           <ThemeToggleButton />
-          <NotificationDropdown />
-          <UserDropdown />
+
+          <UserDropdown hideName={true} />
         </div>
       </div>
     </header>
