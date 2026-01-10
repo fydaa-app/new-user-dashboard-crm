@@ -86,7 +86,7 @@ const Select: React.FC<SelectProps> = ({
 
       {/* Dropdown Options */}
       {isOpen && (
-        <div className={`absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto ${positionClasses}`}>
+        <div className={`absolute z-[100000] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto ${positionClasses}`}>
           {/* Placeholder option */}
           <div
             onClick={() => handleSelect(null)}

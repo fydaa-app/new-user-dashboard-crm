@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useSidebar } from "@/context/SidebarContext";
 import { apiClient } from "@/services/api-client";
 import { AdminEndpoints } from "@/config/api-endpoints";
 
@@ -46,6 +47,8 @@ const MobileFiltersSidebar: React.FC = () => {
     setAppType,
   } = useGlobalContext();
 
+  const { isMobileFiltersOpen, toggleMobileFilters } = useSidebar();
+
   // Local state for dropdown data (same as desktop header)
   const [designations, setDesignations] = useState<{ value: string; label: string }[]>([]);
   const [employees, setEmployees] = useState<{ value: string; label: string }[]>([]);
@@ -59,11 +62,8 @@ const MobileFiltersSidebar: React.FC = () => {
   );
   const [loadingLevels, setLoadingLevels] = useState<{ [key: number]: boolean }>({});
 
-  const [isOpen, setIsOpen] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  const toggleOpen = () => setIsOpen((prev) => !prev);
 
   const isTeamType = Array.isArray(selectedType)
     ? selectedType.includes("team")
@@ -298,32 +298,23 @@ const MobileFiltersSidebar: React.FC = () => {
     [hierarchyLevels, fetchTeamEmployeesForLevel, setSelectedTeamMember]
   );
 
-  // Listen for global event from MobileHeader to open filters
+  // Update local date state when sidebar opens and customDates are available
   useEffect(() => {
-    const handler = () => {
-      setIsOpen(true);
+    if (isMobileFiltersOpen) {
       setStartDate(customDates.start);
       setEndDate(customDates.end);
-    };
-    if (typeof window !== "undefined") {
-      window.addEventListener("open-mobile-filters", handler);
     }
-    return () => {
-      if (typeof window !== "undefined") {
-        window.removeEventListener("open-mobile-filters", handler);
-      }
-    };
-  }, []);
+  }, [isMobileFiltersOpen, customDates]);
 
   return (
     <div className="lg:hidden">
       {/* Sidebar panel */}
-      {isOpen && (
+      {isMobileFiltersOpen && (
         <div className="fixed inset-0 z-50 flex">
           {/* Backdrop */}
           <div
             className="flex-1 bg-black/30"
-            onClick={toggleOpen}
+            onClick={toggleMobileFilters}
           />
 
           {/* Panel */}
@@ -334,7 +325,7 @@ const MobileFiltersSidebar: React.FC = () => {
               </h2>
               <button
                 type="button"
-                onClick={toggleOpen}
+                onClick={toggleMobileFilters}
                 aria-label="Close filters"
                 className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
@@ -419,7 +410,7 @@ const MobileFiltersSidebar: React.FC = () => {
                     onClick={() => {
                       if (validateDates(startDate, endDate)) {
                         setCustomDates({ start: startDate, end: endDate });
-                        setIsOpen(false);
+                        toggleMobileFilters();
                       } else {
                         alert("Invalid date range: Start date must be before end date");
                       }

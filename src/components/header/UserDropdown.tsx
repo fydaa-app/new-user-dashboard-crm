@@ -11,7 +11,11 @@ interface EmployeeData {
   email: string;
 }
 
-export default function UserDropdown() {
+interface UserDropdownProps {
+  hideName?: boolean;
+}
+
+export default function UserDropdown({ hideName = false }: UserDropdownProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [employeeData, setEmployeeData] = useState<EmployeeData>({ 
@@ -65,9 +69,11 @@ export default function UserDropdown() {
           />
         </span>
 
-        <span className="block mr-1 font-medium text-theme-sm">
-          {employeeData.name.split(' ')[0]}
-        </span>
+        {!hideName && (
+          <span className="block mr-1 font-medium text-theme-sm">
+            {employeeData.name.split(' ')[0]}
+          </span>
+        )}
 
         <svg
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
