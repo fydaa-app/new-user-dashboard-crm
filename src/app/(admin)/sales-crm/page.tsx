@@ -1320,11 +1320,11 @@ export default function SalesCRM() {
           showCloseButton={true}
           className="max-w-2xl w-full mx-auto my-8"
         >
-          <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-y-auto shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-x-visible shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03] relative">
             <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
               <h2 className="text-2xl font-bold text-black dark:text-white">Add New Lead</h2>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-120px)] overflow-x-visible">
               {/* Insert Error Message Here */}
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">

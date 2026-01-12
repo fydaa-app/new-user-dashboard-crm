@@ -52,8 +52,8 @@ export default function AdminLayout({
           </div>
           
           {/* Page Content */}
-          <div className="p-3 sm:p-4 md:p-6 dark:bg-gray-900 w-full overflow-x-hidden">
-            <div className="w-full">
+          <div className="p-3 sm:p-4 md:p-6 dark:bg-gray-900 w-full overflow-x-hidden overflow-y-visible">
+            <div className="w-full overflow-visible">
               {children}
             </div>
           </div>
