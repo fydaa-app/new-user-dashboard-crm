@@ -62,6 +62,7 @@ export default function EditLeadModal({
         email: lead.email,
         mobileNumber: lead.mobileNumber,
         source: lead.source,
+        appType: lead.appType,
         status: lead.status,
         assignedToId: lead.assignedToId,
         potentialInvestment: lead.potentialInvestment,
@@ -161,6 +162,7 @@ export default function EditLeadModal({
       if (formData.email && formData.email.trim()) cleanedData.email = formData.email.trim();
       if (formData.mobileNumber && formData.mobileNumber.trim()) cleanedData.mobileNumber = formData.mobileNumber.trim();
       if (formData.source && formData.source.trim()) cleanedData.source = formData.source.trim();
+      if (formData.appType && formData.appType.trim()) cleanedData.appType = formData.appType.trim();
       if (formData.status) cleanedData.status = formData.status;
       if (formData.assignedToId) cleanedData.assignedToId = formData.assignedToId;
       if (formData.potentialInvestment !== undefined && formData.potentialInvestment !== null) {
@@ -481,6 +483,30 @@ export default function EditLeadModal({
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                App Type *
+              </label>
+              <div className="relative">
+                <Select
+                  options={[
+                    { value: "Fydaa", label: "Fydaa" },
+                    { value: "Savestment", label: "Savestment" },
+                  ]}
+                  placeholder="Select App Type"
+                  value={formData.appType || null}
+                  onChange={(option) => {
+                    const value = option?.value || "";
+                    handleInputChange("appType", value);
+                  }}
+                  className="dark:bg-dark-900"
+                />
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-black dark:text-white mb-2">
                 Invested Amount
               </label>
               <input
@@ -535,6 +561,7 @@ export default function EditLeadModal({
                 !formData.name || 
                 !formData.mobileNumber || 
                 !formData.email ||
+                !formData.appType ||
                 !!emailError ||
                 !!phoneError ||
                 !emailRegex.test(formData.email || '') ||

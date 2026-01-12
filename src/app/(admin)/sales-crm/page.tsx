@@ -97,6 +97,7 @@ export default function SalesCRM() {
     email: '',
     mobileNumber: '',
     source: 'Website',
+    appType: '',
     status: 'new',
     potentialInvestment: undefined,
     nextFollowUpAt: '',
@@ -959,6 +960,7 @@ export default function SalesCRM() {
           mobileNumber: newLead.mobileNumber.trim(),
           generatedById: user?.id || 1, // Use current user's ID or fallback to 1
           source: (newLead.source && newLead.source.trim()) || 'Website', // Default to 'Website' if not provided
+          appType: (newLead.appType && newLead.appType.trim()) || undefined, // Include appType
           status: newLead.status || 'new', // Default to 'new' if not provided
         };
         
@@ -990,6 +992,7 @@ export default function SalesCRM() {
           email: '',
           mobileNumber: '',
           source: 'Website',
+          appType: '',
           status: 'new',
           potentialInvestment: undefined,
           nextFollowUpAt: '',
@@ -1560,6 +1563,27 @@ export default function SalesCRM() {
                     className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">App Type *</label>
+                  <div className="relative">
+                    <Select
+                      options={[
+                        { value: 'Fydaa', label: 'Fydaa' },
+                        { value: 'Savestment', label: 'Savestment' },
+                      ]}
+                      placeholder="Select App Type"
+                      value={newLead.appType || null}
+                      onChange={(option) => {
+                        const value = option?.value || '';
+                        setNewLead({ ...newLead, appType: value });
+                      }}
+                      className="dark:bg-dark-900"
+                    />
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+                      <ChevronDownIcon />
+                    </span>
+                  </div>
+                </div>
                 <div className="md:col-span-2">
                   <DatePicker
                     label="Next Follow-up Date"
@@ -1593,6 +1617,7 @@ export default function SalesCRM() {
                     !newLead.name || 
                     !newLead.mobileNumber || 
                     !newLead.email || 
+                    !newLead.appType ||
                     loading ||
                     !!emailError ||
                     !!phoneError ||
