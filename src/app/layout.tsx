@@ -1,4 +1,5 @@
 import { Outfit } from "next/font/google";
+import type { Viewport } from "next";
 import "./globals.css";
 
 import { SidebarProvider } from "@/context/SidebarContext";
@@ -11,14 +12,20 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) { 
   return (
-    <html lang="en">
-      <body className={`${outfit.className} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+    <html lang="en" className="overflow-x-hidden lg:overflow-x-visible">
+      <body className={`${outfit.className} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 overflow-x-hidden lg:overflow-x-visible`}>
         <ThemeProvider>
           <SidebarProvider>
             <AuthProvider>

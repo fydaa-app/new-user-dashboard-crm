@@ -307,18 +307,51 @@ const MobileFiltersSidebar: React.FC = () => {
   }, [isMobileFiltersOpen, customDates]);
 
   return (
-    <div className="lg:hidden">
-      {/* Sidebar panel */}
+    <>
+      {/* Sidebar panel - rendered at root level to avoid parent constraints */}
       {isMobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 flex">
+        <div 
+          className="fixed inset-0 z-[99999] lg:hidden" 
+          style={{ 
+            position: 'fixed',
+            left: 0, 
+            right: 0, 
+            top: 0, 
+            bottom: 0,
+            width: '100vw',
+            maxWidth: '100vw',
+            margin: 0,
+            padding: 0,
+            overflow: 'hidden'
+          }}
+        >
           {/* Backdrop */}
           <div
-            className="flex-1 bg-black/30"
+            className="absolute inset-0 bg-black/30"
             onClick={toggleMobileFilters}
+            style={{
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              top: 0,
+              bottom: 0
+            }}
           />
 
-          {/* Panel */}
-          <div className="w-[80%] max-w-sm h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 p-4 flex flex-col gap-4 overflow-y-auto">
+          {/* Panel - positioned from right edge, constrained to viewport */}
+          <div 
+            className="absolute right-0 top-0 bottom-0 h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 pt-[64px] px-4 pb-4 flex flex-col gap-4 overflow-y-auto"
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: '80%',
+              maxWidth: '384px',
+              minWidth: 0,
+              paddingTop: '64px' // Matches mobile header height (py-3 + h-10 + py-3 + border)
+            }}
+          >
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">
                 Filters
@@ -553,7 +586,7 @@ const MobileFiltersSidebar: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };
 

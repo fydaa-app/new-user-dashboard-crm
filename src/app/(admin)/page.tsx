@@ -26,7 +26,7 @@ export default function Ecommerce() {
 
   if (appType === "Fydaa") {
     return (
-      <div className="grid grid-cols-12 gap-4 md:gap-6">
+      <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
         <div className="col-span-12">
           <TodaySaleWrapperMf />
         </div>
@@ -69,7 +69,7 @@ export default function Ecommerce() {
   }
 
   return (
-    <div className="grid grid-cols-12 gap-4 md:gap-6">
+    <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
       <div className="col-span-12">
         <TodaySaleWrapper />
       </div>

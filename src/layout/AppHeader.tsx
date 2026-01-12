@@ -395,18 +395,18 @@ const AppHeader: React.FC = () => {
   }, [selectedType, setSelectedType]);
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b overflow-x-hidden lg:overflow-x-visible">
       <div className="flex flex-col w-full lg:px-6">
         {/* Container for Row 1 and Row 2 - Always column layout */}
         <div className="flex flex-col w-full">
           {/* Row 1: Filters on left, Icons on right - Single horizontal line */}
           <div
-            className={`flex items-center w-full px-5 py-4 lg:px-0 ${
+            className={`flex items-center w-full px-5 py-4 lg:px-0 overflow-x-auto lg:overflow-x-visible ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
-            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap">
+            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap min-w-0">
               {/* App Type Select */}
               <div className="relative w-40 flex-shrink-0">
                 <Select 
@@ -525,7 +525,7 @@ const AppHeader: React.FC = () => {
           </div>
 
           {/* Row 2: Sidebar/Logo/Burger on left, Date filter on right */}
-          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 ${
+          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 overflow-x-hidden lg:overflow-x-visible ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >
@@ -608,7 +608,7 @@ const AppHeader: React.FC = () => {
             </div>
 
             {/* Right side: Date filter */}
-            <div className="relative w-40">
+            <div className="relative w-40 flex-shrink-0">
               <Select 
                 options={options}
                 placeholder="Select Option"

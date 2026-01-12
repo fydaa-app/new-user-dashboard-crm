@@ -181,7 +181,7 @@ const AppSidebar: React.FC = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="py-8 flex">
+      <div className="py-4 lg:py-8 flex">
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
