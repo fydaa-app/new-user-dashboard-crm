@@ -3,5 +3,5 @@ export default function FullWidthPageLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <div>{children}</div>;
+  return <div className="w-full max-w-full overflow-x-hidden">{children}</div>;
 }

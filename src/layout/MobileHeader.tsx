@@ -11,8 +11,8 @@ const MobileHeader: React.FC = () => {
   const { toggleMobileSidebar, toggleMobileFilters, isMobileFiltersOpen } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-99999 flex w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 lg:hidden">
-      <div className="flex items-center justify-between w-full px-3 py-3 sm:px-4">
+    <header className="sticky top-0 z-99999 flex w-full max-w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 lg:hidden overflow-x-hidden">
+      <div className="flex items-center justify-between w-full max-w-full px-3 py-3 sm:px-4 overflow-x-hidden">
         {/* Left: Sidebar toggle + Logo */}
         <div className="flex items-center gap-3">
           <button
