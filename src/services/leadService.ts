@@ -8,6 +8,7 @@ export interface Lead {
   email: string;
   mobileNumber: string;
   source: string;
+  appType?: string;
   status: 'new' | 'in-progress' | 'converted' | 'lost';
   generatedById: number;
   assignedToId?: number;
@@ -28,6 +29,7 @@ export interface CreateLeadData {
   email: string;
   mobileNumber: string;
   source?: string;
+  appType?: string;
   status?: 'new' | 'in-progress' | 'converted' | 'lost';
   generatedById?: number; // Add this required field
   assignedToId?: number;
