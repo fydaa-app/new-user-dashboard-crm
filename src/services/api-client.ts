@@ -100,10 +100,17 @@ class ApiClient {
    * Prepare headers with authentication token
    */
   private prepareHeaders(config: ApiRequestConfig): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...config.headers,
-    };
+    // If body is FormData, don't set Content-Type (let browser set it with boundary)
+    const isFormData = config.body instanceof FormData;
+    
+    const headers: HeadersInit = !isFormData 
+      ? {
+          'Content-Type': 'application/json',
+          ...config.headers,
+        }
+      : {
+          ...config.headers,
+        };
 
     // Add auth token if required and not skipped
     if (config.requireAuth !== false && !config.skipAuth) {
@@ -133,7 +140,7 @@ class ApiClient {
     } = config;
 
     const url = this.buildUrl(endpoint, baseUrl);
-    const preparedHeaders = this.prepareHeaders({ requireAuth, skipAuth, headers });
+    const preparedHeaders = this.prepareHeaders({ requireAuth, skipAuth, headers, body: fetchConfig.body });
 
     try {
       const response = await fetch(url, {
@@ -162,7 +169,8 @@ class ApiClient {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         
         // Try to extract a meaningful error message
-        if (data && typeof data === 'object') {
+        // Only try object operations if data is actually an object
+        if (data && typeof data === 'object' && !(data instanceof String)) {
           const errorData = data as Record<string, unknown>;
           
           // Check if message is a string and not [object Object]
@@ -180,6 +188,9 @@ class ApiClient {
               errorMessage = nestedError.message;
             }
           }
+        } else if (typeof data === 'string' && data.length > 0) {
+          // If it's a string response, use first 200 chars as error message
+          errorMessage = data.substring(0, 200);
         }
         
         throw new ApiError(errorMessage, response.status, data);
@@ -226,7 +237,7 @@ class ApiClient {
     return this.fetch<T>(endpoint, {
       ...config,
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     });
   }
 

@@ -542,6 +542,19 @@ export default function EditLeadModal({
                 placeholder="Add notes about this lead..."
               />
             </div>
+
+            {lead.imageUrl && (
+              <div className="md:col-span-2 space-y-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Current Lead Image
+                </label>
+                <img 
+                  src={lead.imageUrl} 
+                  alt="Lead" 
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">

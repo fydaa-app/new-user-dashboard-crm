@@ -101,7 +101,8 @@ export default function SalesCRM() {
     status: 'new',
     potentialInvestment: undefined,
     nextFollowUpAt: '',
-    notes: ''
+    notes: '',
+    imageUrl: ''
   });
 
   // Validation states for Add Lead Modal
@@ -111,6 +112,11 @@ export default function SalesCRM() {
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [selectedSourceOption, setSelectedSourceOption] = useState<string>('Website');
   const [customSource, setCustomSource] = useState('');
+
+  // Image upload state variables
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imageError, setImageError] = useState<string>('');
 
   // Email regex pattern
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -946,7 +952,40 @@ export default function SalesCRM() {
     loadEmployeeData(); // Use the existing employee data loading
   }, []);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setImageError('Please select a valid image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setImageError('Image size should be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      setImageError('');
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleAddLead = async () => {
+    if (!selectedImage && !newLead.imageUrl) {
+      setImageError('Image is required for lead creation');
+      setError('Please upload an image for the lead');
+      return;
+    }
+
     if (newLead.name && newLead.mobileNumber && newLead.email) {
       try {
         setLoading(true);
@@ -979,8 +1018,7 @@ export default function SalesCRM() {
           leadData.notes = newLead.notes.trim();
         }
         
-        console.log('🚀 Creating lead with cleaned data:', JSON.stringify(leadData, null, 2));
-        await leadService.createLead(leadData);
+        await leadService.createLead(leadData, selectedImage || undefined);
         
         // Refresh the leads list and stats
         await loadLeads();
@@ -996,7 +1034,8 @@ export default function SalesCRM() {
           status: 'new',
           potentialInvestment: undefined,
           nextFollowUpAt: '',
-          notes: ''
+          notes: '',
+          imageUrl: ''
         });
         setSelectedDesignation('');
         setEmployees([]);
@@ -1005,6 +1044,9 @@ export default function SalesCRM() {
         setPhoneError('');
         setEmailTouched(false);
         setPhoneTouched(false);
+        setSelectedImage(null);
+        setImagePreview('');
+        setImageError('');
         setShowAddLead(false);
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to create lead. Please try again.';
@@ -1319,6 +1361,9 @@ export default function SalesCRM() {
             setPhoneError('');
             setEmailTouched(false);
             setPhoneTouched(false);
+            setSelectedImage(null);
+            setImagePreview('');
+            setImageError('');
           }}
           showCloseButton={true}
           className="max-w-2xl w-full mx-auto my-8"
@@ -1601,6 +1646,46 @@ export default function SalesCRM() {
                     className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                   />
                 </div>
+
+                <div className="md:col-span-2 space-y-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Lead Image <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mt-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="block w-full text-sm text-gray-500 dark:text-gray-400
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-primary file:text-white
+                        hover:file:bg-primary/90
+                        file:cursor-pointer cursor-pointer"
+                    />
+                  </div>
+                  
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                      />
+                    </div>
+                  )}
+                  
+                  {imageError && (
+                    <p className="text-sm text-red-600 dark:text-red-400">{imageError}</p>
+                  )}
+                  
+                  {!selectedImage && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Please upload an image for the lead (max 5MB)
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="flex gap-3 pt-4">
                 <Button
@@ -1618,9 +1703,11 @@ export default function SalesCRM() {
                     !newLead.mobileNumber || 
                     !newLead.email || 
                     !newLead.appType ||
+                    !selectedImage ||
                     loading ||
                     !!emailError ||
                     !!phoneError ||
+                    !!imageError ||
                     !emailRegex.test(newLead.email || '') ||
                     !phoneRegex.test((newLead.mobileNumber || '').replace(/\D/g, ''))
                   }
