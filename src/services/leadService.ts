@@ -19,6 +19,7 @@ export interface Lead {
   convertedAt?: string;
   convertedAmount?: number;
   priority?: number;
+  imageUrl?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,12 +32,13 @@ export interface CreateLeadData {
   source?: string;
   appType?: string;
   status?: 'new' | 'in-progress' | 'converted' | 'lost';
-  generatedById?: number; // Add this required field
+  generatedById?: number;
   assignedToId?: number;
   potentialInvestment?: number;
   notes?: string;
   nextFollowUpAt?: string;
   priority?: number;
+  imageUrl?: string;
 }
 
 export interface UpdateLeadData extends Partial<CreateLeadData> {
@@ -136,71 +138,48 @@ class LeadService {
   }
 
   // Create new lead
-  async createLead(leadData: CreateLeadData): Promise<Lead> {
+  async createLead(leadData: CreateLeadData, imageFile?: File): Promise<Lead> {
     try {
-      console.log('📝 Creating lead with data:', JSON.stringify(leadData, null, 2));
-      const response = await apiClient.post<Lead>(LeadEndpoints.LEADS, leadData);
-      console.log('✅ Create lead response:', response);
+      let imageUrl = leadData.imageUrl;
       
-      // The API client wraps responses, so we need response.data
-      return response.data;
-    } catch (error) {
-      console.error('❌ Error creating lead:', error);
-      
-      // Check if it's an ApiError instance
-      if (error instanceof ApiError) {
-        console.error('📡 API Error Details:', {
-          status: error.status,
-          message: error.message,
-          data: error.data
-        });
+      // First upload the image if provided
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
         
-        // Try to extract error message from data
-        if (error.data && typeof error.data === 'object') {
-          const errorData = error.data as Record<string, unknown>;
-          
-          // Check for mobile number conflict (409 status)
-          if (error.status === 409) {
-            // Check for errors.mobileNumber first (more specific)
-            if (errorData.errors && typeof errorData.errors === 'object') {
-              const errors = errorData.errors as Record<string, unknown>;
-              if (errors.mobileNumber && typeof errors.mobileNumber === 'string') {
-                throw new Error(errors.mobileNumber);
-              }
-            }
-            // Fall back to main message
-            if (errorData.message && typeof errorData.message === 'string') {
-              throw new Error(errorData.message);
-            }
-          }
-          
-          // Check for validation errors
-          if (errorData.message && typeof errorData.message === 'string') {
-            throw new Error(errorData.message);
-          }
-          if (errorData.errors && typeof errorData.errors === 'object') {
-            const errors = errorData.errors as Record<string, unknown>;
-            // Try to get the first error message
-            const firstError = Object.values(errors)[0];
-            if (typeof firstError === 'string') {
-              throw new Error(firstError);
-            }
-            throw new Error(`Validation Errors: ${JSON.stringify(errorData.errors)}`);
-          }
-          // Check for nested error structure
-          if (errorData.error && typeof errorData.error === 'object') {
-            const nestedError = errorData.error as Record<string, unknown>;
-            if (nestedError.message && typeof nestedError.message === 'string') {
-              throw new Error(nestedError.message);
-            }
-          }
+        try {
+          const uploadResponse = await apiClient.post<{ imageUrl: string }>(
+            `${LeadEndpoints.LEADS}/upload-image`,
+            formData
+          );
+          imageUrl = uploadResponse.data.imageUrl;
+        } catch (uploadError) {
+          const errorMsg = uploadError instanceof Error ? uploadError.message : 'Image upload failed';
+          throw new Error(`Failed to upload image: ${errorMsg}`);
         }
-        
-        // Use the error message if available
-        throw new Error(error.message || 'Failed to create lead. Please check your input data.');
       }
       
-      throw new Error('Failed to create lead. Please check your input data.');
+      if (!imageUrl) {
+        throw new Error('Image is required for lead creation');
+      }
+      
+      // Create lead with imageUrl
+      const leadPayload = {
+        ...leadData,
+        imageUrl
+      };
+      
+      const response = await apiClient.post<Lead>(
+        LeadEndpoints.LEADS, 
+        leadPayload
+      );
+      
+      return response.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Failed to create lead. Please try again.');
     }
   }
 
