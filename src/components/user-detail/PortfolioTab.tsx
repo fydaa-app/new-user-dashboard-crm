@@ -126,35 +126,35 @@ export default function PortfolioTab({
             </div>
 
             {/* SIP Details if available */}
-            {mfPortfolio.sip && mfPortfolio.sip.length > 0 && (
+            {mfPortfolio.sip && mfPortfolio.sip.length > 0 && mfPortfolio.sip[0] != null && (
               <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                 <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">SIP Details</p>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">SIP Amount: </span>
-                    <span className="font-medium dark:text-gray-300">{formatCurrency(mfPortfolio.sip[0].sipAmount)}</span>
+                    <span className="font-medium dark:text-gray-300">{formatCurrency(mfPortfolio.sip[0]?.sipAmount)}</span>
                   </div>
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Goal Amount: </span>
-                    <span className="font-medium dark:text-gray-300">{formatCurrency(mfPortfolio.sip[0].goalAmount)}</span>
+                    <span className="font-medium dark:text-gray-300">{formatCurrency(mfPortfolio.sip[0]?.goalAmount)}</span>
                   </div>
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Status: </span>
-                    <Badge color={mfPortfolio.sip[0].status === "ACTIVE" ? "success" : "warning"}>
-                      {mfPortfolio.sip[0].status}
+                    <Badge color={mfPortfolio.sip[0]?.status === "ACTIVE" ? "success" : "warning"}>
+                      {mfPortfolio.sip[0]?.status}
                     </Badge>
                   </div>
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Tenure: </span>
-                    <span className="font-medium dark:text-gray-300">{mfPortfolio.sip[0].sipTenure} months</span>
+                    <span className="font-medium dark:text-gray-300">{mfPortfolio.sip[0]?.sipTenure} months</span>
                   </div>
                   
                   {/* ✅ Next Installment Date */}
-                  {mfPortfolio.sip[0].next_installment_date && (
+                  {mfPortfolio.sip[0]?.next_installment_date && (
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">Next Due Date: </span>
                       <span className="font-medium dark:text-gray-300">
-                        {new Date(mfPortfolio.sip[0].next_installment_date).toLocaleDateString('en-IN', {
+                        {new Date(mfPortfolio.sip[0]?.next_installment_date ?? '').toLocaleDateString('en-IN', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric'
@@ -164,11 +164,11 @@ export default function PortfolioTab({
                   )}
                   
                   {/* ✅ Remaining Installments (bonus info) */}
-                  {mfPortfolio.sip[0].remaining_installments !== undefined && (
+                  {mfPortfolio.sip[0]?.remaining_installments !== undefined && (
                     <div>
                       <span className="text-gray-600 dark:text-gray-400">Remaining: </span>
                       <span className="font-medium dark:text-gray-300">
-                        {mfPortfolio.sip[0].remaining_installments} installments
+                        {mfPortfolio.sip[0]?.remaining_installments} installments
                       </span>
                     </div>
                   )}

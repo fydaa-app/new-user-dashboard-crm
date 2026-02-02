@@ -125,6 +125,46 @@ class LeadService {
     }
   }
 
+  // Upload image for leads
+  async uploadImage(file: File): Promise<string> {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const uploadResponse = await apiClient.post<{ imageUrl?: string; success?: boolean; data?: { imageUrl?: string } }>(
+        `${LeadEndpoints.LEADS}/upload-image`,
+        formData
+      );
+      const responseData = uploadResponse.data;
+
+      // Handle wrapped backend response format { success, data: { imageUrl } }
+      if (responseData && typeof responseData === 'object' && 'success' in responseData && 'data' in responseData) {
+        const wrappedData = responseData as { success?: boolean; data?: { imageUrl?: string } };
+        const imageUrl = wrappedData.data?.imageUrl;
+        if (imageUrl) return imageUrl;
+      }
+
+      // Handle direct response format { imageUrl }
+      if (responseData && typeof responseData === 'object' && 'imageUrl' in responseData) {
+        const imageUrl = (responseData as { imageUrl?: string }).imageUrl;
+        if (imageUrl) return imageUrl;
+      }
+
+      console.error('Upload response missing imageUrl:', responseData);
+      throw new Error('Invalid response from server: no image URL returned');
+    } catch (uploadError) {
+      console.error('Image upload failed:', uploadError);
+      if (uploadError instanceof ApiError) {
+        const message = uploadError.data && typeof uploadError.data === 'object' && 'message' in uploadError.data
+          ? String((uploadError.data as { message: unknown }).message)
+          : uploadError.message;
+        throw new Error(message || `Upload failed (${uploadError.status})`);
+      }
+      const errorMsg = uploadError instanceof Error ? uploadError.message : 'Image upload failed';
+      throw new Error(errorMsg);
+    }
+  }
+
   // Get lead by ID
   async getLeadById(id: number): Promise<Lead> {
     try {
@@ -144,19 +184,7 @@ class LeadService {
       
       // First upload the image if provided
       if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        
-        try {
-          const uploadResponse = await apiClient.post<{ imageUrl: string }>(
-            `${LeadEndpoints.LEADS}/upload-image`,
-            formData
-          );
-          imageUrl = uploadResponse.data.imageUrl;
-        } catch (uploadError) {
-          const errorMsg = uploadError instanceof Error ? uploadError.message : 'Image upload failed';
-          throw new Error(`Failed to upload image: ${errorMsg}`);
-        }
+        imageUrl = await this.uploadImage(imageFile);
       }
       
       if (!imageUrl) {
