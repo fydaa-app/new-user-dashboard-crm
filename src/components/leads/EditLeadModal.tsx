@@ -184,11 +184,6 @@ export default function EditLeadModal({
     }
   };
 
-  const handleRemoveUploadedImage = () => {
-    setUploadedImageUrl(null);
-    
-    setFormData(prev => ({ ...prev, imageUrl: "" }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
