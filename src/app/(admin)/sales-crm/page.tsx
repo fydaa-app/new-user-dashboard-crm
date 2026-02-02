@@ -1400,7 +1400,7 @@ export default function SalesCRM() {
 
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Name *</label>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Name <span className="text-red-500">*(Mandatory)</span> </label>
                   <input
                     type="text"
                     value={newLead.name || ''}
@@ -1409,7 +1409,7 @@ export default function SalesCRM() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Mobile Number *</label>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Mobile Number <span className="text-red-500">*(Mandatory)</span></label>
                   <input
                     type="tel"
                     value={newLead.mobileNumber || ''}
@@ -1440,7 +1440,7 @@ export default function SalesCRM() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Email</label>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Email <span className="text-red-500">*(Mandatory)</span> </label>
                   <input
                     type="email"
                     value={newLead.email || ''}
@@ -1465,7 +1465,7 @@ export default function SalesCRM() {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Source</label>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">Source <span className="text-red-500">*(Mandatory)</span> </label>
                   <div className="relative">
                     <Select
                       options={[
@@ -1609,7 +1609,7 @@ export default function SalesCRM() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">App Type *</label>
+                  <label className="block text-sm font-medium text-black dark:text-white mb-2">App Type <span className="text-red-500">*(Mandatory)</span> </label>
                   <div className="relative">
                     <Select
                       options={[
@@ -1649,22 +1649,24 @@ export default function SalesCRM() {
 
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Lead Image <span className="text-red-500">*</span> (Note: Image cannot be changed after upload)
+                    Lead Image <span className="text-red-500">*(Image Upload is Mandatory)</span> 
                   </label>
-                  <div className="mt-1">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="block w-full text-sm text-gray-500 dark:text-gray-400
-                        file:mr-4 file:py-2 file:px-4
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-primary file:text-white
-                        hover:file:bg-primary/90
-                        file:cursor-pointer cursor-pointer"
-                    />
-                  </div>
+                  <input
+                    type="file"
+                    id="create-lead-image-upload"
+                    accept="image/jpeg,image/jpg,image/png,image/gif"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <label
+                    htmlFor="create-lead-image-upload"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-gray-900 dark:text-white rounded-lg cursor-pointer hover:bg-primary/90 transition-colors"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Upload Image
+                  </label>
                   
                   {imagePreview && (
                     <div className="mt-2">
@@ -1682,7 +1684,7 @@ export default function SalesCRM() {
                   
                   {!selectedImage && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Please upload an image for the lead (max 5MB)
+                                          Supported formats: JPEG, PNG, JPG (Max 5MB) - Image cannot be changed after upload
                     </p>
                   )}
                 </div>
