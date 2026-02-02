@@ -1649,7 +1649,7 @@ export default function SalesCRM() {
 
                 <div className="md:col-span-2 space-y-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Lead Image <span className="text-red-500">*</span>
+                    Lead Image <span className="text-red-500">*</span> (Note: Image cannot be changed after upload)
                   </label>
                   <div className="mt-1">
                     <input
