@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PageBreadCrumb from '@/components/common/PageBreadCrumb';
 import Button from '@/components/ui/button/Button';
 import { Modal } from '@/components/ui/modal';
@@ -48,7 +49,10 @@ export default function SalesCRM() {
     selectedTeamMember,
     selectedType
   } = useGlobalContext();
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isUpdatingUrl = React.useRef(false);
+  const [leads, setLeads] = useState<Lead[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddLead, setShowAddLead] = useState(false);
@@ -85,6 +89,27 @@ export default function SalesCRM() {
     sortBy: 'createdAt',
     sortOrder: 'DESC'
   });
+
+  // Initialize filters from URL on mount
+  useEffect(() => {
+    const urlSearch = searchParams.get('search');
+    const urlStatus = searchParams.get('status');
+    const urlFollowUp = searchParams.get('followUp');
+    const urlPage = searchParams.get('page');
+    
+    if (urlSearch || urlStatus || urlFollowUp || urlPage) {
+      const newFilters: Partial<LeadFilters> = {
+        ...filters,
+      };
+      
+      if (urlSearch) newFilters.search = urlSearch;
+      if (urlStatus) newFilters.status = urlStatus;
+      if (urlFollowUp) newFilters.followUpTimeframe = urlFollowUp as "overdue" | "today" | "week" | "month" | "year" | "till_date";
+      if (urlPage) newFilters.page = parseInt(urlPage);
+      
+      setFilters(newFilters as LeadFilters);
+    }
+  }, []); // Only run on mount
 
   // Employee assignment dropdowns
   const [designations, setDesignations] = useState<{value: string, label: string}[]>([]);
@@ -124,6 +149,11 @@ export default function SalesCRM() {
   const phoneRegex = /^\d{10}$/;
 
   const loadLeads = useCallback(async (filtersToUse?: LeadFilters) => {
+    console.log('🔍 DEBUG: loadLeads STARTED', { 
+      filtersToUse, 
+      currentLeadsLength: leads?.length,
+      loading 
+    });
     try {
       setLoading(true);
       setError(null);
@@ -283,7 +313,12 @@ export default function SalesCRM() {
       const pagination = response.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
       const backendEmployeeNames = response.employeeNames || {};
       
-      setLeads(leads);
+      console.log('🔍 DEBUG: loadLeads SUCCESS', { 
+        leadsCount: leads.length, 
+        pagination,
+        settingLeadsTo: leads.length === 0 ? 'empty array []' : `array with ${leads.length} items`
+      });
+      setLeads(leads); // Always set to array (never null after first load)
       setPagination(pagination);
 
       // Update userMap with names from backend response first (this should fix User 8)
@@ -301,6 +336,10 @@ export default function SalesCRM() {
       setError(errorMessage);
       console.error('Error loading leads:', err);
     } finally {
+      console.log('🔍 DEBUG: loadLeads FINISHED', { 
+        leadsLength: leads?.length,
+        settingLoadingToFalse: true 
+      });
       setLoading(false);
     }
   }, [filters, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedDesignation, selectedType]);
@@ -471,12 +510,36 @@ export default function SalesCRM() {
 
   // New handler functions for the integrated components
   const handleFiltersChange = (newFilters: LeadFilters) => {
+    console.log('🔍 DEBUG: handleFiltersChange called', { 
+      newFilters, 
+      currentLeadsLength: leads?.length,
+      loading 
+    });
     setFilters(newFilters);
+    
+    // Use requestIdleCallback or setTimeout to defer URL update
+    // This prevents the URL update from interfering with input focus
+    if (typeof window !== 'undefined') {
+      setTimeout(() => {
+        isUpdatingUrl.current = true;
+        const params = new URLSearchParams();
+        if (newFilters.search) params.set('search', newFilters.search);
+        if (newFilters.status) params.set('status', newFilters.status);
+        if (newFilters.followUpTimeframe) params.set('followUp', newFilters.followUpTimeframe);
+        if (newFilters.page && newFilters.page !== 1) params.set('page', newFilters.page.toString());
+        
+        // Update URL without refreshing the page (use replace to avoid adding to history on every keystroke)
+        const queryString = params.toString();
+        const newUrl = queryString ? `/sales-crm?${queryString}` : '/sales-crm';
+        router.replace(newUrl, { scroll: false });
+        isUpdatingUrl.current = false;
+      }, 0);
+    }
   };
 
   const handlePageChange = (page: number) => {
     const newFilters = { ...filters, page };
-    setFilters(newFilters);
+    handleFiltersChange(newFilters);
   };
 
   const handleSortChange = (sortBy: string, sortOrder: "ASC" | "DESC") => {
@@ -682,7 +745,7 @@ export default function SalesCRM() {
   };
 
   const handleDeleteLead = (leadId: number) => {
-    const lead = leads.find(l => l.id === leadId);
+    const lead = leads?.find(l => l.id === leadId);
     if (lead) {
       setLeadToDelete(lead);
       setShowDeleteModal(true);
@@ -1106,14 +1169,30 @@ export default function SalesCRM() {
   // Helper function to format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString();
+    const datePart = dateString.split(/[T ]/)[0];
+    console.log("🔍 formatDate - input:", dateString, "datePart:", datePart);
+    const [year, month, day] = datePart.split('-');
+    
+    // Format date without timezone conversion
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const result = `${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}`;
+    
+    console.log("🔍 formatDate - result:", result);
+    return result;
   };
 
   // Clean up old variables that are no longer needed
   // Note: All filtering is now handled server-side via API through the new filter system
 
-  // Loading state - only show loading spinner on initial load
-  if (loading && (!leads || leads.length === 0)) {
+  // Loading state - only show loading spinner on initial load (when leads is null)
+  console.log('🔍 DEBUG: Render check', { 
+    loading, 
+    leadsIsNull: leads === null,
+    leadsLength: leads?.length,
+    showingSpinner: loading && leads === null
+  });
+  if (loading && leads === null) {
+    console.log('🔍 DEBUG: SHOWING LOADING SPINNER (first load only)');
     return (
       <>
         <PageBreadCrumb pageTitle="Sales CRM" />
@@ -1326,7 +1405,7 @@ export default function SalesCRM() {
 
         {/* Leads Table */}
         <LeadsTable
-          leads={leads}
+          leads={leads || []}
           error={error}
           onEditLead={handleEditLead}
           onDeleteLead={handleDeleteLead}

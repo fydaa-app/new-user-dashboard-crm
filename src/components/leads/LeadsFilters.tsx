@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import { LeadFilters } from "@/services/leadService";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
@@ -16,18 +16,27 @@ interface LeadsFiltersProps {
   onResetAppHeader?: () => void;
 }
 
-export default function LeadsFilters({ 
+const LeadsFilters = React.memo(function LeadsFilters({ 
   filters, 
   onFiltersChange, 
   onViewModeChange,
   viewMode = 'assigned',
   onResetAppHeader
 }: LeadsFiltersProps) {
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  
   const handleFilterChange = (key: keyof LeadFilters, value: string | number | undefined) => {
     const newFilters = { ...filters, [key]: value };
     // Reset page to 1 when filters change
     newFilters.page = 1;
     onFiltersChange(newFilters);
+    
+    // Restore focus to search input after state update to prevent focus loss
+    if (key === 'search') {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 0);
+    }
   };
 
   return (
@@ -83,6 +92,7 @@ export default function LeadsFilters({
               </svg>
             </span>
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search by name, phone, or email..."
               value={filters.search || ""}
@@ -144,4 +154,7 @@ export default function LeadsFilters({
       </div>
     </div>
   );
-}
+});
+
+
+export default LeadsFilters;

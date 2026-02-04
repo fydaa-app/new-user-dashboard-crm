@@ -401,12 +401,12 @@ const AppHeader: React.FC = () => {
         <div className="flex flex-col w-full">
           {/* Row 1: Filters on left, Icons on right - Single horizontal line */}
           <div
-            className={`flex items-center w-full px-5 py-4 lg:px-0 overflow-x-auto lg:overflow-x-visible ${
+            className={`flex items-center w-full px-5 py-4 lg:px-0 overflow-x-auto ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
-            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap min-w-0">
+            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto min-w-0">
               {/* App Type Select */}
               <div className="relative w-40 flex-shrink-0">
                 <Select 
@@ -525,7 +525,7 @@ const AppHeader: React.FC = () => {
           </div>
 
           {/* Row 2: Sidebar/Logo/Burger on left, Date filter on right */}
-          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 overflow-x-hidden lg:overflow-x-visible ${
+          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 overflow-x-auto ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >

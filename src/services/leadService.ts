@@ -98,18 +98,18 @@ class LeadService {
       
       if (filters) {
         Object.entries(filters).forEach(([key, value]) => {
-          if (value !== undefined && value !== null && !Number.isNaN(value)) {
+          if (value !== undefined && value !== null && value !== "" && !Number.isNaN(value)) {
             queryParams.append(key, value.toString());
           }
         });
       }
-
+      
       const url = queryParams.toString() ? 
         `${LeadEndpoints.LEADS}?${queryParams.toString()}` : 
         LeadEndpoints.LEADS;
       
-      const response = await apiClient.get<LeadsResponse>(url);
       
+      const response = await apiClient.get<LeadsResponse>(url);
       // The API client wraps responses, so we need response.data
       return response.data;
     } catch (error) {
