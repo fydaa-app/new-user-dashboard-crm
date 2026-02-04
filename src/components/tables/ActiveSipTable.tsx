@@ -53,7 +53,7 @@ const formatDate = (date: Date | null | undefined): string => {
 export default function ActiveSipTable({ sips, error }: ActiveSipTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto lg:overflow-visible">
         <div className="min-w-[1400px]">
           {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
           {!error && sips.length > 0 ? (

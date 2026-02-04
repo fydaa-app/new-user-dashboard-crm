@@ -11,8 +11,8 @@ const MobileHeader: React.FC = () => {
   const { toggleMobileSidebar, toggleMobileFilters, isMobileFiltersOpen } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-99999 flex w-full max-w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 lg:hidden overflow-x-hidden">
-      <div className="flex items-center justify-between w-full max-w-full px-3 py-3 sm:px-4 overflow-x-hidden">
+    <header className="sticky top-0 z-[99999] flex w-full max-w-full bg-white border-b border-gray-200 dark:border-gray-800 dark:bg-gray-900 lg:hidden overflow-x-hidden lg:overflow-visible">
+      <div className="flex items-center justify-between w-full max-w-full px-3 py-3 sm:px-4 overflow-x-hidden lg:overflow-visible">
         {/* Left: Sidebar toggle + Logo */}
         <div className="flex items-center gap-3">
           <button
@@ -48,7 +48,7 @@ const MobileHeader: React.FC = () => {
         </div>
 
         {/* Right: Filters, theme toggle, user */}
-        <div className="flex items-center gap-2 2xsm:gap-3">
+        <div className="flex items-center gap-2 2xsm:gap-3 overflow-visible">
           {/* Filters trigger (toggles mobile filters sidebar) - moved to right */}
           <div className="flex items-center gap-2 relative">
             {/* Sliding "Filters" text - slides from left */}
