@@ -68,11 +68,12 @@ export default function DatePicker({
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    // Set time to start of day and convert to ISO string for backend compatibility
-    const dateAtStartOfDay = new Date(date);
-    dateAtStartOfDay.setHours(0, 0, 0, 0);
-    const isoString = dateAtStartOfDay.toISOString(); // Full ISO string: YYYY-MM-DDTHH:mm:ss.sssZ
-    onChange(isoString);
+    // Create date string at noon to avoid timezone issues
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}T12:00:00`; // Noon local time
+    onChange(dateString);
     setIsOpen(false);
   };
 

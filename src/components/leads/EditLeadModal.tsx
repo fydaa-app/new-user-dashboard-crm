@@ -43,6 +43,7 @@ export default function EditLeadModal({
   const [customSource, setCustomSource] = useState("");
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [convertedAmountError, setConvertedAmountError] = useState<string>('');
 
 
   // Email regex pattern
@@ -121,6 +122,29 @@ export default function EditLeadModal({
 
   const handleInputChange = (field: keyof UpdateLeadData, value: string | number | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validate status change to "converted" - require invested amount
+    if (field === 'status' && value === 'converted') {
+      if (!formData.convertedAmount || formData.convertedAmount === 0) {
+        setConvertedAmountError('Invested amount is required when status is "Converted"');
+      } else {
+        setConvertedAmountError('');
+      }
+    }
+    
+    // Clear converted amount error if status is not "converted"
+    if (field === 'status' && value !== 'converted') {
+      setConvertedAmountError('');
+    }
+    
+    // Clear error when user enters invested amount
+    if (field === 'convertedAmount') {
+      if (formData.status === 'converted' && (!value || value === 0)) {
+        setConvertedAmountError('Invested amount is required when status is "Converted"');
+      } else {
+        setConvertedAmountError('');
+      }
+    }
     
     // Validate email
     if (field === 'email') {
@@ -547,15 +571,23 @@ export default function EditLeadModal({
 
             <div>
               <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Invested Amount
+                Invested Amount {formData.status === 'converted' && <span className="text-red-500">*</span>}
               </label>
               <input
                 type="number"
                 value={formData.convertedAmount || ""}
                 onChange={(e) => handleInputChange("convertedAmount", e.target.value ? parseFloat(e.target.value) : undefined)}
                 placeholder="450000"
-                className="w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border border-stroke dark:border-gray-700 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+                className={`w-full bg-transparent text-black dark:text-white px-4 py-2 rounded-lg border ${
+                  convertedAmountError 
+                    ? 'border-red-500 dark:border-red-500' 
+                    : 'border-stroke dark:border-gray-700'
+                } focus:border-primary focus:ring-1 focus:ring-primary outline-none`}
+                required={formData.status === 'converted'}
               />
+              {convertedAmountError && (
+                <p className="text-sm text-red-600 dark:text-red-400 mt-1">{convertedAmountError}</p>
+              )}
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Actual amount invested (usually filled after conversion)
               </p>
@@ -656,8 +688,10 @@ export default function EditLeadModal({
                 !formData.appType ||
                 !!emailError ||
                 !!phoneError ||
+                !!convertedAmountError ||
                 !emailRegex.test(formData.email || '') ||
-                !phoneRegex.test((formData.mobileNumber || '').replace(/\D/g, ''))
+                !phoneRegex.test((formData.mobileNumber || '').replace(/\D/g, '')) ||
+                (formData.status === 'converted' && (!formData.convertedAmount || formData.convertedAmount === 0))
               }
               className="flex-1"
             >

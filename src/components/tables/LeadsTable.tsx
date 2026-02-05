@@ -32,14 +32,30 @@ const formatCurrency = (value: number | string | null | undefined): string => {
   }).format(Number(value));
 };
 
+
+// Helper function to check if a date is overdue (compare dates only, not time)
+const isOverdue = (dateString: string | null | undefined): boolean => {
+  if (!dateString) return false;
+  try {
+    // Extract date parts without timezone conversion
+    const followUpDate = dateString.split(/[T ]/)[0];
+    const today = new Date().toISOString().split('T')[0];
+    return followUpDate < today;
+  } catch {
+    return false;
+  }
+};
+
 const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return "Not set";
   try {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    // Extract just the date part to avoid timezone conversion
+    const datePart = dateString.split(/[T ]/)[0];
+    const [year, month, day] = datePart.split('-');
+    
+    // Format date without timezone conversion
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${parseInt(day)} ${monthNames[parseInt(month) - 1]} ${year}`;
   } catch {
     return "Invalid date";
   }
@@ -187,7 +203,7 @@ export default function LeadsTable({
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-      <div className="max-w-full overflow-x-auto">
+      <div className="max-w-full overflow-x-auto lg:overflow-visible">
         <div className="min-w-[1400px]">
           {error && (
             <div className="m-4">
@@ -413,13 +429,13 @@ export default function LeadsTable({
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       <div>
                         <span className={`text-theme-sm ${
-                          lead.nextFollowUpAt && new Date(lead.nextFollowUpAt) < new Date() 
+                          isOverdue(lead.nextFollowUpAt) 
                             ? 'text-red-600 dark:text-red-400 font-medium' 
                             : 'text-gray-500 dark:text-gray-400'
                         }`}>
                           {formatDate(lead.nextFollowUpAt)}
                         </span>
-                        {lead.nextFollowUpAt && new Date(lead.nextFollowUpAt) < new Date() && (
+                        {isOverdue(lead.nextFollowUpAt) && (
                           <div className="text-theme-xs text-red-500 dark:text-red-400">Overdue</div>
                         )}
                       </div>

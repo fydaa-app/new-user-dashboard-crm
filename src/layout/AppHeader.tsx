@@ -395,18 +395,18 @@ const AppHeader: React.FC = () => {
   }, [selectedType, setSelectedType]);
 
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b overflow-x-hidden lg:overflow-x-visible">
+    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-[99999] dark:border-gray-800 dark:bg-gray-900 lg:border-b overflow-visible">
       <div className="flex flex-col w-full lg:px-6">
         {/* Container for Row 1 and Row 2 - Always column layout */}
         <div className="flex flex-col w-full">
           {/* Row 1: Filters on left, Icons on right - Single horizontal line */}
           <div
-            className={`flex items-center w-full px-5 py-4 lg:px-0 overflow-x-auto lg:overflow-x-visible ${
+            className={`flex items-center w-full px-5 py-4 lg:px-0 overflow-x-auto lg:overflow-visible ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
-            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap min-w-0">
+            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:overflow-visible min-w-0">
               {/* App Type Select */}
               <div className="relative w-40 flex-shrink-0">
                 <Select 
@@ -517,7 +517,7 @@ const AppHeader: React.FC = () => {
             </div>
 
             {/* Right side: Theme Toggle, Notification, User Dropdown */}
-            <div className="flex items-center gap-2 2xsm:gap-3 ml-auto flex-shrink-0">            
+            <div className="flex items-center gap-2 2xsm:gap-3 ml-auto flex-shrink-0 overflow-visible">            
               <ThemeToggleButton />           
               <NotificationDropdown />
               <UserDropdown />
@@ -525,14 +525,14 @@ const AppHeader: React.FC = () => {
           </div>
 
           {/* Row 2: Sidebar/Logo/Burger on left, Date filter on right */}
-          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 overflow-x-hidden lg:overflow-x-visible ${
+          <div className={`flex items-center justify-between w-full gap-2 px-3 py-3 sm:gap-4 lg:px-0 lg:py-4 overflow-x-auto lg:overflow-visible ${
               isApplicationMenuOpen ? "flex" : "hidden"
             } lg:flex`}
           >
             {/* Left side: Sidebar/Logo/Burger */}
             <div className="flex items-center gap-2 sm:gap-4">
               <button
-                className="flex items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11 lg:border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-[99999] dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11 lg:border hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 onClick={handleToggle}
                 aria-label="Toggle Sidebar"
               >
@@ -588,7 +588,7 @@ const AppHeader: React.FC = () => {
 
               <button
                 onClick={toggleApplicationMenu}
-                className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden transition-colors"
+                className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-[99999] hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden transition-colors"
               >
                 <svg
                   width="24"
