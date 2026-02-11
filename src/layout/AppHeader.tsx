@@ -71,6 +71,8 @@ const AppHeader: React.FC = () => {
     setSelectedTeamMember,
     selectedType,
     setSelectedType,
+    hierarchyViewMode,
+    setHierarchyViewMode,
     appType,
     setAppType
   } = useGlobalContext();
@@ -333,9 +335,11 @@ const AppHeader: React.FC = () => {
   }, [setSelectedDesignation, setSelectedEmployee]);
 
   const handleEmployeeChange = useCallback((option: { value: string; label: string } | null) => {
-    setSelectedEmployee(option?.value || "");
-  }, [setSelectedEmployee]);
-  
+    const employeeId = option?.value || "";
+    setSelectedEmployee(employeeId);
+    setSelectedTeamMember(employeeId || undefined);
+  }, [setSelectedEmployee, setSelectedTeamMember]);
+    
   const handleTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
       setSelectedType([option.value]);
@@ -348,6 +352,10 @@ const AppHeader: React.FC = () => {
       }
     }
   }, [setSelectedType, setSelectedTeamMember]);
+
+  const handleHierarchyViewModeToggle = useCallback(() => {
+    setHierarchyViewMode(hierarchyViewMode === "team" ? "individual" : "team");
+  }, [hierarchyViewMode, setHierarchyViewMode]);
 
   const handleAppTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
@@ -406,7 +414,7 @@ const AppHeader: React.FC = () => {
             } lg:flex`}
           >
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
-            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:overflow-visible min-w-0">
+            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:flex-wrap lg:overflow-visible min-w-0">
               {/* App Type Select */}
               <div className="relative w-40 flex-shrink-0">
                 <Select 
@@ -478,7 +486,33 @@ const AppHeader: React.FC = () => {
                     <ChevronDownIcon/>
                   </span>
                 </div>
+              )}              {/* Visual Indicator and Toggle for Hierarchy Selection */}
+              {isTeamType && selectedTeamMember && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      Viewing: {hierarchyViewMode === "team" ? "Team" : "Individual"}
+                    </span>
+                    <button
+                      onClick={handleHierarchyViewModeToggle}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                        hierarchyViewMode === "individual" 
+                          ? "bg-blue-600" 
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                      title={`Switch to ${hierarchyViewMode === "team" ? "Individual" : "Team"} view`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          hierarchyViewMode === "individual" ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
               )}
+
+
 
               {/* Dynamic Team Hierarchy Dropdowns */}
               {isTeamType && hierarchyLevels.map((hierarchy, index) => {

@@ -28,7 +28,7 @@ export default function TargetVsRealityChartMf() {
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
   const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function TargetVsRealityChartMf() {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
         const response = await fetch(url,
           {
@@ -89,7 +89,7 @@ export default function TargetVsRealityChartMf() {
     };
 
     fetchData();
-  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType]);
+  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],

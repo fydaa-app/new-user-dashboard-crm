@@ -23,7 +23,7 @@ interface Order {
 
 export default function RecentOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -44,7 +44,7 @@ export default function RecentOrders() {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
 
         const response = await fetch(url, {
@@ -70,7 +70,7 @@ export default function RecentOrders() {
     };
 
     fetchOrders();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {

@@ -16,7 +16,7 @@ const DueSipsWrapper = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   const fetchDueSips = useCallback(async () => {
     const AUTH_TOKEN = Cookies.get("authToken");
@@ -57,7 +57,7 @@ const DueSipsWrapper = () => {
       if (employeeId) url += `&employeeId=${employeeId}`;
       if (selectedType && selectedType.length > 0) {
         const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-        url += `&type=${typeValue}`;
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
       }
 
       const response = await fetch(url, {
@@ -92,7 +92,7 @@ const DueSipsWrapper = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDesignation, selectedEmployee, selectedTeamMember, selectedPeriod, page, selectedType]);
+  }, [selectedDesignation, selectedEmployee, selectedTeamMember, selectedPeriod, page, selectedType, hierarchyViewMode]);
 
   useEffect(() => {
     fetchDueSips();

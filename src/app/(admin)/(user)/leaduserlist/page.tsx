@@ -27,7 +27,8 @@ async function fetchUsers(
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
-    selectedType: string = "team"
+    selectedType: string = "team",
+    hierarchyViewMode: "team" | "individual" = "team"
 ): 
     Promise<{ 
         users: User[]; 
@@ -60,7 +61,7 @@ async function fetchUsers(
         }
 
         if (selectedType) {
-            url += `&type=${selectedType}`;
+            url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
         const response = await fetch(url, {
@@ -90,7 +91,8 @@ async function fetchUsers(
 export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -108,7 +110,7 @@ export default function UserTablesPage() {
 
     const fetchData = useCallback(async () => {
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
             setUsers(users);
             setError(error);
             
@@ -121,7 +123,7 @@ export default function UserTablesPage() {
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
 
     useEffect(() => {
         fetchData();

@@ -41,7 +41,8 @@ async function fetchActiveSips(
     selectedTeamMember: string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
-    selectedType: string = ""
+    selectedType: string = "",
+    hierarchyViewMode: "team" | "individual" = "team"
 ): 
     Promise<{ 
         sips: Sip[]; 
@@ -69,7 +70,7 @@ async function fetchActiveSips(
             url += `&employeeId=${employeeId}`;
         }
         if (selectedType) {
-            url += `&type=${selectedType}`;
+            url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
         console.log("URL:", url);
@@ -107,7 +108,8 @@ async function fetchActiveSips(
 export default function ActiveSipListPage() {
     const [sips, setSips] = useState<Sip[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType , hierarchyViewMode } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
@@ -132,7 +134,8 @@ export default function ActiveSipListPage() {
                 selectedTeamMember,
                 customDates, 
                 searchQuery,
-                selectedType as unknown as string
+                selectedType as unknown as string,
+                hierarchyViewMode
             );
             setSips(sips);
             setError(error);
@@ -149,7 +152,7 @@ export default function ActiveSipListPage() {
             setError("Failed to load data");
             setIsSearching(false);
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
     useEffect(() => {
         fetchData();

@@ -72,7 +72,8 @@ async function fetchTransactions(
   searchQuery: string = "",
   reportType: string = "",
   transactionType: string = "",
-  selectedType: string = ""
+  selectedType: string = "",
+  hierarchyViewMode: "team" | "individual" = "team"
 ): Promise<{
   transactions: Transaction[];
   error: string | null;
@@ -108,7 +109,7 @@ async function fetchTransactions(
     }
 
     if (selectedType) {
-      queryParams += `&type=${selectedType}`;
+      queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
     const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
@@ -143,7 +144,8 @@ async function fetchTransactions(
 export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType , hierarchyViewMode } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -211,7 +213,8 @@ export default function TransactionsListPage() {
         searchQuery,
         effectiveReportType,
         effectiveTransactionType,
-        selectedType as unknown as string
+        selectedType as unknown as string,
+        hierarchyViewMode
       );
 
       setTransactions(transactions);
@@ -224,7 +227,7 @@ export default function TransactionsListPage() {
       setError("Failed to load data");
     }
     setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, selectedTeamMember, readyToFetch, selectedType as unknown as string]);
+  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, selectedTeamMember, readyToFetch, selectedType, hierarchyViewMode]);
 
   useEffect(() => {
     fetchData();

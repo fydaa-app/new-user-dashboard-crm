@@ -17,7 +17,7 @@ export default function MonthlyTarget() {
     goal: 0,
     achieved: 0,
   });
-const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
+const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
 const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   // Fetch API data
   useEffect(() => {
@@ -40,7 +40,7 @@ const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
 
         const response = await fetch(url, {
@@ -65,7 +65,7 @@ const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
     }
 
     fetchData();
-  }, [selectedOption,customDates, currentView,selectedEmployee,selectedTeamMember,selectedType]);
+  }, [selectedOption,customDates, currentView,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
 
   const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
   const options: ApexOptions = {

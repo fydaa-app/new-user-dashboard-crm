@@ -30,7 +30,9 @@ async function fetchUsers(
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
-    selectedType: string = "team"
+    selectedType: string = "team",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    hierarchyViewMode: "team" | "individual" = "team"
 ): 
     Promise<{ 
         users: User[]; 
@@ -64,7 +66,7 @@ async function fetchUsers(
         }
 
         if (selectedType) {
-            queryParams += `&type=${selectedType}`;
+            queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
         const url = `${endpoint}?${queryParams}`;
@@ -102,7 +104,8 @@ export default function UserTablesPage() {
 
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -141,7 +144,8 @@ export default function UserTablesPage() {
         customDates,
         searchQuery,
         appType,
-        selectedType as unknown as string
+        selectedType as unknown as string,
+        hierarchyViewMode
       );
       setUsers(users);
       setError(error);
@@ -157,7 +161,7 @@ export default function UserTablesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
 
   useEffect(() => {
     fetchData();

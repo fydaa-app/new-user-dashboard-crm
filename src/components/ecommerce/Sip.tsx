@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { SalesIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
@@ -42,10 +43,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">{data.totalActiveSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/activesip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
+                <Link href="/sip/activesip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
                   Total Active SIPs Mandate
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -56,10 +57,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIconOrange />
               <h2 className="numbers-sale text-gray-900">{data.totalInvestedSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/investedsip" className="flex items-center gap-2 hover:italic transition-all duration-300 group">
+                <Link href="/sip/investedsip" className="flex items-center gap-2 hover:italic transition-all duration-300 group">
                   Total Invested Sips
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -70,10 +71,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIconGreen />
               <h2 className="numbers-sale text-gray-900">{data.totalInProgressSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/inprogresssip" className="flex items-center gap-2 hover:italic transition-all duration-300 group">
+                <Link href="/sip/inprogresssip" className="flex items-center gap-2 hover:italic transition-all duration-300 group">
                   Total In-Progress SIPs
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -84,10 +85,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIconViolet />
               <h2 className="numbers-sale text-gray-900">{data.totalInActiveSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/inactivesip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
+                <Link href="/sip/inactivesip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
                   Total Inactive SIPs
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -98,10 +99,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">{data.totalPartiallyExitedSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/partiallyexitsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
+                <Link href="/sip/partiallyexitsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
                   Partially Exited SIPs
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -112,10 +113,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIconOrange />
               <h2 className="numbers-sale text-gray-900">{data.totalCompletedSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/completedsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
+                <Link href="/sip/completedsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
                   Total Completed SIPs
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>
@@ -126,10 +127,10 @@ const Sip = ({ data, loading }: { data: DataProps | null; loading: boolean }) =>
               <SalesIconGreen />
               <h2 className="numbers-sale text-gray-900">{data.totalCancelledSips || 0}</h2>
               <p className="total-sale-text">
-                <a href="/sip/cancelledsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
+                <Link href="/sip/cancelledsip" className="flex items-center gap-2 hover:italic  transition-all duration-300 group">
                   Cancelled SIPs
                   <span className="inline-block group-hover:translate-x-1 transition-transform duration-300"><ArrowRightIcon className="w-3 h-3 inline-block group-hover:translate-x-1 transition-transform duration-300" /></span>
-                </a>
+                </Link>
               </p>
               <span className="total-yes"></span>
             </div>

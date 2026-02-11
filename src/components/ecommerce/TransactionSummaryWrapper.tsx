@@ -116,7 +116,7 @@ interface SummaryData {
 const TransactionSummaryWrapper = () => {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
     const fetchSummaryData = async () => {
@@ -143,7 +143,7 @@ const TransactionSummaryWrapper = () => {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
         const response = await fetch(url, {
           headers: {
@@ -173,7 +173,7 @@ const TransactionSummaryWrapper = () => {
     };
 
     fetchSummaryData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
   return <TransactionSummary data={summaryData} loading={loading} />;
 };
