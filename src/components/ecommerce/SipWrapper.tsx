@@ -39,7 +39,7 @@ const SipWrapper = () => {
     totalCancelledSips: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
 
   useEffect(() => {
@@ -69,7 +69,7 @@ const SipWrapper = () => {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
         // Fetch SIP data from API
         const response = await fetch(url, {
@@ -114,7 +114,7 @@ const SipWrapper = () => {
     };
 
     fetchSipData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
 
   return <Sip data={sipData} loading={loading} />;

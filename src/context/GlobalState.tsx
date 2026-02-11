@@ -15,6 +15,8 @@ interface GlobalContextProps {
   setSelectedTeamMember: (value: string | undefined) => void;
   selectedType: string[] | undefined;
   setSelectedType: (value: string[] | undefined) => void;
+  hierarchyViewMode: "team" | "individual";
+  setHierarchyViewMode: (value: "team" | "individual") => void;
   appType: string;
   setAppType: (value: string) => void;
 }
@@ -87,6 +89,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return "Fydaa";
   });
+
+  const [hierarchyViewMode, setHierarchyViewModeState] = useState<"team" | "individual">("team");
 
   const setSelectedOption = useCallback((value: string) => {
     setSelectedOptionState(prev => {
@@ -216,6 +220,10 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const setHierarchyViewMode = useCallback((value: "team" | "individual") => {
+    setHierarchyViewModeState(value);
+  }, []);
+
   // Sync initial state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
@@ -264,6 +272,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setSelectedTeamMember,
         selectedType,
         setSelectedType,
+        hierarchyViewMode,
+        setHierarchyViewMode,
         appType,
         setAppType,
         

@@ -28,7 +28,7 @@ export default function TargetVsRealityChart() {
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
   const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
   
   useEffect(() => {
@@ -50,7 +50,7 @@ export default function TargetVsRealityChart() {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
         const response = await fetch(url,
           {

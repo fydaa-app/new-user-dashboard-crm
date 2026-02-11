@@ -31,7 +31,7 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
@@ -52,7 +52,7 @@ export default function MonthlySalesChart() {
         }
         if (selectedType && selectedType.length > 0) {
           const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
         }
 
         const response = await fetch(url,{
@@ -76,7 +76,7 @@ export default function MonthlySalesChart() {
     }
 
     fetchSalesData();
-  }, [selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType]);
+  }, [selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
 
   useEffect(() => {
     if (dataPoints.length === 0) return;
