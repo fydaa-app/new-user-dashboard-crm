@@ -414,7 +414,7 @@ const AppHeader: React.FC = () => {
             } lg:flex`}
           >
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
-            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:overflow-visible min-w-0">
+            <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:flex-wrap lg:overflow-visible min-w-0">
               {/* App Type Select */}
               <div className="relative w-40 flex-shrink-0">
                 <Select 

@@ -89,7 +89,7 @@ export default function TargetVsRealityChartMf() {
     };
 
     fetchData();
-  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType]);
+  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],

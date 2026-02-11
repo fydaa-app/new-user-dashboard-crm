@@ -28,7 +28,8 @@ async function fetchPayments(
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
-    selectedType: string = ""
+    selectedType: string = "",
+    hierarchyViewMode: "team" | "individual" = "team"
 ):
      Promise<{ 
         payments: SaleList[]; 
@@ -62,7 +63,7 @@ async function fetchPayments(
             url += `&employeeId=${employeeId}`;
         }
         if (selectedType) {
-            url += `&type=${selectedType}`;
+            url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
         const response = await fetch(url, {
                 headers: {
@@ -86,7 +87,8 @@ async function fetchPayments(
 export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -104,7 +106,7 @@ export default function UserTablesPage() {
 
      const fetchData = useCallback(async () => {
         try {
-            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string);
+            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
             setPayments(payments);
             setError(error);
             
@@ -118,7 +120,7 @@ export default function UserTablesPage() {
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
         
     useEffect(() => {
         fetchData();

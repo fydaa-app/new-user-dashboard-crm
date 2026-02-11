@@ -48,7 +48,8 @@ export default function SalesCRM() {
     selectedEmployee,
     selectedTeamMember,
     selectedType
-  } = useGlobalContext();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  , hierarchyViewMode } = useGlobalContext();
   const router = useRouter();
   const searchParams = useSearchParams();
   const isUpdatingUrl = React.useRef(false);
