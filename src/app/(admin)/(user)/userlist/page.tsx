@@ -288,7 +288,7 @@ export default function UserTablesPage() {
             </div>
           ) : (
             <>
-              <UserListTable users={users} error={error} />
+              <UserListTable users={users} error={error} appType={appType} />
 
               {totalUsers > 0 && (
                 <div className="mt-4 flex justify-start">
