@@ -16,6 +16,7 @@ interface Order {
   planName: string;
   orderValue: number;
   status: string;
+  type: string;
 }
 
 export default function RecentOrdersMf() {
@@ -72,6 +73,17 @@ export default function RecentOrdersMf() {
       style: "currency",
       currency: "INR",
     }).format(value);
+
+  const getTransactionType = (type: string): { label: string; color: "success" | "error" | "default" } => {
+    const normalizedType = type?.toLowerCase() || "";
+    if (normalizedType === "purchase" || normalizedType === "additional_purchase") {
+      return { label: "Buy", color: "success" };
+    } else if (normalizedType === "redemption") {
+      return { label: "Sell", color: "error" };
+    } else {
+      return { label: "Unknown", color: "default" };
+    }
+  };
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -92,7 +104,7 @@ export default function RecentOrdersMf() {
                 User Name
               </TableCell>
               <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
-                Plan Name
+                Type
               </TableCell>
               <TableCell className="py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
                 Order Value
@@ -108,7 +120,14 @@ export default function RecentOrdersMf() {
                 <TableRow key={index}>
                   <TableCell className="py-3">{order.date}</TableCell>
                   <TableCell className="py-3">{order.userName}</TableCell>
-                  <TableCell className="py-3">{order.planName}</TableCell>
+                  <TableCell className="py-3">
+                    <Badge
+                      size="sm"
+                      color={getTransactionType(order.type).color}
+                    >
+                      {getTransactionType(order.type).label}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="py-3">{formatCurrency(order.orderValue)}</TableCell>
                   <TableCell className="py-3">
                     <Badge

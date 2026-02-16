@@ -10,7 +10,9 @@ import SipWrapper from "@/components/ecommerce/SipWrapper";
 import MonthlySalesChartMf from "@/components/ecommerce/MonthlySalesChartMf";
 import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
+import NonAdminDashboard from "@/components/ecommerce/NonAdminDashboard";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useAuth } from "@/context/AuthContext";
 import RecentOrdersMf from "@/components/ecommerce/RecentOrdersMf";
 import DueSipsWrapper from "@/components/ecommerce/DueSipsWrapper";
 // import TargetVsRealityChartMf from "@/components/ecommerce/TargetVsRealityChartMf";
@@ -23,7 +25,17 @@ import DueSipsWrapper from "@/components/ecommerce/DueSipsWrapper";
 
 export default function Ecommerce() {
   const { appType } = useGlobalContext();
+  const { user } = useAuth();
 
+  // Check if user is admin (role "0")
+  const isAdmin = user?.role === "0";
+
+  // Non-admin users get the new dashboard
+  if (!isAdmin && appType === "Fydaa") {
+    return <NonAdminDashboard />;
+  }
+
+  // Admin users get the original dashboard
   if (appType === "Fydaa") {
     return (
       <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">

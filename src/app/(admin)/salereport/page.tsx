@@ -107,6 +107,23 @@ export default function UserTablesPage() {
      const fetchData = useCallback(async () => {
         try {
             const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
+            
+            // DEBUG: Log sales report page data received
+            console.log("═══════════════════════════════════════════════════════════");
+            console.log("FRONTEND DEBUG [salereport/page.tsx] - SALES REPORT PAGE");
+            console.log("═══════════════════════════════════════════════════════════");
+            console.log("App Type:", appType);
+            console.log("Timeframe:", selectedOption);
+            console.log("Search Query:", searchQuery);
+            console.log("Page:", page);
+            console.log("Employee ID:", selectedTeamMember || selectedEmployee);
+            console.log("-----------------------------------------------------------");
+            console.log("TOTAL PAYMENTS (from API):", apiTotalCount);
+            console.log("Payments on current page:", payments?.length || 0);
+            console.log("Limit per page:", limit);
+            console.log("Total Pages:", apiTotalCount && limit ? Math.ceil(apiTotalCount / limit) : 0);
+            console.log("═══════════════════════════════════════════════════════════");
+            
             setPayments(payments);
             setError(error);
             

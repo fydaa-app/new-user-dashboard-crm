@@ -99,6 +99,23 @@ const TodaySaleWrapper = () => {
           ),
         };
 
+        // DEBUG: Log dashboard cards data received
+        console.log("═══════════════════════════════════════════════════════════");
+        console.log("FRONTEND DEBUG [TodaySaleWrapper] - SAVESTMENT DASHBOARD CARDS");
+        console.log("═══════════════════════════════════════════════════════════");
+        console.log("Timeframe:", selectedOption);
+        console.log("Employee ID:", selectedTeamMember || selectedEmployee);
+        console.log("Raw API Response:", data);
+        console.log("-----------------------------------------------------------");
+        console.log("Total Revenue:", todaySalesData.totalRevenue);
+        console.log("Total Transactions:", todaySalesData.totalNoOfTransactions);
+        console.log("Total Payments:", todaySalesData.noOfPayments);
+        console.log("Total Users:", todaySalesData.totalUsers);
+        console.log("Active Users:", todaySalesData.activeUsers);
+        console.log("New Users:", todaySalesData.newUsers);
+        console.log("AUM:", todaySalesData.assetsUnderManagement);
+        console.log("═══════════════════════════════════════════════════════════");
+
         setSalesData(todaySalesData);
       } catch (error) {
         console.error("Error fetching data:", error);
