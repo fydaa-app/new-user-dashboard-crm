@@ -62,7 +62,9 @@ import SalesIconViolet from "./sales-pruple.svg";
 import LeaderboardIcon from "./leaderboard.svg";
 import SettingIcon from "./setting.svg";
 import ShoppingCartIcon from "./shopping-cart.svg";
+import SipIcon from "./mdi_shopping-outline.svg";
 export {
+  SipIcon,
   DownloadIcon,
   BellIcon,
   MoreDotIcon,

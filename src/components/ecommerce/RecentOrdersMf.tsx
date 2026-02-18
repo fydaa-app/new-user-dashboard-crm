@@ -74,16 +74,17 @@ export default function RecentOrdersMf() {
       currency: "INR",
     }).format(value);
 
-  const getTransactionType = (type: string): { label: string; color: "success" | "error" | "default" } => {
+  const getTransactionType = (type: string): { label: string; color: "success" | "error" | "light" } => {
     const normalizedType = type?.toLowerCase() || "";
     if (normalizedType === "purchase" || normalizedType === "additional_purchase") {
       return { label: "Buy", color: "success" };
     } else if (normalizedType === "redemption") {
       return { label: "Sell", color: "error" };
     } else {
-      return { label: "Unknown", color: "default" };
+      return { label: "Unknown", color: "light" };
     }
   };
+  
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">

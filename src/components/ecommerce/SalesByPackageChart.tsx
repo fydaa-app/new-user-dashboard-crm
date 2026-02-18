@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import dynamic from "next/dynamic";
@@ -31,7 +31,25 @@ const SalesByPackageChart = () => {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
+    console.log("⚡ useEffect TRIGGERED! Dependencies:", {
+      selectedOption,
+      "customDates.start": customDates.start,
+      "customDates.end": customDates.end,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode
+    });
     const fetchPackageData = async () => {
+      setLoading(true);  // Reset loading state on each fetch
+      console.log("🔍 SalesByPackageChart: Fetching data with filters:", {
+        selectedOption,
+        customDates,
+        selectedEmployee,
+        selectedTeamMember,
+        selectedType,
+        hierarchyViewMode
+      });
       const AUTH_TOKEN = Cookies.get("authToken");
       
       if (!AUTH_TOKEN) {
@@ -74,7 +92,9 @@ const SalesByPackageChart = () => {
         }
 
         const data: TopPackagesResponse = await response.json();
+        console.log("📊 SalesByPackageChart: Received data:", data);
         setPackageData(data.packageWiseData);
+        console.log("✅ SalesByPackageChart: Updated packageData state:", data.packageWiseData);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -83,13 +103,15 @@ const SalesByPackageChart = () => {
     };
 
     fetchPackageData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [selectedOption, customDates.start, customDates.end, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
-  // Prepare chart data
-  const chartLabels = packageData.map((pkg) => pkg.packageName);
-  const chartSeries = packageData.map((pkg) => pkg.userCount);
-
-  const chartOptions: ApexCharts.ApexOptions = {
+  // Prepare chart data with useMemo to trigger re-render
+  console.log("🔄 SalesByPackageChart: packageData changed, recalculating chart data. Length:", packageData.length);
+  const chartLabels = useMemo(() => packageData.map((pkg) => `${pkg.packageName} (${pkg.userCount} users)`), [packageData]);
+  console.log("📈 chartLabels calculated:", chartLabels);
+  const chartSeries = useMemo(() => packageData.map((pkg) => pkg.totalAmount), [packageData]);
+  console.log("📊 chartSeries calculated:", chartSeries);
+  const chartOptions: ApexCharts.ApexOptions = useMemo(() => ({
     chart: {
       type: "donut",
       fontFamily: "Inter, sans-serif",
@@ -101,6 +123,7 @@ const SalesByPackageChart = () => {
       position: "bottom",
       fontSize: "14px",
       fontWeight: 500,
+      horizontalAlign: "left",
       labels: {
         colors: "#64748B",
       },
@@ -114,7 +137,7 @@ const SalesByPackageChart = () => {
             total: {
               show: true,
               showAlways: true,
-              label: "Total Users",
+              label: "Total Revenue",
               fontSize: "16px",
               fontWeight: 600,
               color: "#64748B",
@@ -153,7 +176,7 @@ const SalesByPackageChart = () => {
         },
       },
     ],
-  };
+  }), [chartLabels]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
@@ -162,7 +185,7 @@ const SalesByPackageChart = () => {
           Sales by Package
         </h3>
         <span className="text-sm text-gray-500 dark:text-gray-400">
-          Distribution of users across packages
+          Revenue distribution of users across packages
         </span>
       </div>
 

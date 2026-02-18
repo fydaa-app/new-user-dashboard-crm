@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
-import { SalesIcon, OrderIcon, DiscIcon, NewCustomerIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
+import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
 import InvestmentTrendsChart from "./InvestmentTrendsChart";
 import SalesByPackageChart from "./SalesByPackageChart";
 import TopGoalsMf from "./TopGoalsMf";
 import RecentOrdersMf from "./RecentOrdersMf";
-import TopServices from "./TopServices";
+import SalesByGoalChart from "./SalesByGoalChart";
+import TopPackagesMf from "./TopPackagesMf";
+
 
 interface CardData {
   type: string;
@@ -18,13 +20,18 @@ interface CardData {
   activeUsers?: number;
   inactiveUsers?: number;
   totalUsers?: number;
+  newInvestors?: number;
   assetsUnderManagement?: number;
+  netInflow?: number;
+  redemptions?: number;
+  redemptionRate?: number;
+  averageTicketSize?: number;
 }
 
 interface SipCardData {
   type: string;
   totalSips?: number;
-  totalactivesip?: number;
+  totalinvestedsip?: number;
   cancelledSips?: number;
   pausedSips?: number;
 }
@@ -34,8 +41,17 @@ const NonAdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [aum, setAum] = useState<number>(0);
-  const [existingClients, setExistingClients] = useState<number>(0);
   const [activeSips, setActiveSips] = useState<number>(0);
+  const [netInflow, setNetInflow] = useState<number>(0);
+  const [redemptions, setRedemptions] = useState<number>(0);
+  const [redemptionRate, setRedemptionRate] = useState<number>(0);
+  const [newInvestors, setNewInvestors] = useState<number>(0);
+  const [activeUsers, setActiveUsers] = useState<number>(0);
+  const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
+  const [totalRevenue, setTotalRevenue] = useState<number>(0);
+
+
+
 
   // Fetch cards data for AUM and Existing Clients
   useEffect(() => {
@@ -79,12 +95,27 @@ const NonAdminDashboard = () => {
 
         const data: CardData[] = await response.json();
 
-        // Extract AUM and Existing Clients
+        // Extract AUM and User data
         const aumData = data.find((item) => item.type === "Assets under Management");
         const activeUsersData = data.find((item) => item.type === "Active Users");
-
+        const newInvestorsData = data.find((item) => item.type === "New Investors");
+        const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
+        const revenueData = data.find((item) => item.type === "Total Revenue");
+      
+        setTotalRevenue(revenueData?.totalRevenue || 0);
+        setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
         setAum(aumData?.assetsUnderManagement || 0);
-        setExistingClients(activeUsersData?.activeUsers || 0);
+        setActiveUsers(activeUsersData?.activeUsers || 0);
+        setNewInvestors(newInvestorsData?.newInvestors || 0);
+
+        const netInflowData = data.find((item) => item.type === "Net Inflow");
+        setNetInflow(netInflowData?.netInflow || 0);
+
+        const redemptionsData = data.find((item) => item.type === "Redemptions");
+        setRedemptions(redemptionsData?.redemptions || 0);
+
+        const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
+        setRedemptionRate(redemptionRateData?.redemptionRate || 0);
       } catch (error) {
         console.error("Error fetching cards data:", error);
       }
@@ -136,8 +167,8 @@ const NonAdminDashboard = () => {
         const data: SipCardData[] = await response.json();
 
         // Extract Active SIPs
-        const activeSipsData = data.find((item) => item.type === "Total Active Sips");
-        setActiveSips(activeSipsData?.totalactivesip || 0);
+        const activeSipsData = data.find((item) => item.type === "Total Invested Sips");
+        setActiveSips(activeSipsData?.totalinvestedsip || 0);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching SIP data:", error);
@@ -169,7 +200,7 @@ const NonAdminDashboard = () => {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
-      {/* Row 1: Total AUM, New Investors, Net Inflow, Redemptions */}
+      {/* Row 1: Total Revenue, Total AUM, New Investors, Net Inflow, Redemptions */}
       <div className="col-span-12">
         <div className="grid">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
@@ -184,7 +215,18 @@ const NonAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+            <div className="sales-box-row mt-5 flex flex-nowrap xl:flex-nowrap items-stretch gap-4 overflow-x-auto xl:overflow-visible">
+              {/* Total Revenue */}
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <SalesIcon />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(totalRevenue)}</h2>
+                  <p className="total-sale-text">Total Revenue</p>
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+              
+              {/* Total AUM */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
@@ -193,26 +235,32 @@ const NonAdminDashboard = () => {
                   <span className="total-yes"></span>
                 </div>
               </div>
+              
+              {/* New Investors */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconOrange />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(1947)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
                   <p className="total-sale-text">New Investors</p>
                   <span className="total-yes"></span>
                 </div>
               </div>
+              
+              {/* Net Inflow */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconGreen />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(1947)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(netInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
                   <span className="total-yes"></span>
                 </div>
               </div>
+              
+              {/* Redemptions */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(1947)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(redemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
                   <span className="total-yes"></span>
                 </div>
@@ -237,15 +285,16 @@ const NonAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
-              <div className="col-span-4">
+            <div className="sales-box-row mt-5 flex flex-nowrap xl:flex-nowrap items-stretch gap-4 overflow-x-auto xl:overflow-visible">
+              <div className="col-span-4 shrink-0 w-[260px] xl:w-auto xl:flex-1">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(existingClients)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(activeUsers)}</h2>
                   <p className="total-sale-text">Existing Clients</p>
                   <span className="total-yes"></span>
                 </div>
               </div>
+
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <OrderIcon />
@@ -257,7 +306,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <DiscIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(1947)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(avgTicketSize)}</h2>
                   <p className="total-sale-text">Avg Ticket Size</p>
                   <span className="total-yes"></span>
                 </div>
@@ -265,7 +314,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{1947}%</h2>
+                  <h2 className="numbers-sale text-gray-900">{redemptionRate.toFixed(2)}%</h2>
                   <p className="total-sale-text">Redemption Rate</p>
                   <span className="total-yes"></span>
                 </div>
@@ -275,30 +324,48 @@ const NonAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Row 3: Investment Trends Chart & Sales by Package Chart */}
-      <div className="col-span-12 xl:col-span-6">
-        <InvestmentTrendsChart />
-      </div>
-      <div className="col-span-12 xl:col-span-6">
-        <SalesByPackageChart />
+      {/* Row 3: Investment Trends, Sales by Package, Sales by Goal */}
+      <div className="col-span-12 mt-4 grid grid-cols-12 gap-4">
+        {/* Investment Trends Chart */}
+        <div className="col-span-12 xl:col-span-4">
+          <InvestmentTrendsChart />
+        </div>
+
+        {/* Sales by Package */}
+        <div className="col-span-12 xl:col-span-4">
+          <SalesByPackageChart />
+        </div>
+
+        {/* Sales by Goal */}
+        <div className="col-span-12 xl:col-span-4">
+          <SalesByGoalChart />
+        </div>
       </div>
 
+
       {/* Row 4: Sales by Goal, Recent Activity, Top Services */}
-      <div className="col-span-12 xl:col-span-4">
-        <div className="h-96 overflow-y-auto">
-          <TopGoalsMf />
+      <div className="col-span-12 mt-4 grid grid-cols-12 gap-4">
+        {/* Sales by Package */}
+        <div className="col-span-12 xl:col-span-4">
+          <div className="h-96 overflow-y-auto">
+            <TopPackagesMf />
+          </div>
         </div>
-      </div>
-      <div className="col-span-12 xl:col-span-4">
-        <div className="h-96 overflow-y-auto">
-          <RecentOrdersMf />
+
+        {/* Sales by Goal */}
+        <div className="col-span-12 xl:col-span-4">
+          <div className="h-96 overflow-y-auto">
+            <TopGoalsMf />
+          </div>
         </div>
-      </div>
-      <div className="col-span-12 xl:col-span-4">
-        <div className="h-96 overflow-y-auto">
-          <TopServices />
+
+        {/* Recent Activity */}
+        <div className="col-span-12 xl:col-span-4">
+          <div className="h-96 overflow-y-auto">
+            <RecentOrdersMf />
+          </div>
         </div>
-      </div>
+      </div>   
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
   LeaderboardIcon,
   SettingIcon,
   ShoppingCartIcon,
+  SipIcon,
   
 } from "../icons/index";
 
@@ -36,6 +37,11 @@ const navItems: NavItem[] = [
     path: "/sales-crm",
   },
   {
+    icon: <SipIcon />,  
+    name: "SIP",
+    path: "/sip",
+  }, 
+  {
     icon: <LeaderboardIcon />,
     name: "Leaderboard",
     path: "/leaderboard",
@@ -45,6 +51,12 @@ const navItems: NavItem[] = [
     name: "Transaction",
     path: "/transaction",
   },
+  {
+    icon: <ShoppingCartIcon />,
+    name: "SIP Transaction",
+    path: "/siptransaction",
+  },
+
   {
     icon: <UserCircleIcon />,
     name: "Users",
