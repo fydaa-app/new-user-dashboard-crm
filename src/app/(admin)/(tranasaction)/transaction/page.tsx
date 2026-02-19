@@ -106,6 +106,23 @@ export default function TransactionTablesPage() {
     const fetchData = useCallback(async () => {
         try {
             const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
+            
+            // DEBUG: Log transactions page data received
+            console.log("═══════════════════════════════════════════════════════════");
+            console.log("FRONTEND DEBUG [transaction/page.tsx] - TRANSACTIONS PAGE");
+            console.log("═══════════════════════════════════════════════════════════");
+            console.log("App Type:", appType);
+            console.log("Timeframe:", selectedOption);
+            console.log("Search Query:", searchQuery);
+            console.log("Page:", page);
+            console.log("Employee ID:", selectedTeamMember || selectedEmployee);
+            console.log("-----------------------------------------------------------");
+            console.log("TOTAL TRANSACTIONS (from API):", apiTotalTransactions);
+            console.log("Transactions on current page:", transactions?.length || 0);
+            console.log("Limit per page:", limit);
+            console.log("Total Pages:", apiTotalTransactions && limit ? Math.ceil(apiTotalTransactions / limit) : 0);
+            console.log("═══════════════════════════════════════════════════════════");
+            
             setTransactions(transactions);
             setError(error);
             

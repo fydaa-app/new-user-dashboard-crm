@@ -62,7 +62,18 @@ import SalesIconViolet from "./sales-pruple.svg";
 import LeaderboardIcon from "./leaderboard.svg";
 import SettingIcon from "./setting.svg";
 import ShoppingCartIcon from "./shopping-cart.svg";
+import SipIcon from "./mdi_shopping-outline.svg";
+import OrderIconBlue from "./orderblue.svg";
+import OrderIconGreen from "./ordergreen.svg";
+import OrderIconYellow from "./orderyellow.svg";
+import OrderIconPurple from "./orderpurple.svg";
+import OrderIconRed from "./orderred.svg";
+import OrderIconOrange from "./orderorange.svg";
+import OrderIconGray from "./ordergray.svg";
+import InvestorIcon from "./investor.svg";
+
 export {
+  SipIcon,
   DownloadIcon,
   BellIcon,
   MoreDotIcon,
@@ -127,4 +138,12 @@ export {
   SalesIconGreen,
   SalesIconOrange,
   SalesIconViolet,
+  OrderIconBlue,
+  OrderIconGray,
+  OrderIconOrange,
+  OrderIconGreen,
+  OrderIconPurple,
+  OrderIconRed,
+  OrderIconYellow,
+  InvestorIcon
 };

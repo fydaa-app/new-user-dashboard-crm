@@ -10,10 +10,7 @@ import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
 import { useModal } from "@/hooks/useModal";
-import { Modal } from "@/components/ui/modal";
-import Label from "@/components/form/Label";
-import Input from "@/components/form/input/InputField";
-import Button from "@/components/ui/button/Button";
+import { CustomDateModal } from "@/components/ui/modal/CustomDateModal";
 import Cookies from 'js-cookie';
 import { apiClient } from "@/services/api-client";
 import { AdminEndpoints } from "@/config/api-endpoints";
@@ -36,8 +33,8 @@ interface HierarchyLevel {
 
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // const [startDate, setStartDate] = useState("");
+  // const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [designations, setDesignations] = useState<{value: string, label: string}[]>([]);
   const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
@@ -59,9 +56,7 @@ const AppHeader: React.FC = () => {
   const { 
     selectedOption, 
     setSelectedOption,
-    customDates, 
     setCustomDates, 
-    validateDates,
     selectedDesignation,
     setSelectedDesignation,
     selectedEmployee,
@@ -363,14 +358,19 @@ const AppHeader: React.FC = () => {
     }
   }, [setAppType]);
 
-  const handleSaveDates = () => {
-    if (validateDates(startDate, endDate)) {      
-      setCustomDates({ start: startDate, end: endDate });
-      closeModal();
-    } else {
-      alert("Invalid date range: Start date must be before end date");
-    }
+  // const handleSaveDates = () => {
+  //   if (validateDates(startDate, endDate)) {      
+  //     setCustomDates({ start: startDate, end: endDate });
+  //     closeModal();
+  //   } else {
+  //     alert("Invalid date range: Start date must be before end date");
+  //   }
+  // };
+    const handleApplyCustomDates = (start: string, end: string) => {
+    setCustomDates({ start, end });
+    closeModal();
   };
+
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -387,12 +387,12 @@ const AppHeader: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      setStartDate(customDates.start);
-      setEndDate(customDates.end);
-    }
-  }, [isOpen, customDates]);
+  // useEffect(() => {
+  //   if (isOpen) {
+  //     setStartDate(customDates.start);
+  //     setEndDate(customDates.end);
+  //   }
+  // }, [isOpen, customDates]);
 
   // Set default type to "team" if not already set
   useEffect(() => {
@@ -661,46 +661,13 @@ const AppHeader: React.FC = () => {
       </div>
 
       {/* Custom Date Modal */}
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-        <div className="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Select Custom Date Range
-            </h4>
-            <p className="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-              Please choose your custom start and end dates.
-            </p>
-          </div>
-          <div className="flex flex-col">
-            <div className="px-2 overflow-y-auto custom-scrollbar">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div>
-                  <Label>Start Date</Label>
-                  <Input 
-                    type="date" 
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>End Date</Label>
-                  <Input 
-                    type="date" 
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-              <Button size="sm" variant="outline" onClick={closeModal}>
-                Cancel
-              </Button>            
-              <Button size="sm" onClick={handleSaveDates}>Save Dates</Button>
-            </div>
-          </div>
-        </div>
-      </Modal>
+            {/* Custom Date Modal */}
+      <CustomDateModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        onApply={handleApplyCustomDates}
+      />
+
     </header>
   );
 };

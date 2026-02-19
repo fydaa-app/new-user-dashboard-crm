@@ -14,6 +14,7 @@ export default function TopGoalsMf() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalUsers, setTotalUsers] = useState(0);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export default function TopGoalsMf() {
 
         const data = await response.json();
         setTopGoals(data.goalInvestmentData as TopGoal[]); // Get the goal investment data
+        setTotalUsers(data.totalUsers || 0); 
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -70,7 +72,13 @@ export default function TopGoalsMf() {
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Top Goals
         </h3>
+        {totalUsers > 0 && (
+          <p className="text-sm text-gray-500 dark:text-white/70">
+            Total: {totalUsers.toLocaleString()} {totalUsers === 1 ? 'User' : 'Users'}
+          </p>
+        )}
       </div>
+
 
       {loading ? (
         <p className="text-gray-500">Loading...</p>

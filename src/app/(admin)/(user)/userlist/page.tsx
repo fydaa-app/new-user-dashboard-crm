@@ -147,6 +147,22 @@ export default function UserTablesPage() {
         selectedType as unknown as string,
         hierarchyViewMode
       );
+      // DEBUG: Log user list page data received
+      console.log("═══════════════════════════════════════════════════════════");
+      console.log("FRONTEND DEBUG [userlist/page.tsx] - USER LIST PAGE");
+      console.log("═══════════════════════════════════════════════════════════");
+      console.log("App Type:", appType);
+      console.log("Timeframe:", selectedOption);
+      console.log("Search Query:", searchQuery);
+      console.log("Page:", page);
+      console.log("Employee ID:", selectedTeamMember || selectedEmployee);
+      console.log("-----------------------------------------------------------");
+      console.log("TOTAL USERS (from API):", apiTotalUsers);
+      console.log("Users on current page:", users?.length || 0);
+      console.log("Limit per page:", limit);
+      console.log("Total Pages:", apiTotalUsers && limit ? Math.ceil(apiTotalUsers / limit) : 0);
+      console.log("═══════════════════════════════════════════════════════════");
+      
       setUsers(users);
       setError(error);
 
@@ -288,7 +304,7 @@ export default function UserTablesPage() {
             </div>
           ) : (
             <>
-              <UserListTable users={users} error={error} />
+              <UserListTable users={users} error={error} appType={appType} />
 
               {totalUsers > 0 && (
                 <div className="mt-4 flex justify-start">

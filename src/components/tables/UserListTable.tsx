@@ -22,8 +22,10 @@ export interface UserTableProps {
     onboardingDate: string;
     netWorth: number;
     status: string;
+    dueSips?: { sipName: string; dueDate: string }[];
   }[];
   error: string | null;
+  appType?: string;
 }
 
 const formatCurrency = (value: number): string =>
@@ -32,7 +34,22 @@ const formatCurrency = (value: number): string =>
     currency: "INR",
   }).format(value);
 
-export default function UserListTable({ users, error }: UserTableProps) {
+export default function UserListTable({ users, error, appType }: UserTableProps) {
+
+  const [expandedRows, setExpandedRows] = React.useState<Set<number>>(new Set());
+
+  const toggleRow = (userId: number) => {
+    setExpandedRows((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -109,6 +126,14 @@ export default function UserListTable({ users, error }: UserTableProps) {
                   >
                     Status
                   </TableCell>
+                  {appType === "Fydaa" && (
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Due SIPs
+                    </TableCell>
+                  )}
                   <TableCell
                     isHeader
                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
@@ -157,6 +182,34 @@ export default function UserListTable({ users, error }: UserTableProps) {
                         {user.status}
                       </Badge>
                     </TableCell>
+
+                    {appType === "Fydaa" && (
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {!user.dueSips || user.dueSips.length === 0 ? (
+                          "-"
+                        ) : user.dueSips.length === 1 ? (
+                          <span>{new Date(user.dueSips[0].dueDate).toLocaleDateString()}</span>
+                          ) : (
+                          <div>
+                            <button
+                              onClick={() => toggleRow(user.userId)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none"
+                            >
+                              {user.dueSips.length} SIPs {expandedRows.has(user.userId) ? "▲" : "▼"}
+                            </button>
+                            {expandedRows.has(user.userId) && (
+                              <div className="mt-2 space-y-1 transition-all duration-200 ease-in-out">
+                                {user.dueSips.map((sip, idx) => (
+                                  <div key={idx} className="text-xs text-blue-700 pl-2 border-l-2 border-blue-300">
+                                    {sip.sipName} — {new Date(sip.dueDate).toLocaleDateString()}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+                    )}
 
                     <TableCell>
                       <button
