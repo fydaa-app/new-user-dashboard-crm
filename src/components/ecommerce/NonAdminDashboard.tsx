@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
-import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
+import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconViolet, InvestorIcon } from "@/icons";
 import InvestmentTrendsChart from "./InvestmentTrendsChart";
 import SalesByPackageChart from "./SalesByPackageChart";
 import TopGoalsMf from "./TopGoalsMf";
@@ -229,7 +229,7 @@ const NonAdminDashboard = () => {
               {/* Total AUM */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIcon />
+                  <SalesIconOrange />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(aum)}</h2>
                   <p className="total-sale-text">Total AUM</p>
                   <span className="total-yes"></span>
@@ -239,7 +239,7 @@ const NonAdminDashboard = () => {
               {/* New Investors */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconOrange />
+                  <InvestorIcon />
                   <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
                   <p className="total-sale-text">New Investors</p>
                   <span className="total-yes"></span>
@@ -249,7 +249,7 @@ const NonAdminDashboard = () => {
               {/* Net Inflow */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconGreen />
+                  <SalesIconViolet />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(netInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
                   <span className="total-yes"></span>
@@ -259,7 +259,12 @@ const NonAdminDashboard = () => {
               {/* Redemptions */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconViolet />
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="translate(40,0) scale(-1,1)">
+                      <circle cx="20" cy="20" r="20" fill="#FA5A7D"/>
+                      <path fillRule="evenodd" clipRule="evenodd" d="M13 11C11.8954 11 11 11.8954 11 13V27C11 28.1046 11.8954 29 13 29H27C28.1046 29 29 28.1046 29 27V13C29 11.8954 28.1046 11 27 11H13ZM16 21C16 20.4477 15.5523 20 15 20C14.4477 20 14 20.4477 14 21V25C14 25.5523 14.4477 26 15 26C15.5523 26 16 25.5523 16 25V21ZM20 17C20.5523 17 21 17.4477 21 18V25C21 25.5523 20 26 19.4477 26C18.8954 26 18.4477 25.5523 18.4477 25V18C18.4477 17.4477 18.8954 17 19.4477 17H20ZM26 15C26 14.4477 25.5523 14 25 14C24.4477 14 24 14.4477 24 15V25C24 25.5523 24.4477 26 25 26C25.5523 26 26 25.5523 26 25V15Z" fill="white"/>
+                    </g>
+                  </svg>
                   <h2 className="numbers-sale text-gray-900">{formatNumber(redemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
                   <span className="total-yes"></span>
