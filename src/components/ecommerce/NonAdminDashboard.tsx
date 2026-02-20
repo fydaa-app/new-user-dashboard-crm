@@ -97,7 +97,7 @@ const NonAdminDashboard = () => {
 
         // Extract AUM and User data
         const aumData = data.find((item) => item.type === "Assets under Management");
-        const activeUsersData = data.find((item) => item.type === "Active Users");
+        const totalUsersData = data.find((item) => item.type === "Total Users");
         const newInvestorsData = data.find((item) => item.type === "New Investors");
         const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
         const revenueData = data.find((item) => item.type === "Total Revenue");
@@ -105,7 +105,7 @@ const NonAdminDashboard = () => {
         setTotalRevenue(revenueData?.totalRevenue || 0);
         setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
         setAum(aumData?.assetsUnderManagement || 0);
-        setActiveUsers(activeUsersData?.activeUsers || 0);
+        setActiveUsers(totalUsersData?.totalUsers || 0);
         setNewInvestors(newInvestorsData?.newInvestors || 0);
 
         const netInflowData = data.find((item) => item.type === "Net Inflow");
@@ -215,7 +215,7 @@ const NonAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="sales-box-row mt-5 flex flex-nowrap xl:flex-nowrap items-stretch gap-4 overflow-x-auto xl:overflow-visible">
+            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
               {/* Total Revenue */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
@@ -290,7 +290,7 @@ const NonAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="sales-box-row mt-5 flex flex-nowrap xl:flex-nowrap items-stretch gap-4 overflow-x-auto xl:overflow-visible">
+            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
               <div className="col-span-4 shrink-0 w-[260px] xl:w-auto xl:flex-1">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
@@ -330,11 +330,14 @@ const NonAdminDashboard = () => {
       </div>
 
       {/* Row 3: Investment Trends, Sales by Package, Sales by Goal */}
-      <div className="col-span-12 mt-4 grid grid-cols-12 gap-4">
+      <div className="col-span-12 grid grid-cols-12 gap-4 md:gap-6">
         {/* Investment Trends Chart */}
         <div className="col-span-12 xl:col-span-4">
-          <InvestmentTrendsChart />
+          <div className="h-full">
+            <InvestmentTrendsChart />
+          </div>
         </div>
+
 
         {/* Sales by Package */}
         <div className="col-span-12 xl:col-span-4">
@@ -349,24 +352,24 @@ const NonAdminDashboard = () => {
 
 
       {/* Row 4: Sales by Goal, Recent Activity, Top Services */}
-      <div className="col-span-12 mt-4 grid grid-cols-12 gap-4">
+      <div className="col-span-12 grid grid-cols-12 gap-4 md:gap-6">
         {/* Sales by Package */}
         <div className="col-span-12 xl:col-span-4">
-          <div className="h-96 overflow-y-auto">
+          <div className="xl:h-96 overflow-y-auto">
             <TopPackagesMf />
           </div>
         </div>
 
         {/* Sales by Goal */}
         <div className="col-span-12 xl:col-span-4">
-          <div className="h-96 overflow-y-auto">
+          <div className="xl:h-96 overflow-y-auto">
             <TopGoalsMf />
           </div>
         </div>
 
         {/* Recent Activity */}
         <div className="col-span-12 xl:col-span-4">
-          <div className="h-96 overflow-y-auto">
+          <div className="xl:h-96 overflow-y-auto">
             <RecentOrdersMf />
           </div>
         </div>
