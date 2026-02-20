@@ -1044,12 +1044,6 @@ export default function SalesCRM() {
   };
 
   const handleAddLead = async () => {
-    if (!selectedImage && !newLead.imageUrl) {
-      setImageError('Image is required for lead creation');
-      setError('Please upload an image for the lead');
-      return;
-    }
-
     if (newLead.name && newLead.mobileNumber && newLead.email) {
       try {
         setLoading(true);
@@ -1785,7 +1779,6 @@ export default function SalesCRM() {
                     !newLead.mobileNumber || 
                     !newLead.email || 
                     !newLead.appType ||
-                    !selectedImage ||
                     loading ||
                     !!emailError ||
                     !!phoneError ||
