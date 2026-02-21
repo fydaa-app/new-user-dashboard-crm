@@ -41,14 +41,22 @@ const NonAdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [aum, setAum] = useState<number>(0);
-  const [activeSips, setActiveSips] = useState<number>(0);
+  //const [activeSips, setActiveSips] = useState<number>(0);
   const [netInflow, setNetInflow] = useState<number>(0);
   const [redemptions, setRedemptions] = useState<number>(0);
-  const [redemptionRate, setRedemptionRate] = useState<number>(0);
-  const [newInvestors, setNewInvestors] = useState<number>(0);
+  //const [redemptionRate, setRedemptionRate] = useState<number>(0);
+  //const [totalUsers, setTotalUsers] = useState<number>(0);
   const [activeUsers, setActiveUsers] = useState<number>(0);
-  const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
+  //const [newInvestors, setNewInvestors] = useState<number>(0);
+ // const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  // Till-date metrics (not affected by date filter)
+  const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
+  const [activeSipsTillDate, setActiveSipsTillDate] = useState<number>(0);
+  const [avgTicketSizeTillDate, setAvgTicketSizeTillDate] = useState<number>(0);
+  const [redemptionRateTillDate, setRedemptionRateTillDate] = useState<number>(0);
+
+
 
 
 
@@ -97,16 +105,20 @@ const NonAdminDashboard = () => {
 
         // Extract AUM and User data
         const aumData = data.find((item) => item.type === "Assets under Management");
-        const totalUsersData = data.find((item) => item.type === "Total Users");
-        const newInvestorsData = data.find((item) => item.type === "New Investors");
-        const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
+        //const totalUsersData = data.find((item) => item.type === "Total Users");
+        //const newInvestorsData = data.find((item) => item.type === "New Investors");
+        const activeUsersData = data.find((item) => item.type === "Active Users");
+        //const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
         const revenueData = data.find((item) => item.type === "Total Revenue");
-      
+
         setTotalRevenue(revenueData?.totalRevenue || 0);
-        setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
+        //setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
         setAum(aumData?.assetsUnderManagement || 0);
-        setActiveUsers(totalUsersData?.totalUsers || 0);
-        setNewInvestors(newInvestorsData?.newInvestors || 0);
+        //setTotalUsers(totalUsersData?.totalUsers || 0);
+        setActiveUsers(activeUsersData?.activeUsers || 0);
+        //setNewInvestors(newInvestorsData?.newInvestors || 0);
+
+
 
         const netInflowData = data.find((item) => item.type === "Net Inflow");
         setNetInflow(netInflowData?.netInflow || 0);
@@ -114,8 +126,8 @@ const NonAdminDashboard = () => {
         const redemptionsData = data.find((item) => item.type === "Redemptions");
         setRedemptions(redemptionsData?.redemptions || 0);
 
-        const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
-        setRedemptionRate(redemptionRateData?.redemptionRate || 0);
+        //const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
+        //setRedemptionRate(redemptionRateData?.redemptionRate || 0);
       } catch (error) {
         console.error("Error fetching cards data:", error);
       }
@@ -123,6 +135,82 @@ const NonAdminDashboard = () => {
 
     fetchCardsData();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+
+
+  // Fetch till-date data for Client & SIP Metrics (Row 2) - Not affected by date filter
+  useEffect(() => {
+    const fetchTillDateMetrics = async () => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+
+      if (!AUTH_TOKEN) {
+        console.error("Auth token not found in cookies");
+        return;
+      }
+
+      try {
+        // Cards API for till-date metrics
+        let cardsUrl = `${process.env.NEXT_PUBLIC_API_URL}/referrals/cards-data-mf?timeframe=till_date`;
+        
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          cardsUrl += `&employeeId=${employeeId}`;
+        }
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          cardsUrl += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+        }
+
+        const cardsResponse = await fetch(cardsUrl, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${AUTH_TOKEN}`,
+          },
+        });
+
+        if (cardsResponse.ok) {
+          const cardsData: CardData[] = await cardsResponse.json();
+          
+          const totalUsersData = cardsData.find((item) => item.type === "Total Users");
+          const avgTicketSizeData = cardsData.find((item) => item.type === "Average Ticket Size");
+          const redemptionRateData = cardsData.find((item) => item.type === "Redemption Rate");
+          
+          setTotalUsersTillDate(totalUsersData?.totalUsers || 0);
+          setAvgTicketSizeTillDate(avgTicketSizeData?.averageTicketSize || 0);
+          setRedemptionRateTillDate(redemptionRateData?.redemptionRate || 0);
+        }
+
+        // SIP API for till-date metrics
+        let sipUrl = `${process.env.NEXT_PUBLIC_API_URL}/referrals/sip-cards-data-mf?timeframe=till_date`;
+        
+        if (employeeId) {
+          sipUrl += `&employeeId=${employeeId}`;
+        }
+        if (selectedType && selectedType.length > 0) {
+          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+          sipUrl += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+        }
+
+        const sipResponse = await fetch(sipUrl, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${AUTH_TOKEN}`,
+          },
+        });
+
+        if (sipResponse.ok) {
+          const sipData: SipCardData[] = await sipResponse.json();
+          
+          const activeSipsData = sipData.find((item) => item.type === "Total Invested Sips");
+          setActiveSipsTillDate(activeSipsData?.totalinvestedsip || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching till-date metrics:", error);
+      }
+    };
+
+    fetchTillDateMetrics();
+  }, [selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+
 
   // Fetch SIP data for Active SIPs
   useEffect(() => {
@@ -164,11 +252,11 @@ const NonAdminDashboard = () => {
           throw new Error("Failed to fetch SIP data");
         }
 
-        const data: SipCardData[] = await response.json();
+        //const data: SipCardData[] = await response.json();
 
         // Extract Active SIPs
-        const activeSipsData = data.find((item) => item.type === "Total Invested Sips");
-        setActiveSips(activeSipsData?.totalinvestedsip || 0);
+        //const activeSipsData = data.find((item) => item.type === "Total Invested Sips");
+        //setActiveSips(activeSipsData?.totalinvestedsip || 0);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching SIP data:", error);
@@ -240,7 +328,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <InvestorIcon />
-                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
+                  <h2 className="numbers-sale text-gray-900">{activeUsers.toLocaleString()}</h2>
                   <p className="total-sale-text">New Investors</p>
                   <span className="total-yes"></span>
                 </div>
@@ -282,10 +370,10 @@ const NonAdminDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                  Client & SIP Metrics
+                  Client & SIP Performance (All-Time Overview)
                 </h3>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Monitoring SIP activity and redemption trends
+                  Track overall client participation, active SIPs, investment size, and redemption trends. 
                 </span>
               </div>
             </div>
@@ -294,7 +382,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4 shrink-0 w-[260px] xl:w-auto xl:flex-1">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(activeUsers)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(totalUsersTillDate)}</h2>
                   <p className="total-sale-text">Existing Clients</p>
                   <span className="total-yes"></span>
                 </div>
@@ -303,7 +391,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <OrderIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(activeSips)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(activeSipsTillDate)}</h2>
                   <p className="total-sale-text">Active SIPs</p>
                   <span className="total-yes"></span>
                 </div>
@@ -311,7 +399,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <DiscIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(avgTicketSize)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(avgTicketSizeTillDate)}</h2>
                   <p className="total-sale-text">Avg Ticket Size</p>
                   <span className="total-yes"></span>
                 </div>
@@ -319,7 +407,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{redemptionRate.toFixed(2)}%</h2>
+                  <h2 className="numbers-sale text-gray-900">{redemptionRateTillDate.toFixed(2)}%</h2>
                   <p className="total-sale-text">Redemption Rate</p>
                   <span className="total-yes"></span>
                 </div>

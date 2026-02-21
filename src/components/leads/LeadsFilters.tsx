@@ -40,7 +40,7 @@ const LeadsFilters = React.memo(function LeadsFilters({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 mb-6 shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03] w-full max-w-full overflow-x-hidden lg:overflow-visible">
+    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 mb-6 shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03] w-full max-w-full overflow-x-hidden">
       {/* Search Bar with Status Filter */}
       <div className="flex flex-col md:flex-row gap-4 md:items-start w-full max-w-full">
         {/* View Mode Buttons */}

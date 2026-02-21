@@ -1217,10 +1217,10 @@ export default function SalesCRM() {
         </div>
       )}
       
-      <div className="grid gap-6">
+      <div className="grid gap-6 w-full max-w-full">
         {/* Header */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 dark:border-white/[0.05] dark:bg-white/[0.03] shadow-theme-xs">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-black dark:text-white mb-2">Sales CRM</h1>
               <p className="text-body dark:text-bodydark">Lead & Conversion Tracking</p>
@@ -1306,7 +1306,7 @@ export default function SalesCRM() {
           </div>
 
           {/* Stats */}
-          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row gap-4">
+          <div className="xl:flex items-stretch justify-between mt-5 sales-box-row ">
             <div className="col-span-4">
               <div className="box-total-sales h-full bg-white border border-gray-200 rounded-xl dark:bg-white/[0.03] dark:border-white/[0.05]">
                 <SalesIcon />
@@ -1442,11 +1442,11 @@ export default function SalesCRM() {
           showCloseButton={true}
           className="max-w-2xl w-full mx-auto my-8"
         >
-          <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-x-visible shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03] relative">
+          <div className="bg-white border border-gray-200 rounded-xl max-h-[90vh] overflow-x-hidden shadow-theme-xs dark:border-white/[0.05] dark:bg-white/[0.03] relative">
             <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
               <h2 className="text-2xl font-bold text-black dark:text-white">Add New Lead</h2>
             </div>
-            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-120px)] overflow-x-visible">
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-120px)] overflow-x-hidden">
               {/* Insert Error Message Here */}
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">

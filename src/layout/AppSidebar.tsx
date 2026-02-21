@@ -105,7 +105,7 @@ const navItems: NavItem[] = [
 ];
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
   const pathname = usePathname();
   const router = useRouter(); // Initialize useRouter for navigation
 
@@ -126,6 +126,11 @@ const AppSidebar: React.FC = () => {
   
 
   const handleSignOut = () => {
+    // Close mobile sidebar if open
+    if (isMobileOpen) {
+      toggleMobileSidebar();
+    }
+    
     // Delete cookies
     deleteCookie("authToken");
     deleteCookie("employeeData");
@@ -133,6 +138,14 @@ const AppSidebar: React.FC = () => {
     // Redirect to sign-in page
     router.push("/signin");
   };
+
+  const handleMenuItemClick = () => {
+    // Close mobile sidebar when a menu item is clicked on mobile
+    if (isMobileOpen) {
+      toggleMobileSidebar();
+    }
+  };
+
 
   const renderMenuItems = (navItems: NavItem[]) => (
     <ul className="flex flex-col gap-4">
@@ -152,6 +165,7 @@ const AppSidebar: React.FC = () => {
             nav.path && (
               <Link
                 href={nav.path}
+                onClick={handleMenuItemClick}
                 className={`menu-item group ${
                   pathname === nav.path
                     ? "menu-item-active"
