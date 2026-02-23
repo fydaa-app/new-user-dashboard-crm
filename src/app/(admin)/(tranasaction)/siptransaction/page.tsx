@@ -33,6 +33,7 @@ interface Transaction {
     email: string;
   };
   sipId: number;
+  lumpsumId: number | null;
   totalOrders: number;
   successfulOrders: number;
   failedOrders: number;
@@ -57,9 +58,9 @@ const REPORT_TYPE_OPTIONS: FilterOption[] = [
 ];
 
 const TRANSACTION_TYPE_OPTIONS: FilterOption[] = [
-  { value: "PURCHASES", label: "All Purchases" },
-  { value: "BUY", label: "Buy (Purchases)" },
-  { value: "ADDITIONAL_PURCHASE", label: "Lumpsum (Additional Purchases)" },
+  { value: "PURCHASES", label: "All Purchases (Buy + Lumpsum)" },
+  { value: "BUY", label: "Buy (Regular Purchases)" },
+  { value: "ADDITIONAL_PURCHASE", label: "Lumpsum (One-time Investments)" },
   { value: "SELL", label: "Sell (Redemption)" },
 ];
 
