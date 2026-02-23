@@ -12,6 +12,7 @@ import { apiClient } from "@/services/api-client";
 import { TransactionEndpoints } from "@/config/api-endpoints";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
+import InvestmentCards from "@/components/ecommerce/InvestmentCards";
 
 interface Order {
   id: number;
@@ -44,6 +45,15 @@ interface Transaction {
   type: string;
   orders: Order[];
 }
+
+interface Cards {
+  totalAmount: number;
+  totalProcessedAmount: number;
+  totalLumpsumProcessedAmount: number;
+  totalRedemptionProcessedAmount: number;
+  uniqueSipCount: number;
+}
+
 
 interface FilterOption {
   value: string;
@@ -81,6 +91,7 @@ async function fetchTransactions(
   totalItems?: number;
   itemsPerPage?: number;
   totalPages?: number;
+  cards?: Cards;
 }> {
   try {
     let queryParams = `page=${page}`;
@@ -121,6 +132,7 @@ async function fetchTransactions(
         itemsPerPage?: number;
         totalPages?: number;
       };
+      cards?:Cards;
     }>(url);
 
     if (!response.ok || !response.data) {
@@ -135,6 +147,13 @@ async function fetchTransactions(
       totalItems: result.pagination?.totalItems,
       itemsPerPage: result.pagination?.itemsPerPage,
       totalPages: result.pagination?.totalPages,
+      cards: result.cards || { 
+        totalAmount: 0, 
+        totalProcessedAmount: 0,
+        totalLumpsumProcessedAmount: 0,
+        totalRedemptionProcessedAmount: 0,
+        uniqueSipCount: 0
+      },
     };
   } catch (err) {
     console.error("Error fetching data:", err);
@@ -159,6 +178,14 @@ export default function TransactionsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [cards, setCards] = useState<Cards>({ 
+    totalAmount: 0, 
+    totalProcessedAmount: 0,
+    totalLumpsumProcessedAmount: 0,
+    totalRedemptionProcessedAmount: 0,
+    uniqueSipCount: 0
+  });
 
   // Sync params to local state and then mark readyToFetch true only after states updated
   useEffect(() => {
@@ -205,6 +232,7 @@ export default function TransactionsListPage() {
         error,
         totalItems: apiTotalItems,
         totalPages: apiTotalPages,
+        cards: apiCards,
       } = await fetchTransactions(
         page,
         selectedOption,
@@ -223,6 +251,7 @@ export default function TransactionsListPage() {
 
       if (apiTotalPages) setTotalPages(apiTotalPages);
       if (apiTotalItems) setTotalItems(apiTotalItems);
+      if (apiCards) setCards(apiCards);
     } catch (err) {
       console.error("Error in fetchData:", err);
       setError("Failed to load data");
@@ -313,11 +342,20 @@ export default function TransactionsListPage() {
     <div>
       <PageBreadcrumb pageTitle="Transactions List" />
       <div className="space-y-6">
+        {/* Investment Cards - NEW SECTION */}
+        <InvestmentCards 
+          totalAmount={cards.totalAmount}
+          totalProcessedAmount={cards.totalProcessedAmount}
+          totalLumpsumProcessedAmount={cards.totalLumpsumProcessedAmount}
+          totalRedemptionProcessedAmount={cards.totalRedemptionProcessedAmount}
+          uniqueSipCount={cards.uniqueSipCount}
+          loading={!readyToFetch}
+        />
         <ComponentCard title="SIP Transactions">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Search Box */}
-            <form onSubmit={handleSearch} className="md:col-span-1">
-              <div className="relative search-box">
+            <form onSubmit={handleSearch}>
+              <div className="relative">
                 <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                   {/* Search icon SVG here */}
                 </span>
@@ -327,7 +365,10 @@ export default function TransactionsListPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search by user name, email, transaction ID..."
-                  className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-full"
+                  className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 
+text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden 
+focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90
+dark:placeholder:text-white/30 dark:focus:border-brand-800"
                 />
                 {isSearching && (
                   <span className="absolute -translate-y-1/2 right-4 top-1/2">
@@ -344,9 +385,9 @@ export default function TransactionsListPage() {
                 placeholder="All Statuses"
                 value={reportType || ""}
                 onChange={handleReportTypeChange}
-                className="dark:bg-dark-900"
               />
-              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 
+dark:text-gray-400">
                 <ChevronDownIcon />
               </span>
             </div>
@@ -358,12 +399,13 @@ export default function TransactionsListPage() {
                 placeholder="All Transaction Types"
                 value={transactionType || ""}
                 onChange={handleTransactionTypeChange}
-                className="dark:bg-dark-900"
               />
-              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 
+dark:text-gray-400">
                 <ChevronDownIcon />
               </span>
             </div>
+
           </div>
 
           <TransactionsTable transactions={transactions} error={error} />
