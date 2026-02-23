@@ -187,9 +187,9 @@ class LeadService {
         imageUrl = await this.uploadImage(imageFile);
       }
       
-      if (!imageUrl) {
-        throw new Error('Image is required for lead creation');
-      }
+      // if (!imageUrl) {
+      //   throw new Error('Image is required for lead creation');
+      // }
       
       // Create lead with imageUrl
       const leadPayload = {
