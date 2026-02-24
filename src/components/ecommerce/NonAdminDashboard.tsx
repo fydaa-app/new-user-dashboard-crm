@@ -46,8 +46,8 @@ const NonAdminDashboard = () => {
   const [redemptions, setRedemptions] = useState<number>(0);
   //const [redemptionRate, setRedemptionRate] = useState<number>(0);
   //const [totalUsers, setTotalUsers] = useState<number>(0);
-  const [activeUsers, setActiveUsers] = useState<number>(0);
-  //const [newInvestors, setNewInvestors] = useState<number>(0);
+  //const [activeUsers, setActiveUsers] = useState<number>(0);
+  const [newInvestors, setNewInvestors] = useState<number>(0);
  // const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
@@ -106,8 +106,8 @@ const NonAdminDashboard = () => {
         // Extract AUM and User data
         const aumData = data.find((item) => item.type === "Assets under Management");
         //const totalUsersData = data.find((item) => item.type === "Total Users");
-        //const newInvestorsData = data.find((item) => item.type === "New Investors");
-        const activeUsersData = data.find((item) => item.type === "Active Users");
+        const newInvestorsData = data.find((item) => item.type === "New Investors");
+        //const activeUsersData = data.find((item) => item.type === "Active Users");
         //const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
         const revenueData = data.find((item) => item.type === "Total Revenue");
 
@@ -115,8 +115,8 @@ const NonAdminDashboard = () => {
         //setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
         setAum(aumData?.assetsUnderManagement || 0);
         //setTotalUsers(totalUsersData?.totalUsers || 0);
-        setActiveUsers(activeUsersData?.activeUsers || 0);
-        //setNewInvestors(newInvestorsData?.newInvestors || 0);
+        //setActiveUsers(activeUsersData?.activeUsers || 0);
+        setNewInvestors(newInvestorsData?.newInvestors || 0);
 
 
 
@@ -328,7 +328,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <InvestorIcon />
-                  <h2 className="numbers-sale text-gray-900">{activeUsers.toLocaleString()}</h2>
+                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
                   <p className="total-sale-text">New Investors</p>
                   <span className="total-yes"></span>
                 </div>
@@ -392,7 +392,7 @@ const NonAdminDashboard = () => {
                 <div className="box-total-sales h-full">
                   <OrderIcon />
                   <h2 className="numbers-sale text-gray-900">{formatNumber(activeSipsTillDate)}</h2>
-                  <p className="total-sale-text">Active SIPs</p>
+                  <p className="total-sale-text">Active Invested SIPs</p>
                   <span className="total-yes"></span>
                 </div>
               </div>
