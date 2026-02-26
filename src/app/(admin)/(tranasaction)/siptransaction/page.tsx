@@ -50,7 +50,8 @@ interface Cards {
   totalAmount: number;
   totalProcessedAmount: number;
   totalLumpsumProcessedAmount: number;
-  totalRedemptionProcessedAmount: number;
+  averageXIRR: number;
+//  totalRedemptionProcessedAmount: number;
   uniqueSipCount: number;
 }
 
@@ -151,7 +152,7 @@ async function fetchTransactions(
         totalAmount: 0, 
         totalProcessedAmount: 0,
         totalLumpsumProcessedAmount: 0,
-        totalRedemptionProcessedAmount: 0,
+        averageXIRR: 0,
         uniqueSipCount: 0
       },
     };
@@ -183,7 +184,7 @@ export default function TransactionsListPage() {
     totalAmount: 0, 
     totalProcessedAmount: 0,
     totalLumpsumProcessedAmount: 0,
-    totalRedemptionProcessedAmount: 0,
+    averageXIRR: 0,
     uniqueSipCount: 0
   });
 
@@ -347,7 +348,7 @@ export default function TransactionsListPage() {
           totalAmount={cards.totalAmount}
           totalProcessedAmount={cards.totalProcessedAmount}
           totalLumpsumProcessedAmount={cards.totalLumpsumProcessedAmount}
-          totalRedemptionProcessedAmount={cards.totalRedemptionProcessedAmount}
+          averageXIRR={cards.averageXIRR}
           uniqueSipCount={cards.uniqueSipCount}
           loading={!readyToFetch}
         />

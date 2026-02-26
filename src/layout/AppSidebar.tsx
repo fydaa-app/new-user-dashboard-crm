@@ -57,6 +57,11 @@ const navItems: NavItem[] = [
     name: "SIP Transaction",
     path: "/siptransaction",
   },
+  {
+    icon: <PieChartIcon />,
+    name: "Portfolio",
+    path: "/portfolio",
+  },
 
   {
     icon: <UserCircleIcon />,
@@ -124,7 +129,7 @@ const AppSidebar: React.FC = () => {
         return user?.role === '0' || user?.role === '5';
       }
       // Filter SIP and SIP Transaction by appType
-      if (item.name === "SIP" || item.name === "SIP Transaction") {
+      if (item.name === "SIP" || item.name === "SIP Transaction" || item.name === "Portfolio") {
         return appType === "Fydaa";
       }
       return true;

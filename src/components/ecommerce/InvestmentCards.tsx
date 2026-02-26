@@ -6,7 +6,8 @@ interface InvestmentCardsProps {
   totalAmount: number;
   totalProcessedAmount: number;
   totalLumpsumProcessedAmount: number;
-  totalRedemptionProcessedAmount: number;
+  //totalRedemptionProcessedAmount: number;
+  averageXIRR: number;
   uniqueSipCount: number;
   loading?: boolean;
 }
@@ -15,7 +16,8 @@ const InvestmentCards = ({
   totalAmount, 
   totalProcessedAmount,
   totalLumpsumProcessedAmount,
-  totalRedemptionProcessedAmount,
+  //totalRedemptionProcessedAmount,
+  averageXIRR,
   uniqueSipCount,
   loading 
 }: InvestmentCardsProps) => {
@@ -50,7 +52,7 @@ flex justify-between flex-col">
 
         <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
           {/* Card 1: Total Amount */}
-          <div className="col-span-4">
+          {/* <div className="col-span-4">
             <div className="box-total-sales h-full">
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">
@@ -59,16 +61,16 @@ flex justify-between flex-col">
               <p className="total-sale-text">Total Amount</p>
               <span className="total-yes"></span>
             </div>
-          </div>
+          </div> */}
           
           {/* Card 2: Total Processed Amount */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIconOrange />
+              <SalesIcon />
               <h2 className="numbers-sale text-gray-900">
                 {formatCurrency(totalProcessedAmount)}
               </h2>
-              <p className="total-sale-text">Total Processed Amount</p>
+              <p className="total-sale-text">Total Amount</p>
               <span className="total-yes"></span>
             </div>
           </div>
@@ -76,7 +78,7 @@ flex justify-between flex-col">
           {/* Card 3: Lumpsum */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIconGreen />
+              <SalesIconOrange />
               <h2 className="numbers-sale text-gray-900">
                 {formatCurrency(totalLumpsumProcessedAmount)}
               </h2>
@@ -88,11 +90,11 @@ flex justify-between flex-col">
           {/* Card 4: Redemption */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIconViolet />
+              <SalesIconGreen />
               <h2 className="numbers-sale text-gray-900">
-                {formatCurrency(totalRedemptionProcessedAmount)}
+                {averageXIRR?.toFixed(2) || '0.00'}%
               </h2>
-              <p className="total-sale-text">Redemption</p>
+              <p className="total-sale-text">Average XIRR</p>
               <span className="total-yes"></span>
             </div>
           </div>
@@ -100,7 +102,7 @@ flex justify-between flex-col">
           {/* Card 5: Active SIPs */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIcon />
+              <SalesIconViolet />
               <h2 className="numbers-sale text-gray-900">
                 {uniqueSipCount.toLocaleString('en-IN')}
               </h2>
