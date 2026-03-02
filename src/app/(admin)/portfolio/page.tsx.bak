@@ -1,0 +1,130 @@
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { useGlobalContext } from "@/context/GlobalState";
+// import ComponentCard from "@/components/common/ComponentCard";
+// import PortfolioManagementCards from "@/components/ecommerce/PortfolioManagementCards";
+// import { usePortfolioData } from "@/hooks/usePortfolioData";
+// import { useTopPerformers } from "@/hooks/useTopPerformers";
+// import TopUsersTable from "@/components/tables/TopUsersTable";
+// import PortfolioHealthMonitorTable from "@/components/tables/PortfolioHealthMonitorTable";
+// import AssetAllocationCard from "@/components/ecommerce/AssetAllocationCard";
+
+// export default function PortfolioPage() {
+//   const {
+//     appType,
+//     selectedOption,
+//     customDates,
+//     selectedEmployee,
+//     selectedTeamMember,
+//     hierarchyViewMode,
+//     selectedType,
+//   } = useGlobalContext();
+
+//   const [page, setPage] = useState(1);
+//   const [searchQuery, setSearchQuery] = useState("");
+//   const [sortBy, setSortBy] = useState("netWorth");
+//   const [sortOrder, setSortOrder] = useState("desc");
+
+//   const {
+//     users,
+//     totalNetWorth,
+//     totalReturnRate,
+//     totalPortfolios,
+//     totalRepairUsers,
+//     totalUsers,
+//     loading,
+//     assetAllocation,
+//     refetch,
+//   } = usePortfolioData({
+//     page,
+//     limit: 10,
+//     searchQuery,
+//     sortBy,
+//     sortOrder,
+//     hideZeroNetWorth: true,
+//     timeframe: selectedOption,
+//     customDates,
+//     employeeId: selectedEmployee,
+//     teamMemberId: selectedTeamMember,
+//     hierarchyViewMode,
+//     selectedType:
+//       selectedType && selectedType.length > 0 ? selectedType[0] : "team",
+//   });
+
+//   const { topPerformers, loading: topPerformersLoading } = useTopPerformers({
+//     timeframe: selectedOption,
+//     customDates,
+//     employeeId: selectedEmployee,
+//     teamMemberId: selectedTeamMember,
+//     hierarchyViewMode,
+//     selectedType:
+//       selectedType && selectedType.length > 0 ? selectedType[0] : "team",
+//     limit: 10,
+//   });
+
+//   useEffect(() => {
+//     if (appType !== "Fydaa") {
+//       window.location.href = "/";
+//     }
+//   }, [appType]);
+
+//   if (appType !== "Fydaa") {
+//     return null;
+//   }
+
+//   return (
+//     <div className="space-y-6">
+//       {/* Page Header */}
+//       <div className="flex items-center justify-between">
+//         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+//           Portfolio Management
+//         </h1>
+//       </div>
+
+//       {/* Portfolio Summary Cards */}
+//       <PortfolioManagementCards
+//         totalNetWorth={totalNetWorth}
+//         totalReturnRate={totalReturnRate}
+//         totalPortfolios={totalPortfolios}
+//         totalRepairUsers={totalRepairUsers}
+//         loading={loading}
+//       />
+
+//       {/* Asset Allocation & Top Performers */}
+//       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+//         <ComponentCard title="Asset Allocation">
+//           <AssetAllocationCard
+//             assetAllocation={assetAllocation}
+//             loading={loading}
+//           />
+//         </ComponentCard>
+
+//         <ComponentCard title="Top Performers">
+//           <TopUsersTable
+//             users={topPerformers || users.slice(0, 10)}
+//             loading={topPerformersLoading || loading}
+//           />
+//         </ComponentCard>
+//       </div>
+
+//       {/* Portfolio Health Monitor */}
+//       <ComponentCard title="Portfolio Health Monitor">
+//         <PortfolioHealthMonitorTable
+//           users={users}
+//           totalUsers={totalUsers}
+//           page={page}
+//           setPage={setPage}
+//           searchQuery={searchQuery}
+//           setSearchQuery={setSearchQuery}
+//           sortBy={sortBy}
+//           setSortBy={setSortBy}
+//           sortOrder={sortOrder}
+//           setSortOrder={setSortOrder}
+//           loading={loading}
+//           refetch={refetch}
+//         />
+//       </ComponentCard>
+//     </div>
+//   );
+// }

@@ -12,8 +12,7 @@ interface InvestmentCardsProps {
   loading?: boolean;
 }
 
-const InvestmentCards = ({ 
-  totalAmount, 
+const InvestmentCards = ({  
   totalProcessedAmount,
   totalLumpsumProcessedAmount,
   //totalRedemptionProcessedAmount,
