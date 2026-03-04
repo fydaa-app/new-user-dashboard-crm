@@ -38,7 +38,7 @@ export default function ResetPasswordForm({
 
     try {
       const response = await apiClient.post<{ message: string }>(
-        AuthEndpoints.RESET_PASSWORD_WITH_TOKEN,
+        AuthEndpoints.RESET_PASSWORD,
         {
           token,
           newPassword,
