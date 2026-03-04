@@ -97,18 +97,22 @@ hierarchyViewMode]);
     colors: ["#3C50E0", "#6577F3", "#8FD0EF", "#0FADCF", "#80CAEE"],
     legend: {
       show: true,
-      position: "bottom",
+      position: "right",
       fontSize: "14px",
       fontWeight: 500,
       horizontalAlign: "left",
+      floating: false,
       labels: {
         colors: "#64748B",
+      },
+      scroll: {
+        enabled: false,
       },
     },
     plotOptions: {
       pie: {
         donut: {
-          size: "65%",
+          size: "55%",
           labels: {
             show: true,
             total: {
@@ -156,7 +160,7 @@ hierarchyViewMode]);
   }), [chartLabels]);
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] 
+    <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] 
 sm:p-6">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
@@ -180,7 +184,7 @@ sm:p-6">
           <p className="text-gray-500">No goal data available</p>
         </div>
       ) : (
-        <div className="flex justify-center">
+        <div className="relative">
           <ApexCharts
             options={chartOptions}
             series={chartSeries}

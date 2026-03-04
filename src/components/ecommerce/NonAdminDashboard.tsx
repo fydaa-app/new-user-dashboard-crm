@@ -418,22 +418,20 @@ const NonAdminDashboard = () => {
       </div>
 
       {/* Row 3: Investment Trends, Sales by Package, Sales by Goal */}
-      <div className="col-span-12 grid grid-cols-12 gap-4 md:gap-6">
+      <div className="col-span-12 grid grid-cols-12 gap-4 md:gap-6 xl:items-stretch">
         {/* Investment Trends Chart */}
-        <div className="col-span-12 xl:col-span-4">
-          <div className="h-full">
-            <InvestmentTrendsChart />
-          </div>
+        <div className="col-span-12 xl:col-span-4 xl:h-full">
+          <InvestmentTrendsChart />
         </div>
 
 
         {/* Sales by Package */}
-        <div className="col-span-12 xl:col-span-4">
+        <div className="col-span-12 xl:col-span-4 xl:h-full">
           <SalesByPackageChart />
         </div>
 
         {/* Sales by Goal */}
-        <div className="col-span-12 xl:col-span-4">
+        <div className="col-span-12 xl:col-span-4 xl:h-full">
           <SalesByGoalChart />
         </div>
       </div>
