@@ -17,6 +17,7 @@ import {
   SipIcon,
   
 } from "../icons/index";
+import { useGlobalContext } from "@/context/GlobalState";
 
 type NavItem = {
   name: string;
@@ -55,6 +56,11 @@ const navItems: NavItem[] = [
     icon: <ShoppingCartIcon />,
     name: "SIP Transaction",
     path: "/siptransaction",
+  },
+  {
+    icon: <PieChartIcon />,
+    name: "Portfolio",
+    path: "/portfolio",
   },
 
   {
@@ -110,19 +116,25 @@ const AppSidebar: React.FC = () => {
   const router = useRouter(); // Initialize useRouter for navigation
 
   const { user, isLoading } = useAuth();
+  const { appType } = useGlobalContext();
+
   // Filter nav items based on role (same logic as designations)
   const filteredNavItems = React.useMemo(() => {
     if (isLoading) {
       return navItems; // Show all while loading
     }
     return navItems.filter((item) => {
+      // Filter Payouts by role
       if (item.name === "Payouts") {
-        // Only show for admin (role: 0) and partner (role: 5)
         return user?.role === '0' || user?.role === '5';
+      }
+      // Filter SIP and SIP Transaction by appType
+      if (item.name === "SIP" || item.name === "SIP Transaction" || item.name === "Portfolio") {
+        return appType === "Fydaa";
       }
       return true;
     });
-  }, [isLoading, user?.role]);
+  }, [isLoading, user?.role, appType]);
   
 
   const handleSignOut = () => {

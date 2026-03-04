@@ -30,6 +30,7 @@ interface Transaction {
     email: string;
   };
   sipId: number;
+  lumpsumId: number | null;
   totalOrders: number;
   successfulOrders: number;
   failedOrders: number;
@@ -83,16 +84,16 @@ const getStatusColor = (status: string): 'success' | 'warning' | 'error' => {
   }
 };
 
-const getTypeColor = (type: string): 'success' | 'error' | 'warning' => {
-  if (type === 'purchase') return 'success';
+const getTypeColor = (type: string, lumpsumId?: number | null): 'success' | 'error' | 'warning' => {
   if (type === 'redemption') return 'error';
-  return 'warning';
+  if (lumpsumId != null) return 'warning';  // Lumpsum - Orange/Yellow
+  return 'success';  // Buy - Green
 };
 
-const getTypeLabel = (type: string): string => {
-  if (type === 'purchase') return 'Buy';
+const getTypeLabel = (type: string, lumpsumId?: number | null): string => {
   if (type === 'redemption') return 'Sell';
-  return type || '-';
+  if (lumpsumId != null) return 'Lumpsum';
+  return 'Buy';  // Default for all non-redemption, non-lumpsum transactions
 };
 
 const getOrderStateColor = (state: string): 'success' | 'error' => {
@@ -207,11 +208,10 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                           </span>
                         </TableCell>
                         <TableCell className="px-5 py-4 text-start">
-                          <Badge color={getTypeColor(transaction.type)} size="sm">
-                            {getTypeLabel(transaction.type)}
+                          <Badge color={getTypeColor(transaction.type, transaction.lumpsumId)} size="sm">
+                            {getTypeLabel(transaction.type, transaction.lumpsumId)}
                           </Badge>
                         </TableCell>
-
                         <TableCell className="px-5 py-4 text-start">
                           <span className="font-medium text-gray-800 dark:text-white/90">
                             {transaction.userInfo.firstName} {transaction.userInfo.lastName}
@@ -273,8 +273,8 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                                     {transaction.orders.map((order) => (
                                       <tr key={order.id} className="hover:bg-gray-100 dark:hover:bg-white/[0.03]">
                                         <td className="px-3 py-2 text-xs">
-                                          <Badge color={getTypeColor(order.type || transaction.type)} size="sm">
-                                            {getTypeLabel(order.type || transaction.type)}
+                                          <Badge color={getTypeColor(order.type || transaction.type, transaction.lumpsumId)} size="sm">
+                                            {getTypeLabel(order.type || transaction.type, transaction.lumpsumId)}
                                           </Badge>
                                         </td>
                                         <td className="px-3 py-2 text-xs font-mono text-gray-600 dark:text-gray-400">

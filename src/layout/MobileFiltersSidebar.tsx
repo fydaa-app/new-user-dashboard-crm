@@ -318,7 +318,7 @@ const MobileFiltersSidebar: React.FC = () => {
       {/* Sidebar panel - rendered at root level to avoid parent constraints */}
       {isMobileFiltersOpen && (
         <div 
-          className="fixed mt-16 inset-x-0 bottom-0 z-0 lg:hidden top-0" 
+          className="fixed mt-16 inset-x-0 bottom-0 z-49 lg:hidden top-0" 
           style={{ 
             overflow: 'hidden'
           }}
