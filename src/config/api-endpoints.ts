@@ -8,9 +8,9 @@
 // Authentication Endpoints
 export const AuthEndpoints = {
   LOGIN: "/referrals/login",
-  FORGOT_PASSWORD: "/referrals/forgot-password",
-  RESET_PASSWORD: "/referrals/reset-password",
-  RESET_PASSWORD_WITH_TOKEN: "/referrals/reset-password-with-token",
+  FORGOT_PASSWORD: "/referrals/employee/send-password-reset-otp",
+  RESET_PASSWORD: "/referrals/employee/verify-otp-reset-password",
+  RESET_PASSWORD_WITH_TOKEN: "/referrals/employee/verify-otp-reset-password",
   VALIDATE_RESET_TOKEN: "/referrals/validate-reset-token",
 } as const;
 

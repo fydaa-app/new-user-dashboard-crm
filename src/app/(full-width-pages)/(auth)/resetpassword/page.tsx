@@ -18,7 +18,7 @@ async function validateToken(token: string): Promise<ValidationResult> {
  
   try {
     const response = await apiClient.post<ValidationResult>(
-      AuthEndpoints.VALIDATE_RESET_TOKEN,
+      AuthEndpoints.RESET_PASSWORD,
       { token },
       { skipAuth: true }
     );
