@@ -215,7 +215,7 @@ const InvestmentTrendsChart: React.FC = () => {
   ];
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-default dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="h-full rounded-lg border border-gray-200 bg-white p-6 shadow-default dark:border-gray-800 dark:bg-white/[0.03]">
       {/* Header with navigation and dropdown */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">

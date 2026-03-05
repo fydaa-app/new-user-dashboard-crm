@@ -17,19 +17,22 @@ interface SaleList {
     paymentType: string;
     date: string;
     time: string;
-    managerName:string;
+    managerName: string;
+    packageGoalName: string;
 }
 
 async function fetchPayments(
     page: number, 
     selectedOption: string, 
-    selectedEmployee:string = "",
-    selectedTeamMember:string = "",
+    selectedEmployee: string = "",
+    selectedTeamMember: string = "",
     customDates: { start: string; end: string },
     searchQuery: string = "",
     appType: string = "",
     selectedType: string = "",
-    hierarchyViewMode: "team" | "individual" = "team"
+    hierarchyViewMode: "team" | "individual" = "team",
+    sortBy: string = "date",
+    sortOrder: "ASC" | "DESC" = "DESC"
 ):
      Promise<{ 
         payments: SaleList[]; 
@@ -65,6 +68,10 @@ async function fetchPayments(
         if (selectedType) {
             url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
+
+        // Add sorting parameters
+        url += `&sortBy=${sortBy}&sortOrder=${sortOrder}`;
+
         const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -77,7 +84,7 @@ async function fetchPayments(
         }
 
         const data = await response.json();
-        return { payments: Array.isArray(data.payments) ? data.payments : [], error: null,totalCount: data.totalCount,limit: data.limit};
+        return { payments: Array.isArray(data.payments) ? data.payments : [], error: null, totalCount: data.totalCount, limit: data.limit};
     } catch (err) {
         console.error("Error fetching data:", err);
         return { payments: [], error: "Error fetching data" };
@@ -87,13 +94,14 @@ async function fetchPayments(
 export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [error, setError] = useState<string | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+    const [sortBy, setSortBy] = useState("date");
+    const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -102,13 +110,30 @@ export default function UserTablesPage() {
     useEffect(() => {
         const query = searchParams.get('search') || "";
         setSearchQuery(query);
-        }, [searchParams]);
+    }, [searchParams]);
 
-     const fetchData = useCallback(async () => {
+    const handleSortChange = (newSortBy: string, newSortOrder: "ASC" | "DESC") => {
+        setSortBy(newSortBy);
+        setSortOrder(newSortOrder);
+        setPage(1);
+    };
+
+    const fetchData = useCallback(async () => {
         try {
-            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
+            const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(
+                page, 
+                selectedOption, 
+                selectedEmployee, 
+                selectedTeamMember, 
+                customDates, 
+                searchQuery, 
+                appType, 
+                selectedType as unknown as string, 
+                hierarchyViewMode,
+                sortBy,
+                sortOrder
+            );
             
-            // DEBUG: Log sales report page data received
             console.log("═══════════════════════════════════════════════════════════");
             console.log("FRONTEND DEBUG [salereport/page.tsx] - SALES REPORT PAGE");
             console.log("═══════════════════════════════════════════════════════════");
@@ -117,6 +142,7 @@ export default function UserTablesPage() {
             console.log("Search Query:", searchQuery);
             console.log("Page:", page);
             console.log("Employee ID:", selectedTeamMember || selectedEmployee);
+            console.log("Sort By:", sortBy, "Sort Order:", sortOrder);
             console.log("-----------------------------------------------------------");
             console.log("TOTAL PAYMENTS (from API):", apiTotalCount);
             console.log("Payments on current page:", payments?.length || 0);
@@ -137,7 +163,7 @@ export default function UserTablesPage() {
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, sortBy, sortOrder]);
         
     useEffect(() => {
         fetchData();
@@ -145,7 +171,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery, selectedType]);
+    }, [selectedOption, customDates, searchQuery, selectedType, appType, sortBy, sortOrder]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);
@@ -227,7 +253,13 @@ export default function UserTablesPage() {
                             </div>
                         </form>
                     </div>
-                    <SaleReportTable payments={payments} error={error} />
+                    <SaleReportTable 
+                        payments={payments} 
+                        error={error}
+                        onSortChange={handleSortChange}
+                        currentSort={{ sortBy, sortOrder }}
+                        showPackageGoal={appType === "Fydaa"}
+                    />
                     {totalCount > 0 && (
                         <Pagination 
                             currentPage={page} 
