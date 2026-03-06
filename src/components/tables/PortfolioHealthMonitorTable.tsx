@@ -309,12 +309,12 @@ export default function PortfolioHealthMonitorTable({
               {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {users.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={10} className="px-5 py-12 text-center">
-                      <p className="text-gray-500 dark:text-gray-400">No users found</p>
-                    </TableCell>
-                  </TableRow>
-                ) : (
+                    <TableRow>
+                      <td colSpan={10} className="px-5 py-12 text-center">
+                        <p className="text-gray-500 dark:text-gray-400">No users found</p>
+                      </td>
+                    </TableRow>
+                  ) : (
                   users.map((user) => (
                     <TableRow key={user.userId}>
                       <TableCell className="px-5 py-4 sm:px-6 text-start">

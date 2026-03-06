@@ -352,7 +352,7 @@ export default function TransactionsListPage() {
           uniqueSipCount={cards.uniqueSipCount}
           loading={!readyToFetch}
         />
-        <ComponentCard title="SIP Transactions">
+        <ComponentCard title="Transactions List">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Search Box */}
             <form onSubmit={handleSearch}>

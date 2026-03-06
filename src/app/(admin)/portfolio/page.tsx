@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
 import ComponentCard from "@/components/common/ComponentCard";
 import PortfolioManagementCards from "@/components/ecommerce/PortfolioManagementCards";
@@ -23,7 +23,7 @@ interface User {
     GlobalStock: number;
     RealEstate: number;
   };
-  dueSips: any[];
+  dueSips: { sipName: string; dueDate: string }[];
   isRepair: boolean;
 }
 
@@ -35,15 +35,22 @@ interface AssetAllocationData {
   Gold: { investedValue: number; currentValue: number; percentage: number };
 }
 
-interface FetchResult {
-  users: User[];
-  totalNetWorth: number;
-  totalReturnRate: number;
-  totalPortfolios: number;
-  totalRepairUsers: number;
-  totalUsers: number;
-  assetAllocation: AssetAllocationData | null;
-  error: string | null;
+// interface FetchResult {
+//   users: User[];
+//   totalNetWorth: number;
+//   totalReturnRate: number;
+//   totalPortfolios: number;
+//   totalRepairUsers: number;
+//   totalUsers: number;
+//   assetAllocation: AssetAllocationData | null;
+//   error: string | null;
+// }
+interface TopPerformerResponse {
+  siNo: number;
+  userId: number;
+  userName: string;
+  netWorth: number;
+  returnRate: number;
 }
 
 interface PortfolioCardsData {
@@ -153,7 +160,6 @@ async function fetchAssetAllocation(
 
 async function fetchPortfolioList(
   page: number,
-  appType: string = "",
   selectedOption: string = "yearly",
   selectedEmployee: string = "",
   selectedTeamMember: string = "",
@@ -218,7 +224,6 @@ async function fetchPortfolioList(
 }
 
 async function fetchTopPerformers(
-  appType: string = "",
   selectedOption: string = "yearly",
   selectedEmployee: string = "",
   selectedTeamMember: string = "",
@@ -229,31 +234,43 @@ async function fetchTopPerformers(
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
-    let queryParams = `page=1&limit=10&hideZeroNetWorth=true&sortBy=returnRate&sortOrder=DESC`;
-
+    let queryParams = `hideZeroNetWorth=true`;
     if (selectedOption === 'custom') {
       queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
     } else {
       queryParams += `&timeframe=${selectedOption || "yearly"}`;
     }
-
     if (employeeId) {
       queryParams += `&employeeId=${employeeId}`;
     }
-
     if (selectedType) {
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
-
-    const url = `/referrals/portfolio-list-mf?${queryParams}`;
-    const response = await apiClient.get<{ users: User[] }>(url);
-
+    const url = `/referrals/top-performers?${queryParams}`;
+    const response = await apiClient.get<TopPerformerResponse[]>(url);
     if (!response.ok) {
       throw new Error("Failed to fetch top performers");
     }
-
+    // Map backend response to User format expected by TopUsersTable
+    const users = (response.data || []).map((item: TopPerformerResponse) => ({
+      userId: item.userId,
+      userName: item.userName,
+      planName: "Mutual Fund",
+      netWorth: item.netWorth,
+      returnRate: item.returnRate,
+      totalPoints: 0,
+      assetAllocation: {
+        IndianStock: 0,
+        FixedIncomeBonds: 0,
+        Gold: 0,
+        GlobalStock: 0,
+        RealEstate: 0
+      },
+      dueSips: [],
+      isRepair: false
+    }));
     return {
-      users: response.data.users || [],
+      users: users,
       error: null,
     };
   } catch (err) {
@@ -292,7 +309,7 @@ export default function PortfolioPage() {
   const [topPerformers, setTopPerformers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingTable, setIsLoadingTable] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  //const [error, setError] = useState<string | null>(null);
 
   const previousFiltersRef = useRef({
     selectedOption,
@@ -330,7 +347,6 @@ export default function PortfolioPage() {
           hierarchyViewMode
         ),
         fetchTopPerformers(
-          appType,
           selectedOption,
           selectedEmployee,
           selectedTeamMember,
@@ -367,7 +383,6 @@ export default function PortfolioPage() {
 
       const listResult = await fetchPortfolioList(
         page,
-        appType,
         selectedOption,
         selectedEmployee,
         selectedTeamMember,
@@ -383,10 +398,10 @@ export default function PortfolioPage() {
       if (listResult.totalUsers !== undefined) {
         setTotalUsers(listResult.totalUsers);
       }
-      setError(listResult.error);
+      //setError(listResult.error);
     } catch (err) {
       console.error("Error fetching list data:", err);
-      setError("Failed to load data");
+      //setError("Failed to load data");
     } finally {
       setIsLoadingTable(false);
     }

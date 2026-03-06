@@ -41,10 +41,10 @@ flex justify-between flex-col">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Investments
+              Investments Summary
             </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Transaction Summary
+              Monitor overall Investment Metrics across users
             </span>
           </div>
         </div>
