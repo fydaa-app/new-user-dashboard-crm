@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <ShoppingCartIcon />,
-    name: "SIP Transaction",
+    name: "Investments",
     path: "/siptransaction",
   },
   {

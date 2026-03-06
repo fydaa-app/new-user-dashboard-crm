@@ -341,7 +341,7 @@ export default function TransactionsListPage() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="Transactions List" />
+      <PageBreadcrumb pageTitle="Investments" />
       <div className="space-y-6">
         {/* Investment Cards - NEW SECTION */}
         <InvestmentCards 
@@ -397,7 +397,7 @@ dark:text-gray-400">
             <div className="relative">
               <Select
                 options={TRANSACTION_TYPE_OPTIONS}
-                placeholder="All Transaction Types"
+                placeholder="All Investment Types"
                 value={transactionType || ""}
                 onChange={handleTransactionTypeChange}
               />
