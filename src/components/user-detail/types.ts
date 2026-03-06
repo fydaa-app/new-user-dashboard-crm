@@ -180,6 +180,8 @@ export interface MutualFundTransaction {
   transactionId: string;
   userId: number;
   sipId: number;
+  type: string;            
+  lumpsumId: number | null; 
   totalOrders: number;
   successfulOrders: number;
   failedOrders: number;

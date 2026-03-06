@@ -91,6 +91,17 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
+const getTypeColor = (type: string, lumpsumId?: number | null): 'success' | 'error' | 'warning' => {
+  if (type === 'redemption') return 'error';
+  if (lumpsumId != null) return 'warning';
+  return 'success';
+};
+const getTypeLabel = (type: string, lumpsumId?: number | null): string => {
+  if (type === 'redemption') return 'Sell';
+  if (lumpsumId != null) return 'Lumpsum';
+  return 'Buy';
+};
+
 export default function TransactionTab({ transactions, transactionsMF, userDetails }: TransactionTabProps) {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const isFydaa = userDetails.fromApp?.toLowerCase() === "fydaa";
@@ -117,6 +128,7 @@ export default function TransactionTab({ transactions, transactionsMF, userDetai
                   <tr>
                     <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400 w-12"></th>
                     <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">Transaction ID</th>
+                    <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">Type</th> 
                     <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">Total Orders</th>
                     <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">Successful</th>
                     <th className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">Failed</th>
@@ -156,6 +168,11 @@ export default function TransactionTab({ transactions, transactionsMF, userDetai
                               {transaction.transactionId}
                             </span>
                           </td>
+                          <td className="px-4 py-3 text-start">
+                            <Badge color={getTypeColor(transaction.type, transaction.lumpsumId)} size="sm">
+                              {getTypeLabel(transaction.type, transaction.lumpsumId)}
+                            </Badge>
+                          </td>                          
                           <td className="px-4 py-3 text-center text-gray-500 text-theme-sm dark:text-gray-400">
                             {transaction.totalOrders}
                           </td>
@@ -181,7 +198,7 @@ export default function TransactionTab({ transactions, transactionsMF, userDetai
 
                         {isExpanded && (
                           <tr>
-                            <td colSpan={9} className="px-0 py-0 bg-gray-50 dark:bg-white/[0.01]">
+                            <td colSpan={10} className="px-0 py-0 bg-gray-50 dark:bg-white/[0.01]">
                               <div className="px-8 py-4">
                                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                   Order Details ({transaction.orders.length} orders)
