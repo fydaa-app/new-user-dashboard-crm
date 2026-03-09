@@ -35,6 +35,8 @@ export const TransactionEndpoints = {
 export const StockEndpoints = {
   PORTFOLIO: "/orders/portfolio",
   PORTFOLIO_LIST: "portfolio/portfolioList", // Matches .env NEXT_PUBLIC_PORTFOLIO_ENDPOINT
+  PORTFOLIO_LIST_MF: "/referrals/portfolio-list-mf", // Fydaa app type
+  PORTFOLIO_CARDS_MF: "/referrals/portfolio-cards-mf", // Fydaa app type - cards/totals only
   STOCK_LIST: "/orders/stock-list",
   USER_XIRR: "/orders/getUserXirrForAllTimePeriods",
   DASHBOARD_LIST: "stock/getDashboardData", // Matches .env NEXT_PUBLIC_DASHBOARD_LIST_ENDPOINT

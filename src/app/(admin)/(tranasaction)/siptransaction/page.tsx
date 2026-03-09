@@ -341,7 +341,7 @@ export default function TransactionsListPage() {
 
   return (
     <div>
-      <PageBreadcrumb pageTitle="Transactions List" />
+      <PageBreadcrumb pageTitle="Investments" />
       <div className="space-y-6">
         {/* Investment Cards - NEW SECTION */}
         <InvestmentCards 
@@ -352,7 +352,7 @@ export default function TransactionsListPage() {
           uniqueSipCount={cards.uniqueSipCount}
           loading={!readyToFetch}
         />
-        <ComponentCard title="SIP Transactions">
+        <ComponentCard title="Transactions List">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Search Box */}
             <form onSubmit={handleSearch}>
@@ -397,7 +397,7 @@ dark:text-gray-400">
             <div className="relative">
               <Select
                 options={TRANSACTION_TYPE_OPTIONS}
-                placeholder="All Transaction Types"
+                placeholder="All Investment Types"
                 value={transactionType || ""}
                 onChange={handleTransactionTypeChange}
               />
