@@ -15,6 +15,7 @@ import {
   SettingIcon,
   ShoppingCartIcon,
   SipIcon,
+  SalesIconGreen,
   
 } from "../icons/index";
 import { useGlobalContext } from "@/context/GlobalState";
@@ -61,6 +62,11 @@ const navItems: NavItem[] = [
     icon: <PieChartIcon />,
     name: "Portfolio",
     path: "/portfolio",
+  },
+  {
+    icon: <SalesIconGreen />,
+    name: "Redemption",
+    path: "/redemption",
   },
 
   {
@@ -129,7 +135,7 @@ const AppSidebar: React.FC = () => {
         return user?.role === '0' || user?.role === '5';
       }
       // Filter SIP and SIP Transaction by appType
-      if (item.name === "SIP" || item.name === "SIP Transaction" || item.name === "Portfolio") {
+      if (item.name === "SIP" || item.name === "Investments" || item.name === "Portfolio" || item.name === "Redemption") {
         return appType === "Fydaa";
       }
       return true;

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
 import ComponentCard from "@/components/common/ComponentCard";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PortfolioManagementCards from "@/components/ecommerce/PortfolioManagementCards";
 import TopUsersTable from "@/components/tables/TopUsersTable";
 import PortfolioHealthMonitorTable from "@/components/tables/PortfolioHealthMonitorTable";
@@ -469,6 +470,8 @@ export default function PortfolioPage() {
 
   return (
     <div className="space-y-6">
+      <PageBreadcrumb pageTitle="Portfolio" />
+      
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
