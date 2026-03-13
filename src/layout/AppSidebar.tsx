@@ -64,6 +64,11 @@ const navItems: NavItem[] = [
     path: "/portfolio",
   },
   {
+    icon: <PieChartIcon />,
+    name: "Goals & Plans",
+    path: "/goals-plans",
+  },
+  {
     icon: <SalesIconGreen />,
     name: "Redemption",
     path: "/redemption",
@@ -135,7 +140,7 @@ const AppSidebar: React.FC = () => {
         return user?.role === '0' || user?.role === '5';
       }
       // Filter SIP and SIP Transaction by appType
-      if (item.name === "SIP" || item.name === "Investments" || item.name === "Portfolio" || item.name === "Redemption") {
+      if (item.name === "SIP" || item.name === "Investments" || item.name === "Portfolio" || item.name === "Redemption" || item.name === "Goals & Plans") {
         return appType === "Fydaa";
       }
       return true;

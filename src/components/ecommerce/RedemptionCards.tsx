@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { DollarLineIcon, SalesIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
+import { DollarLineIcon, SalesIcon, SalesIconOrange, SalesIconGreen } from "@/icons";
 
 interface RedemptionCardsProps {
   totalRedeemedAmount: number;

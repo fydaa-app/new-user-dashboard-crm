@@ -5,7 +5,6 @@ import { useGlobalContext } from "@/context/GlobalState";
 import ComponentCard from "@/components/common/ComponentCard";
 import RedemptionCards from "@/components/ecommerce/RedemptionCards";
 import RedemptionsList from "@/components/ecommerce/RecentRedemptions";
-import { apiClient } from "@/services/api-client";
 import Cookies from "js-cookie";
 
 interface RedemptionCardsData {
@@ -127,8 +126,8 @@ export default function RedemptionPage() {
 
       const result = await fetchRedemptionCards(
         selectedOption,
-        selectedEmployee,
-        selectedTeamMember,
+        selectedEmployee || "",
+        selectedTeamMember || "",
         customDates,
         effectiveSelectedType,
         hierarchyViewMode,
@@ -150,15 +149,6 @@ export default function RedemptionPage() {
 
   // Reset to page 1 when filters change
   useEffect(() => {
-    const prev = previousFiltersRef.current;
-    const hasChanged =
-      prev.selectedOption !== selectedOption ||
-      prev.selectedEmployee !== selectedEmployee ||
-      prev.selectedTeamMember !== selectedTeamMember ||
-      (prev.customDates?.start !== customDates?.start) ||
-      (prev.customDates?.end !== customDates?.end) ||
-      prev.selectedType !== selectedType ||
-      prev.reportType !== reportType;
 
     previousFiltersRef.current = {
       selectedOption,
