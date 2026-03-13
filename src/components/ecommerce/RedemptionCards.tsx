@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { DollarLineIcon, SalesIcon, SalesIconOrange, SalesIconGreen } from "@/icons";
+import {  SalesIcon, SalesIconOrange, SalesIconGreen, SalesIconViolet } from "@/icons";
 
 interface RedemptionCardsProps {
   totalRedeemedAmount: number;
@@ -49,7 +49,7 @@ const RedemptionCards = ({
           {/* Card 1: Total Redeemed Amount */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <DollarLineIcon />
+              <SalesIcon />
               <h2 className="numbers-sale text-gray-900">
                 {formatCurrency(totalRedeemedAmount)}
               </h2>
@@ -61,7 +61,7 @@ const RedemptionCards = ({
           {/* Card 2: Total Redemptions */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIcon />
+              <SalesIconOrange />
               <h2 className="numbers-sale text-gray-900">
                 {totalRedemptionsCount.toLocaleString('en-IN')}
               </h2>
@@ -85,7 +85,7 @@ const RedemptionCards = ({
           {/* Card 4: Redemption Rate */}
           <div className="col-span-4">
             <div className="box-total-sales h-full">
-              <SalesIconOrange />
+              <SalesIconViolet />
               <h2 className="numbers-sale text-gray-900">
                 {(redemptionRate || 0).toFixed(2)}%
               </h2>

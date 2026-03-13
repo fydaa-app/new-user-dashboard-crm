@@ -66,6 +66,9 @@ export const DashboardEndpoints = {
   GOALS_BY_CATEGORY: "/referrals/goals-by-category",
   BEHIND_GOALS_LIST: "/referrals/behind-goals-list",
   
+  // Packages Analytics
+  PACKAGES_ANALYTICS: "/referrals/packages-analytics",
+  
   // Charts & Reports
   SALE_ENDPOINT: "/referrals/sales-report",
   SALES_REPORT_MF: "/referrals/sales-report-mf",

@@ -7,15 +7,13 @@ import { deleteCookie } from "cookies-next"; // Import deleteCookie to handle co
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../context/AuthContext";
 import {
-  GridIcon,
   PieChartIcon,
-  TableIcon,
   UserCircleIcon,
   LeaderboardIcon,
   SettingIcon,
   ShoppingCartIcon,
   SipIcon,
-  SalesIconGreen,
+  CrmIcon
   
 } from "../icons/index";
 import { useGlobalContext } from "@/context/GlobalState";
@@ -29,12 +27,14 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <svg width="32" height="32" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V8.99998C3.25 10.2426 4.25736 11.25 5.5 11.25H9C10.2426 11.25 11.25 10.2426 11.25 8.99998V5.5C11.25 4.25736 10.2426 3.25 9 3.25H5.5ZM12.75 5.5C12.75 4.25736 13.7574 3.25 15 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.99998C20.75 10.2426 19.7426 11.25 18.5 11.25H15C13.7574 11.25 12.75 10.2426 12.75 8.99998V5.5ZM5.5 12.75C4.25736 12.75 3.25 13.7574 3.25 15V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H9C10.2426 20.75 11.25 19.7427 11.25 18.5V15C11.25 13.7574 10.2426 12.75 9 12.75H5.5ZM15 12.75C13.7574 12.75 12.75 13.7574 12.75 15V18.5C12.75 19.7426 13.7574 20.75 15 20.75H18.5C19.7426 20.75 20.75 19.7427 20.75 18.5V15C20.75 13.7574 19.7426 12.75 18.5 12.75H15Z" fill="#737791"/>
+</svg>,
     name: "Dashboard",
     path: "/",
   },
   {
-    icon: <LeaderboardIcon />,
+    icon: <CrmIcon />,
     name: "Sales CRM",
     path: "/sales-crm",
   },
@@ -69,7 +69,12 @@ const navItems: NavItem[] = [
     path: "/goals-plans",
   },
   {
-    icon: <SalesIconGreen />,
+    icon: <PieChartIcon />,
+    name: "Packages",
+    path: "/packages",
+  },
+  {
+    icon: <PieChartIcon />,
     name: "Redemption",
     path: "/redemption",
   },
@@ -91,7 +96,20 @@ const navItems: NavItem[] = [
   },
   {
     name: "Payouts",
-    icon: <TableIcon />,
+    icon: <svg
+  width="32"
+  height="32"
+  viewBox="0 0 24 24"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M3.25 5.5C3.25 4.25736 4.25736 3.25 5.5 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V18.5C20.75 19.7426 19.7426 20.75 18.5 20.75H5.5C4.25736 20.75 3.25 19.7426 3.25 18.5V5.5ZM5.5 4.75C5.08579 4.75 4.75 5.08579 4.75 5.5V8.58325L19.25 8.58325V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H5.5ZM19.25 10.0833H15.416V13.9165H19.25V10.0833ZM13.916 10.0833L10.083 10.0833V13.9165L13.916 13.9165V10.0833ZM8.58301 10.0833H4.75V13.9165H8.58301V10.0833ZM4.75 18.5V15.4165H8.58301V19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5ZM10.083 19.25V15.4165L13.916 15.4165V19.25H10.083ZM15.416 19.25V15.4165H19.25V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15.416Z"
+    fill="#737791"
+  />
+</svg>,
     path: "/payouts",
   },
   {
