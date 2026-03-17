@@ -15,6 +15,7 @@ interface SelectProps {
   value?: string | null;
   isDisabled?: boolean;
   menuAlign?: 'left' | 'right'; // New prop for alignment
+  menuZIndex?: number;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -26,6 +27,7 @@ const Select: React.FC<SelectProps> = ({
   value,
   isDisabled = false,
   menuAlign = 'left', // Default to left alignment
+  menuZIndex = 100000,
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(() => {
     if (value !== undefined && value !== null) return value;
@@ -124,8 +126,9 @@ const Select: React.FC<SelectProps> = ({
   const dropdownMenu = isOpen && (
     <div 
       ref={menuRef}
-      className={`fixed z-[100000] bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto`}
+      className={`fixed bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto`}
       style={{
+        zIndex: menuZIndex,
         top: dropdownPosition.top !== 'auto' ? `${dropdownPosition.top}px` : 'auto',
         bottom: dropdownPosition.bottom !== 'auto' ? `${dropdownPosition.bottom}px` : 'auto',
         left: menuAlign === 'right' ? 'auto' : `${dropdownPosition.left}px`,
