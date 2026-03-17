@@ -61,6 +61,14 @@ export const DashboardEndpoints = {
   SIP_CARDS_DATA_MF: "/referrals/sip-cards-data-mf",
   TRANSACTIONS_SUMMARY_MF: "/referrals/transactions-summary-mf",
   
+  // Goal Cards
+  GOAL_CARDS: "/referrals/goal-cards",
+  GOALS_BY_CATEGORY: "/referrals/goals-by-category",
+  BEHIND_GOALS_LIST: "/referrals/behind-goals-list",
+  
+  // Packages Analytics
+  PACKAGES_ANALYTICS: "/referrals/packages-analytics",
+  
   // Charts & Reports
   SALE_ENDPOINT: "/referrals/sales-report",
   SALES_REPORT_MF: "/referrals/sales-report-mf",

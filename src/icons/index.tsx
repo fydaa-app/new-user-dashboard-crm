@@ -63,6 +63,7 @@ import LeaderboardIcon from "./leaderboard.svg";
 import SettingIcon from "./setting.svg";
 import ShoppingCartIcon from "./shopping-cart.svg";
 import SipIcon from "./mdi_shopping-outline.svg";
+import CrmIcon from "./mdi_message-processing-outline.svg";
 import OrderIconBlue from "./orderblue.svg";
 import OrderIconGreen from "./ordergreen.svg";
 import OrderIconYellow from "./orderyellow.svg";
@@ -145,5 +146,6 @@ export {
   OrderIconPurple,
   OrderIconRed,
   OrderIconYellow,
-  InvestorIcon
+  InvestorIcon,
+  CrmIcon
 };

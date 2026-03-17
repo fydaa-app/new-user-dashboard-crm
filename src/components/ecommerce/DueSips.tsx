@@ -81,13 +81,14 @@ export default function DueSips({
             />
           </div>
         )}
-        <div className="relative w-48 z-50 md:basis-1/3 md:flex md:justify-end">
+        <div className="relative w-48 md:basis-1/3 md:flex md:justify-end">
           <Select 
             options={periodOptions}
             placeholder="Select Period"
             onChange={handlePeriodChange}
             value={selectedPeriod || null}
             className="dark:bg-dark-900"
+            menuZIndex={50}
           />
           <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
             <ChevronDownIcon/>

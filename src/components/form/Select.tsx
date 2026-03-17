@@ -15,6 +15,7 @@ interface SelectProps {
   value?: string | null;
   isDisabled?: boolean;
   menuAlign?: 'left' | 'right'; // New prop for alignment
+  menuZIndex?: number;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -26,6 +27,7 @@ const Select: React.FC<SelectProps> = ({
   value,
   isDisabled = false,
   menuAlign = 'left', // Default to left alignment
+  menuZIndex = 100000,
 }) => {
   const [selectedValue, setSelectedValue] = useState<string>(() => {
     if (value !== undefined && value !== null) return value;
@@ -63,18 +65,38 @@ const Select: React.FC<SelectProps> = ({
   }, [isOpen]);
 
   // Calculate dropdown position for portal rendering
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number | 'auto'; left: number; width: number; bottom: number | 'auto' }>({ top: 0, left: 0, width: 0, bottom: 'auto' });
 
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const updatePosition = () => {
         if (buttonRef.current) {
           const rect = buttonRef.current.getBoundingClientRect();
-          setDropdownPosition({
-            top: rect.bottom + 4,
-            left: rect.left,
-            width: rect.width,
-          });
+          const viewportHeight = window.innerHeight;
+          const dropdownHeight = 384; // max-h-96 = 384px
+          const spaceBelow = viewportHeight - rect.bottom;
+          const spaceAbove = rect.top;
+          
+          // Open upward if not enough space below AND more space above
+          const openUpward = spaceBelow < dropdownHeight + 50 && spaceAbove > spaceBelow;
+          
+          if (openUpward) {
+            // Position from bottom when opening upward
+            setDropdownPosition({
+              top: 'auto',
+              left: rect.left,
+              width: rect.width,
+              bottom: viewportHeight - rect.top + 4,
+            });
+          } else {
+            // Position from top when opening downward
+            setDropdownPosition({
+              top: rect.bottom + 4,
+              left: rect.left,
+              width: rect.width,
+              bottom: 'auto',
+            });
+          }
         }
       };
       updatePosition();
@@ -104,9 +126,11 @@ const Select: React.FC<SelectProps> = ({
   const dropdownMenu = isOpen && (
     <div 
       ref={menuRef}
-      className={`fixed z-[100000] bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto`}
+      className={`fixed bg-white border border-gray-300 rounded-lg shadow-lg dark:bg-gray-900 dark:border-gray-700 max-h-96 overflow-y-auto`}
       style={{
-        top: `${dropdownPosition.top}px`,
+        zIndex: menuZIndex,
+        top: dropdownPosition.top !== 'auto' ? `${dropdownPosition.top}px` : 'auto',
+        bottom: dropdownPosition.bottom !== 'auto' ? `${dropdownPosition.bottom}px` : 'auto',
         left: menuAlign === 'right' ? 'auto' : `${dropdownPosition.left}px`,
         right: menuAlign === 'right' ? `${window.innerWidth - dropdownPosition.left - dropdownPosition.width}px` : 'auto',
         width: `${dropdownPosition.width}px`,
