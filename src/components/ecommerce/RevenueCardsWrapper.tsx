@@ -102,6 +102,7 @@ const RevenueCardsWrapper = () => {
         targetPercentage={revenueData.targetPercentage}
         monthlyTargetPercentage={revenueData.monthlyTargetPercentage}
         timeframe={selectedOption || "monthly"}
+        customDates={customDates}
         loading={loading}
       />
     </>

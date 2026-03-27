@@ -25,6 +25,7 @@ export default function TopPackagesMf() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function TopPackagesMf() {
         const data: TopPackagesResponse = await response.json();
         setTopPackages(data.packageWiseData);
         setTotalAmount(data.totalAmount);
+        setTotalUsersCount(data.totalUsers);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -91,7 +93,7 @@ export default function TopPackagesMf() {
         </h3>
         {totalAmount > 0 && (
           <p className="text-sm text-gray-500 dark:text-white/70">
-            Total: {formatCurrency(totalAmount)}
+            Total: {formatCurrency(totalAmount)} | Users: {totalUsersCount}
           </p>
         )}
       </div>
