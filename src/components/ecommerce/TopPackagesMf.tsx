@@ -76,6 +76,13 @@ export default function TopPackagesMf() {
     fetchTopPackages();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
       <div className="flex justify-between margin-bottom-20">
@@ -84,7 +91,7 @@ export default function TopPackagesMf() {
         </h3>
         {totalAmount > 0 && (
           <p className="text-sm text-gray-500 dark:text-white/70">
-            Total: ₹{totalAmount.toLocaleString()}
+            Total: {formatCurrency(totalAmount)}
           </p>
         )}
       </div>
@@ -99,25 +106,24 @@ export default function TopPackagesMf() {
         <div className="space-y-5">
           <div className="flex items-center justify-between top-product-rows">
             <div className="flex items-center top-product-col-6">
-              <div className="items-center w-full rounded-full max-w-8">
-                <p>#</p>
-              </div>
-              <div>
-                <p className="font-semibold text-gray-500 text-theme-sm dark:text-white/90">
-                  Package Name
-                </p>              
-              </div>
+              <p className="w-6 text-center">#</p>
+              <p className="ml-4 font-semibold text-gray-500 text-theme-sm dark:text-white/90">
+                Package Name
+              </p>              
             </div>
 
-            <div className="flex w-full max-w-[200px] items-center top-product-col-6">
-              <div className="w-full text-gray-500 text-xs">
-                Revenue Share
+            <div className="flex w-full max-w-[260px] items-center top-product-col-6">
+              <div className="h-1 w-full flex items-center">
+                <span className="text-gray-500 text-xs">Revenue Share</span>
               </div>
-              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 w-16 text-xs">
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-20 text-xs">
                 Amount
               </p>
-              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 w-12 text-xs">
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-12 text-xs">
                 Users
+              </p>
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-16 text-xs">
+                Percentage
               </p>
             </div>
           </div>
@@ -131,7 +137,7 @@ export default function TopPackagesMf() {
                 </p>
               </div>
 
-              <div className="flex w-full max-w-[200px] items-center top-product-col-6">   
+              <div className="flex w-full max-w-[260px] items-center top-product-col-6">   
                 <div className="relative block h-1 w-full rounded-sm bg-gray-200 dark:bg-gray-800">                    
                   <div 
                     className="absolute left-0 top-0 flex h-full items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white" 
@@ -139,11 +145,14 @@ export default function TopPackagesMf() {
                   >                    
                   </div>
                 </div>
-                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-16 text-xs">
-                  {pkg.userPercentage}%
+                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-20 text-xs">
+                  {formatCurrency(pkg.totalAmount)}
                 </p>
                 <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-12 text-xs">
                   {pkg.userCount}
+                </p>
+                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-16 text-xs">
+                  {pkg.userPercentage}%
                 </p>
               </div>
             </div>

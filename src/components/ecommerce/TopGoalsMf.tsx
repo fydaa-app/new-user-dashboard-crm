@@ -7,14 +7,25 @@ interface TopGoal {
   goalId: number;
   goalName: string;
   userCount: number;
+  totalRevenue: number;
   percentage: number;
+  amountPercentage: number;
+}
+
+interface TopGoalsResponse {
+  employeeId: number;
+  employeeName: string;
+  timeframe: string;
+  totalUsers: number;
+  totalRevenue: number;
+  goalInvestmentData: TopGoal[];
 }
 
 export default function TopGoalsMf() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
 
   useEffect(() => {
@@ -53,9 +64,9 @@ export default function TopGoalsMf() {
           throw new Error("Failed to fetch top goals");
         }
 
-        const data = await response.json();
-        setTopGoals(data.goalInvestmentData as TopGoal[]); // Get the goal investment data
-        setTotalUsers(data.totalUsers || 0); 
+        const data: TopGoalsResponse = await response.json();
+        setTopGoals(data.goalInvestmentData);
+        setTotalAmount(data.totalRevenue);
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -66,19 +77,25 @@ export default function TopGoalsMf() {
     fetchTopGoals();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
+  const formatCurrency = (value: number): string =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(value);
+
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
       <div className="flex justify-between margin-bottom-20">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Top Goals
         </h3>
-        {totalUsers > 0 && (
+        {totalAmount > 0 && (
           <p className="text-sm text-gray-500 dark:text-white/70">
-            Total: {totalUsers.toLocaleString()} {totalUsers === 1 ? 'User' : 'Users'}
+            Total: {formatCurrency(totalAmount)}
           </p>
         )}
       </div>
-
 
       {loading ? (
         <p className="text-gray-500">Loading...</p>
@@ -88,28 +105,29 @@ export default function TopGoalsMf() {
         <p className="text-gray-500">No goal investment data found</p>
       ) : (
         <div className="space-y-5">
-
-        <div className="flex items-center justify-between top-product-rows">
-          <div className="flex items-center top-product-col-6">
-            <div className="items-center w-full rounded-full max-w-8">
-              <p>#</p>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500 text-theme-sm dark:text-white/90">
+          <div className="flex items-center justify-between top-product-rows">
+            <div className="flex items-center top-product-col-6">
+              <p className="w-6 text-center">#</p>
+              <p className="ml-4 font-semibold text-gray-500 text-theme-sm dark:text-white/90">
                 Goal Name
               </p>              
             </div>
-          </div>
 
-          <div className="flex w-full max-w-[180px] items-center top-product-col-6">
-            <div className="w-full text-gray-500">
-              Popularity
+            <div className="flex w-full max-w-[260px] items-center top-product-col-6">
+              <div className="h-1 w-full flex items-center">
+                <span className="text-gray-500 text-xs">Revenue Share</span>
+              </div>
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-20 text-xs">
+                Amount
+              </p>
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-12 text-xs">
+                Users
+              </p>
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-16 text-xs">
+                Percentage
+              </p>
             </div>
-            <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 w-20">
-              Users (%)
-            </p>
           </div>
-        </div>
 
           {topGoals.map((goal, index) => (
             <div key={goal.goalId} className="flex items-center justify-between top-product-rows">
@@ -120,17 +138,22 @@ export default function TopGoalsMf() {
                 </p>
               </div>
 
-              <div className="flex w-full max-w-[180px] items-center top-product-col-6">   
+              <div className="flex w-full max-w-[260px] items-center top-product-col-6">   
                 <div className="relative block h-1 w-full rounded-sm bg-gray-200 dark:bg-gray-800">                    
                   <div 
                     className="absolute left-0 top-0 flex h-full items-center justify-center rounded-sm bg-brand-500 text-xs font-medium text-white" 
-                    style={{ width: `${Math.max(goal.percentage, 5)}%` }}
+                    style={{ width: `${Math.max(goal.amountPercentage, 5)}%` }}
                   >                    
                   </div>
                 </div>
-                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2">{goal.percentage}%</p>        
-                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2">
+                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-20 text-xs">
+                  {formatCurrency(goal.totalRevenue)}
+                </p>
+                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-12 text-xs">
                   {goal.userCount}
+                </p>
+                <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90 count-products ml-2 w-16 text-xs">
+                  {goal.percentage}%
                 </p>
               </div>
             </div>
