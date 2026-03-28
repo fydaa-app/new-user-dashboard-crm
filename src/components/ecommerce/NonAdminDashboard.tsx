@@ -26,6 +26,8 @@ interface CardData {
   redemptions?: number;
   redemptionRate?: number;
   averageTicketSize?: number;
+  invested?: number;
+  returns?: number;
 }
 
 interface SipCardData {
@@ -41,15 +43,12 @@ const NonAdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [aum, setAum] = useState<number>(0);
-  //const [activeSips, setActiveSips] = useState<number>(0);
   const [netInflow, setNetInflow] = useState<number>(0);
   const [redemptions, setRedemptions] = useState<number>(0);
-  //const [redemptionRate, setRedemptionRate] = useState<number>(0);
-  //const [totalUsers, setTotalUsers] = useState<number>(0);
-  //const [activeUsers, setActiveUsers] = useState<number>(0);
   const [newInvestors, setNewInvestors] = useState<number>(0);
- // const [avgTicketSize, setAvgTicketSize] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [invested, setInvested] = useState<number>(0);
+  const [returns, setReturns] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
   const [activeSipsTillDate, setActiveSipsTillDate] = useState<number>(0);
@@ -125,6 +124,12 @@ const NonAdminDashboard = () => {
 
         const redemptionsData = data.find((item) => item.type === "Redemptions");
         setRedemptions(redemptionsData?.redemptions || 0);
+
+        const investedData = data.find((item) => item.type === "Invested");
+        setInvested(investedData?.invested || 0);
+
+        const returnsData = data.find((item) => item.type === "Returns (%)");
+        setReturns(returnsData?.returns || 0);
 
         //const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
         //setRedemptionRate(redemptionRateData?.redemptionRate || 0);
@@ -320,6 +325,15 @@ const NonAdminDashboard = () => {
                   <SalesIconOrange />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(aum)}</h2>
                   <p className="total-sale-text">Total AUM</p>
+                  <p className="text-xs font-medium" style={{ color: "#000000" }}>
+                    <span style={{ color: "#000000" }}>Invested: </span>
+                    <span className="text-green-600">{formatCurrency(invested)}</span>
+                    {" | "}
+                    <span style={{ color: "#000000" }}>Returns: </span>
+                    <span className={returns >= 0 ? "text-green-600" : "text-red-600"}>
+                      {returns?.toFixed(2)}%
+                    </span>
+                  </p>
                   <span className="total-yes"></span>
                 </div>
               </div>

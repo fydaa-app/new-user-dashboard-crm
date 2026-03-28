@@ -32,6 +32,7 @@ interface Transaction {
     firstName: string;
     lastName: string;
     email: string;
+    mobileNumber?: string;
   };
   sipId: number;
   lumpsumId: number | null;
@@ -94,7 +95,7 @@ async function fetchTransactions(
   totalPages?: number;
   cards?: Cards;
 }> {
-  try {
+  try {    
     let queryParams = `page=${page}`;
 
     if (selectedOption === "custom") {

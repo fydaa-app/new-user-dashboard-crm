@@ -28,6 +28,7 @@ interface Transaction {
     firstName: string;
     lastName: string;
     email: string;
+    mobileNumber?: string;
   };
   sipId: number;
   lumpsumId: number | null;
@@ -152,6 +153,9 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                     Email
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Number
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Total Orders
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
@@ -224,6 +228,9 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                           {transaction.userInfo.email}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                          {transaction.userInfo.mobileNumber || '-'}
+                        </TableCell>
+                        <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                           {transaction.totalOrders}
                         </TableCell>
                         <TableCell className="px-4 py-3 text-green-600 dark:text-green-400 text-start text-theme-sm font-semibold">
@@ -251,7 +258,7 @@ export default function TransactionsTable({ transactions, error }: TransactionsT
                       {/* Expanded Orders Details */}
                       {isExpanded && (
                         <TableRow>
-                          <td colSpan={12} className="px-8 py-4 bg-gray-50 dark:bg-white/[0.02]">
+                          <td colSpan={13} className="px-8 py-4 bg-gray-50 dark:bg-white/[0.02]">
                             <div className="space-y-2">
                               <h4 className="font-semibold text-gray-800 dark:text-white/90 mb-3">
                                 Order Details ({transaction.orders.length} orders)
