@@ -164,8 +164,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       }
       return prev;
     });
-    // Reset employee when designation changes
     setSelectedEmployee(undefined);
+    setSelectedTeamMember(undefined);
   }, []);
 
   const setSelectedEmployee = useCallback((value: string | undefined) => {
