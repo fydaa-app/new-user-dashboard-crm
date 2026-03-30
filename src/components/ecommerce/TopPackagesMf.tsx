@@ -121,7 +121,7 @@ export default function TopPackagesMf() {
                 <span className="text-gray-500 text-xs">Revenue Share</span>
               </div>
               <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-20 text-xs">
-                Amount
+                Revenue
               </p>
               <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 ml-2 w-12 text-xs">
                 Users
