@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { transformPackages } from "@/utils/packageTransform";
 
 interface PackageData {
   packageName: string;
@@ -65,7 +66,8 @@ export default function TopPackagesMf() {
         }
 
         const data: TopPackagesResponse = await response.json();
-        setTopPackages(data.packageWiseData);
+        const transformedPackages = transformPackages(data.packageWiseData);
+        setTopPackages(transformedPackages);
         setTotalAmount(data.totalAmount);
         setTotalUsersCount(data.totalUsers);
       } catch (err) {
