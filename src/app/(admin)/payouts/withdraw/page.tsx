@@ -56,6 +56,11 @@ export default function WithdrawPage() {
       ]);
       setIsAccountSetup(setupStatus);
       setEarnings(earningsData);
+
+      // Pre-fill withdraw amount if withdrawableAmount > 0
+      if (earningsData && earningsData.withdrawableAmount > 0) {
+        setWithdrawAmount(earningsData.withdrawableAmount.toString());
+      }
     };
 
     if (canAccess) {

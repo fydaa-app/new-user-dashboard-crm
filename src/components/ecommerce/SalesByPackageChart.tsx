@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { transformPackages } from "@/utils/packageTransform";
 import dynamic from "next/dynamic";
 
 const ApexCharts = dynamic(() => import("react-apexcharts"), { ssr: false });
@@ -93,8 +94,9 @@ const SalesByPackageChart = () => {
 
         const data: TopPackagesResponse = await response.json();
         console.log("📊 SalesByPackageChart: Received data:", data);
-        setPackageData(data.packageWiseData);
-        console.log("✅ SalesByPackageChart: Updated packageData state:", data.packageWiseData);
+        const transformedPackages = transformPackages(data.packageWiseData);
+        setPackageData(transformedPackages);
+        console.log("✅ SalesByPackageChart: Updated packageData state:", transformedPackages);
       } catch (err) {
         setError((err as Error).message);
       } finally {
