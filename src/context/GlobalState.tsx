@@ -92,6 +92,16 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [hierarchyViewMode, setHierarchyViewModeState] = useState<"team" | "individual">("team");
 
+  // Auto-sync hierarchyViewMode based on selectedType
+  useEffect(() => {
+    const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+    if (typeValue === "team") {
+      setHierarchyViewModeState("team");
+    } else if (typeValue === "individual" || typeValue === "member") {
+      setHierarchyViewModeState("individual");
+    }
+  }, [selectedType]);
+
   const setSelectedOption = useCallback((value: string) => {
     setSelectedOptionState(prev => {
       if (value !== prev) {

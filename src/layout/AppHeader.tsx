@@ -75,8 +75,6 @@ const AppHeader: React.FC = () => {
     setSelectedTeamMember,
     selectedType,
     setSelectedType,
-    hierarchyViewMode,
-    setHierarchyViewMode,
     appType,
     setAppType
   } = useGlobalContext();
@@ -94,10 +92,10 @@ const AppHeader: React.FC = () => {
   }
   const isPartner = userRole === "5";
 
-  // Check if type is team
+  // Check if type is team or member (both show hierarchy dropdowns)
   const isTeamType = Array.isArray(selectedType) 
-    ? selectedType.includes("team") 
-    : selectedType === "team";
+    ? selectedType.includes("team") || selectedType.includes("member")
+    : selectedType === "team" || selectedType === "member";
 
   // Fetch designations on component mount
   useEffect(() => {
@@ -178,17 +176,21 @@ const AppHeader: React.FC = () => {
 
           console.log('[DEBUG] get-employees-designation response:', response.data);
 
-          if (response.ok && response.data.success) {
+            if (response.ok && response.data.success) {
             const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
             console.log('[DEBUG] Sorted hierarchy levels:', sortedLevels);
             
             console.log('[DEBUG] Setting hierarchyLevels to:', sortedLevels);
             setHierarchyLevels(sortedLevels);
             
-            console.log('[DEBUG] Clearing teamSelections, teamEmployees, loadingLevels');
-            setTeamSelections({});
-            setTeamEmployees({});
-            setLoadingLevels({});
+            // Only clear selections when first loading team type (not when switching team <-> member)
+            const currentType = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+            if (currentType === "team") {
+              console.log('[DEBUG] Clearing teamSelections, teamEmployees, loadingLevels');
+              setTeamSelections({});
+              setTeamEmployees({});
+              setLoadingLevels({});
+            }
             
             if (sortedLevels.length > 0) {
               console.log('[DEBUG] About to fetch employees for first level:', sortedLevels[0].level);
@@ -202,14 +204,8 @@ const AppHeader: React.FC = () => {
       };
 
       fetchHierarchyLevels();
-    } else {
-      console.log('[DEBUG] useEffect NOT TRIGGERED - selectedEmployee:', selectedEmployee, 'isTeamType:', isTeamType);
-      console.log('[DEBUG] Clearing all hierarchy state');
-      setHierarchyLevels([]);
-      setTeamSelections({});
-      setTeamEmployees({});
-      setLoadingLevels({});
     }
+    // Don't clear in else block - let handleTypeChange handle individual clearing
   }, [selectedEmployee, isTeamType]);
 
   // Fetch employees for a specific hierarchy level
@@ -440,6 +436,7 @@ const AppHeader: React.FC = () => {
 
   const typeOptions = [
     { value: "team", label: "Team" },
+    { value: "member", label: "Member" },
     { value: "individual", label: "Individual" }
   ];
 
@@ -471,19 +468,15 @@ const AppHeader: React.FC = () => {
   const handleTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
       setSelectedType([option.value]);
-      // Reset team selections when type changes
-      if (option.value !== "team") {
+      if (option.value === "individual") {
+        setSelectedEmployee("");
+        setSelectedTeamMember(undefined);
         setTeamSelections({});
         setTeamEmployees({});
         setHierarchyLevels([]);
-        setSelectedTeamMember(undefined);
       }
     }
-  }, [setSelectedType, setSelectedTeamMember]);
-
-  const handleHierarchyViewModeToggle = useCallback(() => {
-    setHierarchyViewMode(hierarchyViewMode === "team" ? "individual" : "team");
-  }, [hierarchyViewMode, setHierarchyViewMode]);
+  }, [setSelectedType, setSelectedTeamMember, setSelectedEmployee]);
 
   const handleAppTypeChange = useCallback((option: { value: string; label: string } | null) => {
     if (option) {
@@ -619,52 +612,14 @@ const AppHeader: React.FC = () => {
                     <ChevronDownIcon/>
                   </span>
                 </div>
-              )}              {/* Visual Indicator and Toggle for Hierarchy Selection */}
-              {isTeamType && selectedTeamMember && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 flex-shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                      Viewing: {hierarchyViewMode === "team" ? "Team" : "Individual"}
-                    </span>
-                    <button
-                      onClick={handleHierarchyViewModeToggle}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        hierarchyViewMode === "individual" 
-                          ? "bg-blue-600" 
-                          : "bg-gray-300 dark:bg-gray-600"
-                      }`}
-                      title={`Switch to ${hierarchyViewMode === "team" ? "Individual" : "Team"} view`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          hierarchyViewMode === "individual" ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
-                </div>
               )}
-
-
 
               {/* Dynamic Team Hierarchy Dropdowns */}
               {isTeamType && hierarchyLevels.map((hierarchy, index) => {
                 const previousLevel = index > 0 ? hierarchyLevels[index - 1].level : null;
                 const shouldShow = index === 0 || (previousLevel !== null && teamSelections[previousLevel]);
                 
-                console.log(`[DEBUG RENDER] ═══════════════════════════════════════════════════════════`);
-                console.log(`[DEBUG RENDER] LOOP index: ${index}`);
-                console.log(`[DEBUG RENDER] hierarchy level: ${hierarchy.level}, name: ${hierarchy.hierarchyName}`);
-                console.log(`[DEBUG RENDER] previousLevel: ${previousLevel}, index === 0: ${index === 0}`);
-                console.log(`[DEBUG RENDER] teamSelections[${previousLevel}]: ${teamSelections[previousLevel]}`);
-                console.log(`[DEBUG RENDER] shouldShow calculation: ${index === 0} || (${previousLevel} !== null && ${teamSelections[previousLevel]}) = ${shouldShow}`);
-                console.log(`[DEBUG RENDER] teamSelections:`, teamSelections);
-                console.log(`[DEBUG RENDER] teamEmployees:`, teamEmployees);
-                console.log(`[DEBUG RENDER] loadingLevels:`, loadingLevels);
-                console.log(`[DEBUG RENDER] teamEmployees[${hierarchy.level}]:`, teamEmployees[hierarchy.level]);
-                
                 if (!shouldShow) {
-                  console.log(`[DEBUG RENDER] NOT rendering dropdown for level ${hierarchy.level} - shouldShow is false`);
                   return null;
                 }
 

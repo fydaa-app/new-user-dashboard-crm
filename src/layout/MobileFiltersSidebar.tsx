@@ -44,12 +44,11 @@ const MobileFiltersSidebar: React.FC = () => {
     setSelectedDesignation,
     selectedEmployee,
     setSelectedEmployee,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     selectedTeamMember,
     setSelectedTeamMember,
     selectedType,
     setSelectedType,
-    hierarchyViewMode,
-    setHierarchyViewMode,
     selectedOption,
     setSelectedOption,
     customDates,
@@ -78,8 +77,8 @@ const MobileFiltersSidebar: React.FC = () => {
   const [endDate, setEndDate] = useState("");
 
   const isTeamType = Array.isArray(selectedType)
-    ? selectedType.includes("team")
-    : selectedType === "team";
+    ? selectedType.includes("team") || selectedType.includes("member")
+    : selectedType === "team" || selectedType === "member";
 
   // Fetch designations on mount
   useEffect(() => {
@@ -158,9 +157,14 @@ const MobileFiltersSidebar: React.FC = () => {
           if (response.ok && response.data.success) {
             const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
             setHierarchyLevels(sortedLevels);
-            setTeamSelections({});
-            setTeamEmployees({});
-            setLoadingLevels({});
+            
+            // Only clear selections when first loading team type
+            const currentType = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+            if (currentType === "team") {
+              setTeamSelections({});
+              setTeamEmployees({});
+              setLoadingLevels({});
+            }
 
             if (sortedLevels.length > 0) {
               fetchTeamEmployeesForLevel(sortedLevels[0].level, selectedEmployee);
@@ -173,12 +177,8 @@ const MobileFiltersSidebar: React.FC = () => {
       };
 
       fetchHierarchyLevels();
-    } else {
-      setHierarchyLevels([]);
-      setTeamSelections({});
-      setTeamEmployees({});
-      setLoadingLevels({});
     }
+    // Don't clear in else block - let handleTypeChange handle individual clearing
   }, [selectedEmployee, isTeamType]);
 
   // Fetch employees for a specific hierarchy level
@@ -244,15 +244,16 @@ const MobileFiltersSidebar: React.FC = () => {
     (option: { value: string; label: string } | null) => {
       if (option) {
         setSelectedType([option.value]);
-        if (option.value !== "team") {
+        if (option.value === "individual") {
+          setSelectedEmployee("");
+          setSelectedTeamMember(undefined);
           setTeamSelections({});
           setTeamEmployees({});
           setHierarchyLevels([]);
-          setSelectedTeamMember(undefined);
         }
       }
     },
-    [setSelectedType, setSelectedTeamMember]
+    [setSelectedType, setSelectedTeamMember, setSelectedEmployee]
   );
 
   const handleAppTypeChange = useCallback(
@@ -263,10 +264,6 @@ const MobileFiltersSidebar: React.FC = () => {
     },
     [setAppType]
   );
-
-  const handleHierarchyViewModeToggle = useCallback(() => {
-    setHierarchyViewMode(hierarchyViewMode === "team" ? "individual" : "team");
-  }, [hierarchyViewMode, setHierarchyViewMode]);
 
   // Handle team employee selection at a specific level
   const handleTeamEmployeeChange = useCallback(
@@ -558,32 +555,6 @@ const MobileFiltersSidebar: React.FC = () => {
                   <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-[2.35rem] dark:text-gray-400">
                     <ChevronDownIcon />
                   </span>
-                </div>
-              )}
-
-              {/* Visual Indicator and Toggle for Hierarchy Selection */}
-              {isTeamType && (selectedTeamMember || selectedEmployee) && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                      Viewing: {hierarchyViewMode === "team" ? "Team" : "Individual"}
-                    </span>
-                    <button
-                      onClick={handleHierarchyViewModeToggle}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                        hierarchyViewMode === "individual" 
-                          ? "bg-blue-600" 
-                          : "bg-gray-300 dark:bg-gray-600"
-                      }`}
-                      title={`Switch to ${hierarchyViewMode === "team" ? "Individual" : "Team"} view`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          hierarchyViewMode === "individual" ? "translate-x-6" : "translate-x-1"
-                        }`}
-                      />
-                    </button>
-                  </div>
                 </div>
               )}
 
