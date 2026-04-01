@@ -35,6 +35,7 @@ interface HierarchyLevel {
 
 const typeOptions = [
   { value: "team", label: "Team" },
+  { value: "member", label: "Member" },
   { value: "individual", label: "Individual" },
 ];
 
@@ -574,7 +575,7 @@ const MobileFiltersSidebar: React.FC = () => {
                   return (
                     <div key={`mobile-hierarchy-${hierarchy.level}`} className="relative">
                       <label className="block mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
-                        {hierarchy.hierarchyName}
+                        Employee
                       </label>
                       <Select
                         options={teamEmployees[hierarchy.level] || []}
