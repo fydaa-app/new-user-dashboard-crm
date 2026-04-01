@@ -23,13 +23,22 @@ interface DesignationItem {
 interface EmployeeItem {
   id: number;
   name: string;
-  role?: string;
+  role?: number;
 }
 
 interface HierarchyLevel {
   hierarchyName: string;
   level: number;
 }
+
+const ROLE_NAMES: { [key: number]: string } = {
+  0: "Admin",
+  1: "National Manager",
+  2: "Zonal Manager",
+  3: "Area Manager",
+  4: "Sales Manager",
+  5: "Partner"
+};
 
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
@@ -44,7 +53,7 @@ const AppHeader: React.FC = () => {
   // Team hierarchy states
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
   const [teamSelections, setTeamSelections] = useState<{[key: number]: string}>({});
-  const [teamEmployees, setTeamEmployees] = useState<{[key: number]: {value: string, label: string}[]}>({});
+  const [teamEmployees, setTeamEmployees] = useState<{[key: number]: {value: string, label: string, secondaryLabel?: string}[]}>({});
   const [loadingLevels, setLoadingLevels] = useState<{[key: number]: boolean}>({});
 
   const { 
@@ -130,9 +139,14 @@ const AppHeader: React.FC = () => {
             const employeeOptions = response.data.data
               .map((item: EmployeeItem) => ({
                 value: item.id.toString(),
-                label: item.name
+                label: item.name,
+                secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
               }))
-              .sort((a, b) => a.label.localeCompare(b.label));
+              .sort((a, b) => {
+                const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+                if (roleCompare !== 0) return roleCompare;
+                return a.label.localeCompare(b.label);
+              });
             setEmployees(employeeOptions);
           }
         } catch (error) {
@@ -155,29 +169,42 @@ const AppHeader: React.FC = () => {
     if (selectedEmployee && isTeamType) {
       const fetchHierarchyLevels = async () => {
         try {
+          console.log('[DEBUG] ═══════════════════════════════════════════════════════════');
+          console.log('[DEBUG] useEffect TRIGGERED - selectedEmployee:', selectedEmployee, 'isTeamType:', isTeamType);
+          console.log('[DEBUG] Fetching hierarchy levels for employee:', selectedEmployee);
           const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
             `/referrals/get-employees-designation/${selectedEmployee}`
           );
 
+          console.log('[DEBUG] get-employees-designation response:', response.data);
+
           if (response.ok && response.data.success) {
             const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
+            console.log('[DEBUG] Sorted hierarchy levels:', sortedLevels);
+            
+            console.log('[DEBUG] Setting hierarchyLevels to:', sortedLevels);
             setHierarchyLevels(sortedLevels);
+            
+            console.log('[DEBUG] Clearing teamSelections, teamEmployees, loadingLevels');
             setTeamSelections({});
             setTeamEmployees({});
             setLoadingLevels({});
             
             if (sortedLevels.length > 0) {
+              console.log('[DEBUG] About to fetch employees for first level:', sortedLevels[0].level);
               fetchTeamEmployeesForLevel(sortedLevels[0].level, selectedEmployee);
             }
           }
         } catch (error) {
-          console.error("Failed to fetch hierarchy levels:", error);
+          console.error("[DEBUG] Failed to fetch hierarchy levels:", error);
           setHierarchyLevels([]);
         }
       };
 
       fetchHierarchyLevels();
     } else {
+      console.log('[DEBUG] useEffect NOT TRIGGERED - selectedEmployee:', selectedEmployee, 'isTeamType:', isTeamType);
+      console.log('[DEBUG] Clearing all hierarchy state');
       setHierarchyLevels([]);
       setTeamSelections({});
       setTeamEmployees({});
@@ -190,18 +217,27 @@ const AppHeader: React.FC = () => {
     setLoadingLevels(prev => ({ ...prev, [level]: true }));
     
     try {
+      console.log(`[DEBUG] fetchTeamEmployeesForLevel - level: ${level}, employeeId: ${employeeId}`);
       const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(
         `/referrals/get-manager-wise-employes/${employeeId}`
       );
+
+      console.log(`[DEBUG] get-manager-wise-employes/${employeeId} response:`, response.data);
 
       if (response.ok && response.data.success) {
         const employeeOptions = response.data.data
           .map((item: EmployeeItem) => ({
             value: item.id.toString(),
-            label: item.name
+            label: item.name,
+            secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
           }))
-          .sort((a, b) => a.label.localeCompare(b.label));
+          .sort((a, b) => {
+            const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+            if (roleCompare !== 0) return roleCompare;
+            return a.label.localeCompare(b.label);
+          });
         
+        console.log(`[DEBUG] Employee options for level ${level}:`, employeeOptions);
         setTeamEmployees(prev => ({
           ...prev,
           [level]: employeeOptions
@@ -218,38 +254,78 @@ const AppHeader: React.FC = () => {
     }
   }, []);
 
+  // Fetch hierarchy levels for a specific employee (used when selecting from hierarchy dropdowns)
+  const fetchHierarchyLevelsForEmployee = useCallback(async (employeeId: string) => {
+    try {
+      console.log(`[DEBUG] fetchHierarchyLevelsForEmployee - employeeId: ${employeeId}`);
+      const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
+        `/referrals/get-employees-designation/${employeeId}`
+      );
+
+      console.log(`[DEBUG] get-employees-designation/${employeeId} response:`, response.data);
+
+      if (response.ok && response.data.success) {
+        const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
+        console.log(`[DEBUG] New hierarchy levels for employee ${employeeId}:`, sortedLevels);
+        return sortedLevels;
+      }
+    } catch (error) {
+      console.error("Failed to fetch hierarchy levels:", error);
+    }
+    return [];
+  }, []);
+
   // Handle team employee selection at a specific level
   const handleTeamEmployeeChange = useCallback((level: number, option: { value: string; label: string } | null) => {
     const newValue = option?.value || "";
+    console.log(`[DEBUG] ═══════════════════════════════════════════════════════════`);
+    console.log(`[DEBUG] handleTeamEmployeeChange START - level: ${level}, selected value: '${newValue}'`);
+    console.log(`[DEBUG] Current hierarchyLevels BEFORE:`, hierarchyLevels);
+    console.log(`[DEBUG] Current teamSelections BEFORE:`, teamSelections);
+    console.log(`[DEBUG] Current teamEmployees BEFORE:`, teamEmployees);
     
+    // Update teamSelections
+    console.log(`[DEBUG] STEP 1: About to update teamSelections`);
     setTeamSelections(prev => {
       const updated = { ...prev, [level]: newValue };
-      
-      // Clear subsequent levels
-      hierarchyLevels.forEach((hl) => {
-        if (hl.level > level) {
-          delete updated[hl.level];
-        }
-      });
-      
+      console.log(`[DEBUG] STEP 1: teamSelections set to:`, updated);
       return updated;
     });
 
-    // Clear subsequent level data
+    // Clear subsequent levels from teamSelections
+    console.log(`[DEBUG] STEP 2: About to clear subsequent levels from teamSelections`);
+    setTeamSelections(prev => {
+      const updated = { ...prev };
+      hierarchyLevels.forEach((hl) => {
+        if (hl.level > level) {
+          console.log(`[DEBUG] STEP 2: Deleting level ${hl.level} from teamSelections`);
+          delete updated[hl.level];
+        }
+      });
+      console.log(`[DEBUG] STEP 2: teamSelections AFTER CLEAR:`, updated);
+      return updated;
+    });
+
+    // Clear subsequent level data from teamEmployees
+    console.log(`[DEBUG] STEP 3: About to clear teamEmployees for levels > ${level}`);
     setTeamEmployees(prev => {
       const updated = { ...prev };
       hierarchyLevels.forEach((hl) => {
         if (hl.level > level) {
+          console.log(`[DEBUG] STEP 3: Deleting level ${hl.level} from teamEmployees`);
           delete updated[hl.level];
         }
       });
+      console.log(`[DEBUG] STEP 3: teamEmployees AFTER CLEAR:`, updated);
       return updated;
     });
 
+    console.log(`[DEBUG] STEP 4: About to clear loadingLevels`);
     setLoadingLevels(prev => {
       const updated = { ...prev };
       hierarchyLevels.forEach((hl) => {
         if (hl.level > level) {
+          console.log(`[DEBUG] STEP 4: Deleting level ${hl.level} from loadingLevels`);
           delete updated[hl.level];
         }
       });
@@ -257,25 +333,82 @@ const AppHeader: React.FC = () => {
     });
 
     // Update selectedTeamMember to trigger dashboard updates
-    // This keeps the main employee dropdown unchanged
     if (newValue) {
+      console.log(`[DEBUG] Setting selectedTeamMember to: ${newValue}`);
       setSelectedTeamMember(newValue);
     } else {
+      console.log(`[DEBUG] Clearing selectedTeamMember`);
       setSelectedTeamMember(undefined);
     }
 
     // Check if this is the last level in hierarchy
     const currentIndex = hierarchyLevels.findIndex(hl => hl.level === level);
     const isLastLevel = currentIndex === hierarchyLevels.length - 1;
+    console.log(`[DEBUG] currentIndex: ${currentIndex}, isLastLevel: ${isLastLevel}`);
 
     // Fetch next level employees if selection exists and not last level
     if (newValue && !isLastLevel) {
       if (currentIndex !== -1 && currentIndex < hierarchyLevels.length - 1) {
         const nextLevel = hierarchyLevels[currentIndex + 1];
+        console.log(`[DEBUG] ═══════════════════════════════════════════════════════════`);
+        console.log(`[DEBUG] FETCHING NEXT LEVEL - nextLevel: ${nextLevel.level}, employeeId: ${newValue}`);
+        
+        // First: Fetch employees for next level
         fetchTeamEmployeesForLevel(nextLevel.level, newValue);
+        
+        // Second: Fetch fresh hierarchy levels for the newly selected employee
+        fetchHierarchyLevelsForEmployee(newValue).then((newLevels) => {
+          console.log(`[DEBUG] fetchHierarchyLevelsForEmployee returned:`, newLevels);
+          if (newLevels.length > 0) {
+            console.log(`[DEBUG] ═══════════════════════════════════════════════════════════`);
+            console.log(`[DEBUG] ABOUT TO UPDATE hierarchyLevels`);
+            console.log(`[DEBUG] OLD hierarchyLevels:`, hierarchyLevels);
+            console.log(`[DEBUG] NEW hierarchyLevels (from API):`, newLevels);
+            
+            // Keep ALL original levels AND add new levels from API
+            // But filter out duplicates by level to avoid React key errors
+            const combinedLevels = [
+              ...hierarchyLevels,
+              ...newLevels.filter(newLevel => 
+                !hierarchyLevels.some(existing => existing.level === newLevel.level)
+              )
+            ];
+            
+            console.log(`[DEBUG] COMBINED hierarchyLevels (keeping ALL, no duplicates):`, combinedLevels);
+            setHierarchyLevels(combinedLevels);
+            
+            // Keep current selection plus any existing selections
+            setTeamSelections(prev => {
+              const updated = { ...prev, [level]: newValue };
+              console.log(`[DEBUG] Updated teamSelections:`, updated);
+              return updated;
+            });
+            
+            // Keep existing employees, only clear loadingLevels
+            setLoadingLevels({});
+            
+            // Fetch employees only for levels that don't already have data
+            newLevels.forEach((newLevel) => {
+              const existingEmployees = teamEmployees[newLevel.level];
+              if (!existingEmployees || existingEmployees.length === 0) {
+                console.log(`[DEBUG] FETCHING employees for new level: ${newLevel.level}, employeeId: ${newValue}`);
+                fetchTeamEmployeesForLevel(newLevel.level, newValue);
+              } else {
+                console.log(`[DEBUG] SKIP FETCHING - employees already exist for level: ${newLevel.level}`);
+              }
+            });
+          } else {
+            console.log(`[DEBUG] No new hierarchy levels returned (newLevels is empty)`);
+          }
+        });
       }
+    } else {
+      console.log(`[DEBUG] SKIPPING API CALLS - newValue: '${newValue}', isLastLevel: ${isLastLevel}`);
     }
-  }, [hierarchyLevels, fetchTeamEmployeesForLevel, setSelectedTeamMember]);
+    
+    console.log(`[DEBUG] handleTeamEmployeeChange END`);
+    console.log(`[DEBUG] ═══════════════════════════════════════════════════════════`);
+  }, [hierarchyLevels, fetchTeamEmployeesForLevel, fetchHierarchyLevelsForEmployee, setSelectedTeamMember]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 991) {
@@ -519,10 +652,27 @@ const AppHeader: React.FC = () => {
                 const previousLevel = index > 0 ? hierarchyLevels[index - 1].level : null;
                 const shouldShow = index === 0 || (previousLevel !== null && teamSelections[previousLevel]);
                 
-                if (!shouldShow) return null;
+                console.log(`[DEBUG RENDER] ═══════════════════════════════════════════════════════════`);
+                console.log(`[DEBUG RENDER] LOOP index: ${index}`);
+                console.log(`[DEBUG RENDER] hierarchy level: ${hierarchy.level}, name: ${hierarchy.hierarchyName}`);
+                console.log(`[DEBUG RENDER] previousLevel: ${previousLevel}, index === 0: ${index === 0}`);
+                console.log(`[DEBUG RENDER] teamSelections[${previousLevel}]: ${teamSelections[previousLevel]}`);
+                console.log(`[DEBUG RENDER] shouldShow calculation: ${index === 0} || (${previousLevel} !== null && ${teamSelections[previousLevel]}) = ${shouldShow}`);
+                console.log(`[DEBUG RENDER] teamSelections:`, teamSelections);
+                console.log(`[DEBUG RENDER] teamEmployees:`, teamEmployees);
+                console.log(`[DEBUG RENDER] loadingLevels:`, loadingLevels);
+                console.log(`[DEBUG RENDER] teamEmployees[${hierarchy.level}]:`, teamEmployees[hierarchy.level]);
+                
+                if (!shouldShow) {
+                  console.log(`[DEBUG RENDER] NOT rendering dropdown for level ${hierarchy.level} - shouldShow is false`);
+                  return null;
+                }
 
                 const hasEmployees = teamEmployees[hierarchy.level] && teamEmployees[hierarchy.level].length > 0;
                 const isLoading = loadingLevels[hierarchy.level];
+
+                console.log(`[DEBUG RENDER] hasEmployees: ${hasEmployees}, isLoading: ${isLoading}, index: ${index}`);
+                console.log(`[DEBUG RENDER] About to render dropdown for level ${hierarchy.level}`);
 
                 return (
                   <div key={`hierarchy-${hierarchy.level}`} className="relative w-40 flex-shrink-0">
@@ -533,7 +683,7 @@ const AppHeader: React.FC = () => {
                           ? "Loading..." 
                           : !hasEmployees && index > 0
                           ? `No ${hierarchy.hierarchyName}`
-                          : `Select ${hierarchy.hierarchyName}`
+                          : "Select Employee"
                       }
                       onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}
                       value={teamSelections[hierarchy.level] || null}

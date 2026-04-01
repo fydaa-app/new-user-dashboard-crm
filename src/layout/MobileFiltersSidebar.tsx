@@ -16,8 +16,17 @@ interface DesignationItem {
 interface EmployeeItem {
   id: number;
   name: string;
-  role?: string;
+  role?: number;
 }
+
+const ROLE_NAMES: { [key: number]: string } = {
+  0: "Admin",
+  1: "National Manager",
+  2: "Zonal Manager",
+  3: "Area Manager",
+  4: "Sales Manager",
+  5: "Partner"
+};
 
 interface HierarchyLevel {
   hierarchyName: string;
@@ -54,13 +63,13 @@ const MobileFiltersSidebar: React.FC = () => {
 
   // Local state for dropdown data (same as desktop header)
   const [designations, setDesignations] = useState<{ value: string; label: string }[]>([]);
-  const [employees, setEmployees] = useState<{ value: string; label: string }[]>([]);
+  const [employees, setEmployees] = useState<{ value: string; label: string; secondaryLabel?: string }[]>([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
 
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
   const [teamSelections, setTeamSelections] = useState<{ [key: number]: string }>({});
-  const [teamEmployees, setTeamEmployees] = useState<{ [key: number]: { value: string; label: string }[] }>(
+  const [teamEmployees, setTeamEmployees] = useState<{ [key: number]: { value: string; label: string; secondaryLabel?: string }[] }>(
     {}
   );
   const [loadingLevels, setLoadingLevels] = useState<{ [key: number]: boolean }>({});
@@ -113,8 +122,13 @@ const MobileFiltersSidebar: React.FC = () => {
               .map((item: EmployeeItem) => ({
                 value: item.id.toString(),
                 label: item.name,
+                secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
               }))
-              .sort((a, b) => a.label.localeCompare(b.label));
+              .sort((a, b) => {
+                const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+                if (roleCompare !== 0) return roleCompare;
+                return a.label.localeCompare(b.label);
+              });
             setEmployees(employeeOptions);
           }
         } catch (error) {
@@ -182,8 +196,13 @@ const MobileFiltersSidebar: React.FC = () => {
             .map((item: EmployeeItem) => ({
               value: item.id.toString(),
               label: item.name,
+              secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
             }))
-            .sort((a, b) => a.label.localeCompare(b.label));
+            .sort((a, b) => {
+              const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+              if (roleCompare !== 0) return roleCompare;
+              return a.label.localeCompare(b.label);
+            });
 
           setTeamEmployees((prev) => ({
             ...prev,
@@ -593,7 +612,7 @@ const MobileFiltersSidebar: React.FC = () => {
                             ? "Loading..."
                             : !hasEmployees && index > 0
                             ? `No ${hierarchy.hierarchyName}`
-                            : `Select ${hierarchy.hierarchyName}`
+                            : "Select Employee"
                         }
                         onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}
                         value={teamSelections[hierarchy.level] || null}

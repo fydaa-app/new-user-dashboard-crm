@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 interface Option {
   value: string;
   label: string;
+  secondaryLabel?: string;
 }
 
 interface SelectProps {
@@ -122,6 +123,7 @@ const Select: React.FC<SelectProps> = ({
 
   const selectedOption = options.find((opt) => opt.value === selectedValue);
   const displayText = selectedOption ? selectedOption.label : placeholder;
+  const displaySecondary = selectedOption?.secondaryLabel;
 
   const dropdownMenu = isOpen && (
     <div 
@@ -154,7 +156,10 @@ const Select: React.FC<SelectProps> = ({
               : "text-gray-700 dark:text-gray-400"
           }`}
         >
-          {option.label}
+          <div>{option.label}</div>
+          {option.secondaryLabel && (
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{option.secondaryLabel}</div>
+          )}
         </div>
       ))}
     </div>
@@ -169,13 +174,22 @@ const Select: React.FC<SelectProps> = ({
           type="button"
           onClick={() => !isDisabled && setIsOpen(!isOpen)}
           disabled={isDisabled}
-          className={`h-11 w-full appearance-none rounded-lg border border-gray-300 px-4 py-2.5 pr-11 text-sm text-left shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 overflow-hidden truncate ${
+          className={`h-11 w-full appearance-none rounded-lg border border-gray-300 px-4 py-2.5 pr-11 text-sm text-left shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 overflow-hidden ${
             selectedValue
               ? "text-gray-800 dark:text-white/90"
               : "text-gray-400 dark:text-gray-400"
           } ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          {displayText}
+          {selectedValue ? (
+            <div className="flex flex-col items-start">
+              <span className="truncate">{displayText}</span>
+              {displaySecondary && (
+                <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{displaySecondary}</span>
+              )}
+            </div>
+          ) : (
+            displayText
+          )}
         </button>
       </div>
       {/* Render dropdown menu via portal to escape overflow constraints */}
