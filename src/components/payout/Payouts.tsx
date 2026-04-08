@@ -247,7 +247,7 @@ export default function Payouts({ userRole }: PayoutsProps) {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium mb-2">Balance Earned</p>
+                  <p className="text-white text-sm font-medium mb-2">Balance Withdrawn</p>
                   <p className="text-white text-2xl font-bold">
                     {adminEarnings.totalWithdrawn.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
                   </p>
