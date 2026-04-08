@@ -114,10 +114,13 @@ export const LeadEndpoints = {
 // Partner/Payout Endpoints
 export const PayoutEndpoints = {
   PARTNER_EARNINGS: "/referrals/partner/earnings",
+  PARTNER_EARNINGS_LIST: "/referrals/partner/earnings/list",
   WITHDRAWAL_ACCOUNT_STATUS: "/referrals/partner/withdrawal-account-status",
   SETUP_WITHDRAWAL_ACCOUNT: "/referrals/partner/setup-withdrawal-account",
   WITHDRAW_DIRECT: "/referrals/partner/withdraw-direct",
   CALCULATE_EARNINGS: "/referrals/partner/earnings/calculate",
+  CHECK_PENDING_WITHDRAWALS: "/referrals/partner/withdraw/pending-status",
+  CHECK_WITHDRAWAL_STATUS: "/referrals/partner/withdraw/check-status",
 } as const;
 
 // Mutual Fund Endpoints

@@ -1,5 +1,6 @@
 // components/payout/PayoutListTable.tsx
 import React from "react";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -35,6 +36,8 @@ export default function PayoutListTable({
   error, 
   isLoading
 }: PayoutListTableProps) {
+  const router = useRouter();
+
   return (
     <div className="space-y-4">
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -72,6 +75,9 @@ export default function PayoutListTable({
                     <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                       Onboarding Date
                     </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                      Transactions
+                    </TableCell>
                   </TableRow>
                 </TableHeader>
                 {/* Table Body */}
@@ -102,6 +108,14 @@ export default function PayoutListTable({
                           month: "short",
                           day: "numeric"
                         })}
+                      </TableCell>
+                      <TableCell className="px-4 py-3">
+                        <button
+                          onClick={() => router.push(`/payouts?partnerId=${payout.partnerId}`)}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-theme-sm"
+                        >
+                          View Transactions
+                        </button>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -17,7 +17,7 @@ export default function WithdrawPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [earnings, setEarnings] = useState<{
     totalEarnings: number;
-    availableAmount: number;
+    withdrawnAmount: number;
     withdrawableAmount: number;
   } | null>(null);
   
