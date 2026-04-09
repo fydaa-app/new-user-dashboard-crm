@@ -71,7 +71,7 @@ interface PartnerPayoutApiResponse {
   };
 }
 
-interface PartnerPayoutListItem {
+export interface PartnerPayoutListItem {
   partnerId: number;
   partnerName: string;
   balanceEarned: number;
@@ -79,13 +79,47 @@ interface PartnerPayoutListItem {
   lifetimeEarning: number;
   onboardingDate: string;
 }
+
+export interface EarningsRecord {
+  id: number;
+  employeeId: number;
+  withdrawableAmount: number;
+  withdrawnAmount: number;
+  totalGoalReferrals: number;
+  totalPackageReferrals: number;
+  totalReferrals: number;
+  earningsBreakdown: Array<{
+    userId: number;
+    userName: string;
+    commissionAmount: number;
+    type: string;
+    timestamp: string;
+  }>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface EarningsPagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface EarningsSummary {
+  totalEarnings: number;
+  totalWithdrawn: number;
+  totalWithdrawable: number;
+}
 /**
  * Fetch partner earnings data
  * @param employeeId - Optional employee ID to fetch specific partner's earnings (admin view)
  */
 export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
   totalEarnings: number;
-  availableAmount: number;
+  withdrawnAmount: number;
   withdrawableAmount: number;
 } | null> => {
   try {
@@ -96,7 +130,7 @@ export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
 
     const response = await apiClient.get<{ data: {
       totalEarnings: number;
-      availableAmount: number;
+      withdrawnAmount: number;
       withdrawableAmount: number;
     } }>(endpoint);
     
@@ -105,7 +139,7 @@ export const fetchPartnerEarnings = async (employeeId?: string): Promise<{
     const { data } = response.data;
     return {
       totalEarnings: data?.totalEarnings ?? 0,
-      availableAmount: data?.availableAmount ?? 0,
+      withdrawnAmount: data?.withdrawnAmount ?? 0,
       withdrawableAmount: data?.withdrawableAmount ?? 0,
     };
   } catch (e) {
@@ -226,6 +260,97 @@ export const calculateEarnings = async (): Promise<ApiResponse<Record<string, un
       success: false,
       error: error instanceof Error ? error.message : 'Network error occurred'
     };
+  }
+};
+
+/**
+ * Check if partner has pending withdrawals
+ */
+export const checkPendingWithdrawals = async (): Promise<{
+  hasPending: boolean;
+  pendingCount: number;
+} | null> => {
+  try {
+    const response = await apiClient.get<{ 
+      data: { 
+        hasPending: boolean;
+        pendingCount: number;
+      } 
+    }>(PayoutEndpoints.CHECK_PENDING_WITHDRAWALS);
+    
+    if (!response.ok) return null;
+    return response.data.data;
+  } catch (e) {
+    console.error('Error checking pending withdrawals:', e);
+    return null;
+  }
+};
+
+/**
+ * Check and update withdrawal status from RazorpayX
+ */
+export interface WithdrawalStatusResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    withdrawalId?: string;
+    status?: string;
+  };
+}
+
+export const checkWithdrawalStatus = async (): Promise<WithdrawalStatusResponse | null> => {
+  try {
+    const response = await apiClient.post<WithdrawalStatusResponse>(PayoutEndpoints.CHECK_WITHDRAWAL_STATUS);
+    
+    if (!response.ok) return null;
+    return response.data;
+  } catch (e) {
+    console.error('Error checking withdrawal status:', e);
+    return null;
+  }
+};
+
+/**
+ * Fetch partner earnings list (paginated)
+ */
+export const fetchPartnerEarningsList = async (
+  page: number = 1,
+  limit: number = 10,
+  partnerId?: number
+): Promise<{
+  records: EarningsRecord[];
+  pagination: EarningsPagination | null;
+  summary: EarningsSummary | null;
+  error: string | null;
+}> => {
+  try {
+    let url = `${PayoutEndpoints.PARTNER_EARNINGS_LIST}?page=${page}&limit=${limit}`;
+    if (partnerId) {
+      url += `&partnerId=${partnerId}`;
+    }
+    
+    const response = await apiClient.get<{
+      success: boolean;
+      data: {
+        records: EarningsRecord[];
+        pagination: EarningsPagination;
+        summary: EarningsSummary;
+      }
+    }>(url);
+
+    if (!response.ok) {
+      return { records: [], pagination: null, summary: null, error: "Failed to fetch" };
+    }
+
+    return {
+      records: response.data.data.records || [],
+      pagination: response.data.data.pagination || null,
+      summary: response.data.data.summary || null,
+      error: null
+    };
+  } catch (e) {
+    console.error('Error fetching partner earnings list:', e);
+    return { records: [], pagination: null, summary: null, error: "Error fetching data" };
   }
 };
 

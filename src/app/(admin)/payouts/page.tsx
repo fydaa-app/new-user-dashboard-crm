@@ -1,16 +1,32 @@
 // src/app/(admin)/payouts/page.tsx
 "use client";
 
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Payouts from "@/components/payout/Payouts";
+import { fetchPartnerPayoutList, PartnerPayoutListItem } from "@/services/payoutService";
 
 export default function PayoutsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const partnerIdParam = searchParams.get("partnerId");
   const { user, isLoading } = useAuth();
+
+  const [partnerName, setPartnerName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchPartnerName = async () => {
+      if (partnerIdParam) {
+        const { payouts } = await fetchPartnerPayoutList(1, 100);
+        const partner = payouts.find((p: PartnerPayoutListItem) => p.partnerId === parseInt(partnerIdParam, 10));
+        setPartnerName(partner?.partnerName || `Partner #${partnerIdParam}`);
+      }
+    };
+    fetchPartnerName();
+  }, [partnerIdParam]);
 
   const canAccess = user?.role === '0' || user?.role === '5';
 
@@ -34,9 +50,13 @@ export default function PayoutsPage() {
   
   return (
     <div>
-      <PageBreadcrumb pageTitle="Payouts" />
+      <PageBreadcrumb pageTitle= "Payouts" />
       <div className="space-y-6">
-        <ComponentCard title="Payouts">
+        <ComponentCard title={
+          partnerIdParam 
+            ? `Transactions - ${partnerName}` 
+            : (user?.role === "5" ? "Payouts" : "Payouts - List")
+        }>
           <Payouts userRole={user?.role} />
         </ComponentCard>
       </div>
