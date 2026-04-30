@@ -39,7 +39,18 @@ interface SipCardData {
 }
 
 const NonAdminDashboard = () => {
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, appType } = useGlobalContext();
+  const effectiveType = userAppTypeLock || selectedType || "team";
+  
+  React.useEffect(() => {
+    // console.log('[DEBUG NonAdminDashboard] ===== MOUNT/UPDATE =====');
+    // console.log('[DEBUG NonAdminDashboard] userAppTypeLock:', userAppTypeLock);
+    // console.log('[DEBUG NonAdminDashboard] selectedType:', selectedType);
+    // console.log('[DEBUG NonAdminDashboard] effectiveType:', effectiveType);
+    // console.log('[DEBUG NonAdminDashboard] appType (global):', appType);
+    // console.log('[DEBUG NonAdminDashboard] localStorage appType:', localStorage.getItem('appType'));
+    // console.log('[DEBUG NonAdminDashboard] localStorage userAppTypeLock:', localStorage.getItem('userAppTypeLock'));
+  }, [userAppTypeLock, selectedType, effectiveType, appType]);
   
   const [loading, setLoading] = useState(true);
   const [aum, setAum] = useState<number>(0);
@@ -85,8 +96,7 @@ const NonAdminDashboard = () => {
           url += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const response = await fetch(url, {
@@ -139,7 +149,7 @@ const NonAdminDashboard = () => {
     };
 
     fetchCardsData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
 
   // Fetch till-date data for Client & SIP Metrics (Row 2) - Not affected by date filter
@@ -161,8 +171,7 @@ const NonAdminDashboard = () => {
           cardsUrl += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          cardsUrl += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          cardsUrl += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const cardsResponse = await fetch(cardsUrl, {
@@ -191,8 +200,7 @@ const NonAdminDashboard = () => {
           sipUrl += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          sipUrl += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          sipUrl += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const sipResponse = await fetch(sipUrl, {
@@ -214,7 +222,7 @@ const NonAdminDashboard = () => {
     };
 
     fetchTillDateMetrics();
-  }, [selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
 
   // Fetch SIP data for Active SIPs
@@ -242,8 +250,7 @@ const NonAdminDashboard = () => {
           url += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const response = await fetch(url, {
@@ -270,7 +277,7 @@ const NonAdminDashboard = () => {
     };
 
     fetchSipData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
   // Format currency
   const formatCurrency = (value: number) => {

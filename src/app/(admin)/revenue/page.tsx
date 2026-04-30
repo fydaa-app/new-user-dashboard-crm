@@ -5,8 +5,10 @@ import RevenueCardsWrapper from "@/components/ecommerce/RevenueCardsWrapper";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
 import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import MonthlySalesChartMf from "@/components/ecommerce/MonthlySalesChartMf";
+import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 
 export default function RevenuePage() {
+  useFydaaOnlyPage();
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
       <div className="col-span-12">

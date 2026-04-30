@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiClient } from "@/services/api-client";
@@ -69,6 +70,7 @@ async function fetchPackagesAnalytics(
 }
 
 export default function PackagesPage() {
+  useFydaaOnlyPage();
   const {
     selectedOption,
     customDates,

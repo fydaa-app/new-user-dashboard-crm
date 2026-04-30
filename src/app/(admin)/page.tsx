@@ -24,19 +24,42 @@ import DueSipsWrapper from "@/components/ecommerce/DueSipsWrapper";
 // import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
 
 export default function Ecommerce() {
-  const { appType } = useGlobalContext();
+  const { appType, userAppTypeLock } = useGlobalContext();
   const { user } = useAuth();
+
+  // Use locked app type if set, otherwise use user selection
+  const effectiveAppType = userAppTypeLock || appType;
+
+  // DEBUG: Track all state changes
+  React.useEffect(() => {
+    // console.log('[DEBUG AdminPage] ===== STATE =====');
+    // console.log('[DEBUG AdminPage] user:', user);
+    // console.log('[DEBUG AdminPage] isAdmin:', user?.role === "0");
+    // console.log('[DEBUG AdminPage] appType (from GlobalState):', appType);
+    // console.log('[DEBUG AdminPage] userAppTypeLock (from GlobalState):', userAppTypeLock);
+    // console.log('[DEBUG AdminPage] effectiveAppType:', effectiveAppType);
+    // console.log('[DEBUG AdminPage] localStorage appType:', localStorage.getItem('appType'));
+    // console.log('[DEBUG AdminPage] localStorage userAppTypeLock:', localStorage.getItem('userAppTypeLock'));
+    //const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    // console.log('[DEBUG AdminPage] userInfo.app_type_lock:', userInfo.app_type_lock);
+    // console.log('[DEBUG AdminPage] ======================');
+  }, [user, appType, userAppTypeLock, effectiveAppType]);
+
+  // DEBUG: Track mount
+  React.useEffect(() => {
+    //console.log('[DEBUG AdminPage] ===== MOUNTED =====');
+  }, []);
 
   // Check if user is admin (role "0")
   const isAdmin = user?.role === "0";
 
   // Non-admin users get the new dashboard
-  if (!isAdmin && appType === "Fydaa") {
+  if (!isAdmin && effectiveAppType === "Fydaa") {
     return <NonAdminDashboard />;
   }
 
   // Admin users get the original dashboard
-  if (appType === "Fydaa") {
+  if (effectiveAppType === "Fydaa") {
     return (
       <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
         <div className="col-span-12">
