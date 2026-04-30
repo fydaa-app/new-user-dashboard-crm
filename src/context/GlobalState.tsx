@@ -150,7 +150,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         }
         
         const data = await response.json();
-        const freshLock = data.app_type_lock;
+        const freshLock = data.appLock;
         console.log('[DEBUG GlobalState] Lock status API response:', { freshLock, data });
         
         // Get current cached lock

@@ -57,9 +57,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setToken(authToken);
 
           // Sync app type lock
-          if (userData.app_type_lock) {
-            localStorage.setItem("userAppTypeLock", userData.app_type_lock);
-          } else if (userData.app_type_lock === null) {
+          if (userData.appLock) {
+            localStorage.setItem("userAppTypeLock", userData.appLock);
+          } else if (userData.appLock === null) {
             console.log('[DEBUG AuthContext] Session restore: lock is NULL, removing');
             localStorage.removeItem("userAppTypeLock");
           }
@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname, router, handleLogout]);
 
   // Login function
-  const login = (newToken: string, userData: Employee & { app_type_lock?: string | null }) => {
+  const login = (newToken: string, userData: Employee & { appLock?: string | null }) => {
     setToken(newToken);
     setUser(userData);
     localStorage.setItem('userInfo', JSON.stringify(userData));
@@ -91,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("selectedEmployee", userData.id.toString());
     
     // Set app type lock if provided
-    const lockValue = userData.app_type_lock || null;
+    const lockValue = userData.appLock || null;
     if (lockValue !== null) {
       // Lock is active - clear ALL dashboard filters
       localStorage.setItem("userAppTypeLock", lockValue);

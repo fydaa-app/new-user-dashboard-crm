@@ -12,7 +12,7 @@ export interface UserData {
   lastName?: string;
   role: string;
   bio?: string;
-  app_type_lock?: string | null;  // NEW FIELD
+  appLock?: string | null;  // NEW FIELD
   // Add other user properties as needed
 }
 
@@ -60,7 +60,7 @@ const generateFallbackUser = (userId: number): UserData => {
     mobile: "+91 98765 43210",
     role: "Sales Manager",
     bio: "Experienced Sales Professional",
-    app_type_lock: null
+    appLock: null
   };
 };
 

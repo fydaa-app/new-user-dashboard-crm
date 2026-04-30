@@ -41,7 +41,7 @@ export default function Ecommerce() {
     // console.log('[DEBUG AdminPage] localStorage appType:', localStorage.getItem('appType'));
     // console.log('[DEBUG AdminPage] localStorage userAppTypeLock:', localStorage.getItem('userAppTypeLock'));
     //const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    // console.log('[DEBUG AdminPage] userInfo.app_type_lock:', userInfo.app_type_lock);
+    // console.log('[DEBUG AdminPage] userInfo.appLock:', userInfo.appLock);
     // console.log('[DEBUG AdminPage] ======================');
   }, [user, appType, userAppTypeLock, effectiveAppType]);
 
