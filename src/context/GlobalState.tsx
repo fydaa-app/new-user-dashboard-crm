@@ -254,12 +254,19 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
     const setCustomDates = useCallback((dates: { start: string; end: string }) => {
     setCustomDatesState(prev => {
+      const newStart = dates.start || prev.start;
+      const newEnd = dates.end || prev.end;
+
+      // Only update if values have actually changed
+      if (newStart === prev.start && newEnd === prev.end) {
+        return prev;
+      }
+
       const newDates = { 
-        start: dates.start || prev.start, 
-        end: dates.end || prev.end 
+        start: newStart, 
+        end: newEnd 
       };
       
-      // Silently accept updates, only validate before using the dates
       localStorage.setItem("customDates", JSON.stringify(newDates));
       return newDates;
     });
@@ -402,7 +409,13 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       if (e.key === "customDates") {
         try {
           const newDates = e.newValue ? JSON.parse(e.newValue) : { start: "", end: "" };
-          setCustomDatesState(newDates);
+          setCustomDatesState(prev => {
+            // Only update if values differ
+            if (prev.start === newDates.start && prev.end === newDates.end) {
+              return prev;
+            }
+            return newDates;
+          });
         } catch {
           setCustomDatesState({ start: "", end: "" });
         }
