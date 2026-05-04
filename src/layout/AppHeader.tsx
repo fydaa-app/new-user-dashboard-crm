@@ -42,6 +42,8 @@ const ROLE_NAMES: { [key: number]: string } = {
 
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
+  const { userAppTypeLock } = useGlobalContext();
+  const isAppTypeLocked = !!userAppTypeLock;
   // const [startDate, setStartDate] = useState("");
   // const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -78,6 +80,8 @@ const AppHeader: React.FC = () => {
     appType,
     setAppType
   } = useGlobalContext();
+  const displayAppType = userAppTypeLock || appType;
+  console.log('[DEBUG AppHeader] userAppTypeLock:', userAppTypeLock, 'appType:', appType, 'displayAppType:', displayAppType, 'isLocked:', !!userAppTypeLock);
 
   // Get user role from token
   const token = Cookies.get('authToken');
@@ -542,20 +546,22 @@ const AppHeader: React.FC = () => {
             {/* Left side: All filters except date - Single horizontal line, left-aligned */}
             <div className="flex flex-1 items-center gap-3 lg:gap-4 flex-nowrap overflow-x-auto lg:flex-wrap lg:overflow-visible min-w-0">
               {/* App Type Select */}
-              <div className="relative w-40 flex-shrink-0">
-                <Select 
-                  options={appTypeOptions}
-                  placeholder="Select App Type"
-                  onChange={handleAppTypeChange}
-                  value={appType || null}
-                  menuAlign="left"
-                  className="dark:bg-dark-900"
-                  key={`apptype-${appType}`}
-                />
-                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-                  <ChevronDownIcon/>
-                </span>
-              </div>
+              {!isAppTypeLocked && (
+                <div className="relative w-40 flex-shrink-0">
+                  <Select 
+                    options={appTypeOptions}
+                    placeholder="Select App Type"
+                    onChange={handleAppTypeChange}
+                    value={appType || null}
+                    menuAlign="left"
+                    className="dark:bg-dark-900"
+                    key={`apptype-${appType}`}
+                  />
+                  <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                    <ChevronDownIcon/>
+                  </span>
+                </div>
+              )}
 
               {/* Type Select - Second position, default to "team" */}
               <div className="relative w-40 flex-shrink-0">

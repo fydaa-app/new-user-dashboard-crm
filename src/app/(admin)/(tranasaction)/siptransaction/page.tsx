@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionsTable from "@/components/tables/MfTransactionsTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -164,6 +165,7 @@ async function fetchTransactions(
 }
 
 export default function TransactionsListPage() {
+  useFydaaOnlyPage();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

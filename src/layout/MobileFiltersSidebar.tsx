@@ -57,6 +57,7 @@ const MobileFiltersSidebar: React.FC = () => {
     validateDates,
     appType,
     setAppType,
+    userAppTypeLock,
   } = useGlobalContext();
 
   const { isMobileFiltersOpen, toggleMobileFilters } = useSidebar();
@@ -469,26 +470,28 @@ const MobileFiltersSidebar: React.FC = () => {
               )}
 
               {/* App Type */}
-              <div className="relative">
-                <label className="block mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
-                  App Type
-                </label>
-                <Select
-                  options={[
-                    { value: "Fydaa", label: "Fydaa" },
-                    { value: "Savestment", label: "Savestment" },
-                  ]}
-                  placeholder="Select App Type"
-                  onChange={handleAppTypeChange}
-                  value={appType || null}
-                  menuAlign="left"
-                  className="dark:bg-dark-900"
-                  key={`mobile-apptype-${appType}`}
-                />
-                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-[2.35rem] dark:text-gray-400">
-                  <ChevronDownIcon />
-                </span>
-              </div>
+              {!userAppTypeLock && (
+                <div className="relative">
+                  <label className="block mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">
+                    App Type
+                  </label>
+                  <Select
+                    options={[
+                      { value: "Fydaa", label: "Fydaa" },
+                      { value: "Savestment", label: "Savestment" },
+                    ]}
+                    placeholder="Select App Type"
+                    onChange={handleAppTypeChange}
+                    value={appType || null}
+                    menuAlign="left"
+                    className="dark:bg-dark-900"
+                    key={`mobile-apptype-${appType}`}
+                  />
+                  <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-[2.35rem] dark:text-gray-400">
+                    <ChevronDownIcon />
+                  </span>
+                </div>
+              )}
 
               {/* Type */}
               <div className="relative">

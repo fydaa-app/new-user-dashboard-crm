@@ -31,7 +31,8 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const effectiveType = userAppTypeLock || selectedType || "team";
   useEffect(() => {
     async function fetchSalesData() {
        const AUTH_TOKEN = Cookies.get("authToken");
@@ -39,11 +40,9 @@ export default function MonthlySalesChart() {
         
         let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/sales-report-mf?`;
     
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
+        // Use monthly timeframe even when custom is selected to prevent performance issues with long date ranges
+        const timeframe = selectedOption === "custom" ? "monthly" : (selectedOption || "monthly");
+        url += `timeframe=${timeframe}`;
 
         // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
         const employeeId = selectedTeamMember || selectedEmployee;
@@ -51,8 +50,7 @@ export default function MonthlySalesChart() {
           url += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const response = await fetch(url,{

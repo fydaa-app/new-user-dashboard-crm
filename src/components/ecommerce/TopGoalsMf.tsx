@@ -27,7 +27,8 @@ export default function TopGoalsMf() {
   const [error, setError] = useState<string | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const effectiveType = userAppTypeLock || selectedType || "team";
 
   useEffect(() => {
     const fetchTopGoals = async () => {
@@ -47,8 +48,7 @@ export default function TopGoalsMf() {
           url += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
         const response = await fetch(url, {
           headers: {

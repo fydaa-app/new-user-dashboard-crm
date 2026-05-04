@@ -19,6 +19,17 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [tempStartDate, setTempStartDate] = useState<Date | null>(startDate);
   const [tempEndDate, setTempEndDate] = useState<Date | null>(endDate);
+  const [viewMode, setViewMode] = useState<'days' | 'years'>('days');
+  const [popDirection, setPopDirection] = useState<'down' | 'up'>('down');
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setPopDirection(spaceBelow < 400 ? 'up' : 'down');
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     setTempStartDate(startDate);
@@ -112,6 +123,17 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const calendarDays = generateCalendarDays(currentMonth.year, currentMonth.month);
 
+  const generateYears = (year: number): number[] => {
+    const startYear = year - 5;
+    const years = [];
+    for (let i = 0; i < 12; i++) {
+      years.push(startYear + i);
+    }
+    return years;
+  };
+
+  const years = generateYears(currentMonth.year);
+
   const goToPreviousMonth = () => {
     setCurrentMonth(prev => {
       if (prev.month === 0) {
@@ -131,7 +153,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative ${className}`} ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
@@ -140,27 +162,40 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
         <span className={startDate && endDate ? '' : 'text-gray-400 dark:text-gray-500'}>
           {getDisplayText()}
         </span>
-        <CalenderIcon className="h-4 w-4 text-gray-400" />
+        <CalenderIcon className="h-6 w-6 text-gray-400" />
       </button>
 
       {/* Calendar Dropdown */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 min-w-[320px]">
+        <div className={`absolute left-0 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 min-w-[320px]
+          ${popDirection === 'up' ? 'bottom-full mb-1' : 'top-full mt-1'}`}>
           {/* Calendar Header */}
           <div className="flex items-center justify-between mb-4">
             <button
-              onClick={goToPreviousMonth}
+              onClick={viewMode === 'days' ? goToPreviousMonth : () => setCurrentMonth(prev => ({ ...prev, year: prev.year - 12 }))}
               className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             >
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              {monthNames[currentMonth.month]} {currentMonth.year}
-            </h3>
+            
+            <div className="flex items-center gap-1">
+              {viewMode === 'days' && (
+                <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {monthNames[currentMonth.month]}
+                </span>
+              )}
+              <button
+                onClick={() => setViewMode(viewMode === 'days' ? 'years' : 'days')}
+                className="text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 px-2 py-0.5 rounded transition-colors"
+              >
+                {viewMode === 'days' ? currentMonth.year : `${years[0]} - ${years[years.length - 1]}`}
+              </button>
+            </div>
+
             <button
-              onClick={goToNextMonth}
+              onClick={viewMode === 'days' ? goToNextMonth : () => setCurrentMonth(prev => ({ ...prev, year: prev.year + 12 }))}
               className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
             >
               <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,37 +205,57 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1 mb-4">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-xs font-medium text-gray-500 dark:text-gray-400 text-center py-1">
-                {day}
-              </div>
-            ))}
-            {calendarDays.map((date, index) => {
-              const isCurrentMonth = date.getMonth() === currentMonth.month;
-              const isInRange = isDateInRange(date);
-              const isSelected = isDateSelected(date);
-              const isToday = date.toDateString() === new Date().toDateString();
-              
-              return (
+          {viewMode === 'days' ? (
+            <div className="grid grid-cols-7 gap-1 mb-4">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} className="text-xs font-medium text-gray-500 dark:text-gray-400 text-center py-1">
+                  {day}
+                </div>
+              ))}
+              {calendarDays.map((date, index) => {
+                const isCurrentMonth = date.getMonth() === currentMonth.month;
+                const isInRange = isDateInRange(date);
+                const isSelected = isDateSelected(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleDateSelect(date)}
+                    disabled={!isCurrentMonth}
+                    className={`
+                      w-8 h-8 text-xs rounded-full flex items-center justify-center transition-colors
+                      ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-600 cursor-default' : ''}
+                      ${isCurrentMonth && isInRange ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-800 dark:text-brand-200' : ''}
+                      ${isCurrentMonth && isSelected ? 'bg-brand-600 text-white' : ''}
+                      ${isCurrentMonth && !isInRange && !isSelected ? 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' : ''}
+                      ${isToday ? 'ring-2 ring-brand-500' : ''}
+                    `}
+                  >
+                    {date.getDate()}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {years.map((year) => (
                 <button
-                  key={index}
-                  onClick={() => handleDateSelect(date)}
-                  disabled={!isCurrentMonth}
+                  key={year}
+                  onClick={() => {
+                    setCurrentMonth(prev => ({ ...prev, year }));
+                    setViewMode('days');
+                  }}
                   className={`
-                    w-8 h-8 text-xs rounded-full flex items-center justify-center transition-colors
-                    ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-600 cursor-default' : ''}
-                    ${isCurrentMonth && isInRange ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-800 dark:text-brand-200' : ''}
-                    ${isCurrentMonth && isSelected ? 'bg-brand-600 text-white' : ''}
-                    ${isCurrentMonth && !isInRange && !isSelected ? 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' : ''}
-                    ${isToday ? 'ring-2 ring-brand-500' : ''}
+                    py-2 text-sm rounded-lg transition-colors
+                    ${year === currentMonth.year ? 'bg-brand-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'}
                   `}
                 >
-                  {date.getDate()}
+                  {year}
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">

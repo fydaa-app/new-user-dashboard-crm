@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('userInfo');
     localStorage.removeItem("selectedDesignation");
     localStorage.removeItem("selectedEmployee");
+    localStorage.removeItem("userAppTypeLock");
+    window.dispatchEvent(new Event("auth-storage-sync"));
     router.push('/signin');
   }, [router]);
 
@@ -54,6 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
           setToken(authToken);
 
+          // Sync app type lock
+          if (userData.appLock) {
+            localStorage.setItem("userAppTypeLock", userData.appLock);
+          } else if (userData.appLock === null) {
+            console.log('[DEBUG AuthContext] Session restore: lock is NULL, removing');
+            localStorage.removeItem("userAppTypeLock");
+          }
+          
           if (pathname === '/signin' || pathname === '/sign-up' || pathname === '/') {
             router.push('/');
           }
@@ -73,13 +83,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [pathname, router, handleLogout]);
 
   // Login function
-  const login = (newToken: string, userData: Employee) => {
+  const login = (newToken: string, userData: Employee & { appLock?: string | null }) => {
     setToken(newToken);
     setUser(userData);
     localStorage.setItem('userInfo', JSON.stringify(userData));
     localStorage.setItem("selectedDesignation", userData.role.toString());
     localStorage.setItem("selectedEmployee", userData.id.toString());
     
+    // Set app type lock if provided
+    const lockValue = userData.appLock || null;
+    if (lockValue !== null) {
+      // Lock is active - clear ALL dashboard filters
+      localStorage.setItem("userAppTypeLock", lockValue);
+      localStorage.setItem("appType", lockValue);
+      localStorage.removeItem("selectedType");
+      localStorage.removeItem("selectedOption");
+      localStorage.removeItem("selectedDesignation");
+      localStorage.removeItem("selectedEmployee");
+      localStorage.removeItem("selectedTeamMember");
+      localStorage.removeItem("customDates");
+    } else {
+      localStorage.removeItem("userAppTypeLock");
+    }
+    
+    window.dispatchEvent(new Event("auth-storage-sync"));
     router.push('/');
   };
 

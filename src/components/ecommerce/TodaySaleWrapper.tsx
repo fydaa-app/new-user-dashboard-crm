@@ -37,7 +37,8 @@ const TodaySaleWrapper = () => {
     assetsUnderManagement:0,
   });
   const [loading, setLoading] = useState(true);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const effectiveType = userAppTypeLock || selectedType || "team";
 
   useEffect(() => {
     const fetchSalesData = async () => {
@@ -65,8 +66,7 @@ const TodaySaleWrapper = () => {
         }
         if (selectedType && selectedType.length > 0) {
           // Handle array type properly
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
         const response = await fetch(url,
           {

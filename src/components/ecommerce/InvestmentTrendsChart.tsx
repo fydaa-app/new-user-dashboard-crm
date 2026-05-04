@@ -19,7 +19,8 @@ const InvestmentTrendsChart: React.FC = () => {
     throw new Error("GlobalStateContext must be used within GlobalStateProvider");
   }
 
-  const { selectedEmployee, selectedTeamMember, selectedType } = context;
+  const { selectedEmployee, selectedTeamMember, selectedType, userAppTypeLock } = context;
+  const effectiveType = userAppTypeLock || selectedType || "team";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
     const [chartData, setChartData] = useState<{
@@ -57,8 +58,7 @@ const InvestmentTrendsChart: React.FC = () => {
         }
         
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${typeValue}`;
+          url += `&type=${effectiveType}`;
         }
 
         const response = await fetch(url, {

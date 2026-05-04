@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import PortfolioManagementCards from "@/components/ecommerce/PortfolioManagementCards";
@@ -284,6 +285,7 @@ async function fetchTopPerformers(
 }
 
 export default function PortfolioPage() {
+  useFydaaOnlyPage();
   const {
     appType,
     selectedOption,
@@ -461,12 +463,6 @@ export default function PortfolioPage() {
     setPage(1);
   };
 
-  if (appType !== "Fydaa") {
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
-    return null;
-  }
 
   return (
     <div className="space-y-6">

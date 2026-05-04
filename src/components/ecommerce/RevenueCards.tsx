@@ -46,8 +46,8 @@ const RevenueCards = ({
 
   const getTimeframeLabel = (): string => {
     if (timeframe === "custom" && customDates?.start && customDates?.end) {
-      const start = new Date(customDates.start).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-      const end = new Date(customDates.end).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+      const start = new Date(customDates.start).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+      const end = new Date(customDates.end).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
       return `${start} - ${end}`;
     }
     return timeframe.charAt(0).toUpperCase() + timeframe.slice(1);

@@ -21,7 +21,8 @@ interface Order {
 
 export default function RecentOrdersMf() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode } = useGlobalContext();
+  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const effectiveType = userAppTypeLock || selectedType || "team";
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -42,8 +43,7 @@ export default function RecentOrdersMf() {
           url += `&employeeId=${employeeId}`;
         }
         if (selectedType && selectedType.length > 0) {
-          const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : typeValue}`;
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
         }
 
         const response = await fetch(url, {

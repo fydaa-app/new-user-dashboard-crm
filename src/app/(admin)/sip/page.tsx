@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import {
   OrderIconBlue,
   OrderIconGray,
@@ -36,6 +37,7 @@ interface SipCounts {
 }
 
 const SipIndexPage = () => {
+  useFydaaOnlyPage();
   const router = useRouter();
 
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } =

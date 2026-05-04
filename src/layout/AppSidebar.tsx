@@ -150,7 +150,8 @@ const AppSidebar: React.FC = () => {
   const router = useRouter(); // Initialize useRouter for navigation
 
   const { user, isLoading } = useAuth();
-  const { appType } = useGlobalContext();
+  const { appType, userAppTypeLock } = useGlobalContext();
+  const effectiveAppType = userAppTypeLock || appType;
 
   // Filter nav items based on role (same logic as designations)
   const filteredNavItems = React.useMemo(() => {
@@ -163,12 +164,12 @@ const AppSidebar: React.FC = () => {
         return user?.role === '0' || user?.role === '5';
       }
       // Filter SIP and SIP Transaction by appType
-      if (item.name === "SIP" || item.name === "Investments" || item.name === "Portfolio" || item.name === "Redemption" || item.name === "Goals & Plans") {
-        return appType === "Fydaa";
+      if (["SIP", "Investments", "Portfolio", "Revenue", "Goals & Plans", "Packages", "Redemption"].includes(item.name)) {
+        return effectiveAppType === "Fydaa";
       }
       return true;
     });
-  }, [isLoading, user?.role, appType]);
+  }, [isLoading, user?.role, appType, userAppTypeLock]);
   
 
   const handleSignOut = () => {

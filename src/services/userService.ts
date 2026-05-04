@@ -12,6 +12,7 @@ export interface UserData {
   lastName?: string;
   role: string;
   bio?: string;
+  appLock?: string | null;  // NEW FIELD
   // Add other user properties as needed
 }
 
@@ -58,7 +59,8 @@ const generateFallbackUser = (userId: number): UserData => {
     email: "john.doe@fydaa.com",
     mobile: "+91 98765 43210",
     role: "Sales Manager",
-    bio: "Experienced Sales Professional"
+    bio: "Experienced Sales Professional",
+    appLock: null
   };
 };
 
