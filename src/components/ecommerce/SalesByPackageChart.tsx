@@ -5,6 +5,7 @@ import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { transformPackages } from "@/utils/packageTransform";
 import dynamic from "next/dynamic";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 const ApexCharts = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -27,92 +28,71 @@ interface TopPackagesResponse {
 
 const SalesByPackageChart = () => {
   const [packageData, setPackageData] = useState<PackageData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    console.log("⚡ useEffect TRIGGERED! Dependencies:", {
+  const { data: apiData, loading, error } = useFilteredFetch<TopPackagesResponse>(
+    async (signal) => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
+      }
+
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-packages-mf?`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: TopPackagesResponse = await response.json();
+      return data;
+    },
+    [
       selectedOption,
-      "customDates.start": customDates.start,
-      "customDates.end": customDates.end,
+      customDates,
       selectedEmployee,
       selectedTeamMember,
       selectedType,
-      hierarchyViewMode
-    });
-    const fetchPackageData = async () => {
-      setLoading(true);  // Reset loading state on each fetch
-      console.log("🔍 SalesByPackageChart: Fetching data with filters:", {
-        selectedOption,
-        customDates,
-        selectedEmployee,
-        selectedTeamMember,
-        selectedType,
-        hierarchyViewMode
-      });
-      const AUTH_TOKEN = Cookies.get("authToken");
-      
-      if (!AUTH_TOKEN) {
-        console.error("Auth token not found");
-        setLoading(false);
-        return;
-      }
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
 
-      try {
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-packages-mf?`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-        
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
+  useEffect(() => {
+    if (apiData?.packageWiseData) {
+      const transformedPackages = transformPackages(apiData.packageWiseData);
+      setPackageData(transformedPackages);
+    }
+  }, [apiData]);
 
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        }
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch package data");
-        }
-
-        const data: TopPackagesResponse = await response.json();
-        console.log("📊 SalesByPackageChart: Received data:", data);
-        const transformedPackages = transformPackages(data.packageWiseData);
-        setPackageData(transformedPackages);
-        console.log("✅ SalesByPackageChart: Updated packageData state:", transformedPackages);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchPackageData();
-  }, [selectedOption, customDates.start, customDates.end, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
-
-  // Prepare chart data with useMemo to trigger re-render
-  console.log("🔄 SalesByPackageChart: packageData changed, recalculating chart data. Length:", packageData.length);
   const chartLabels = useMemo(() => packageData.map((pkg) => `${pkg.packageName} (${pkg.userCount} users)`), [packageData]);
-  console.log("📈 chartLabels calculated:", chartLabels);
   const chartSeries = useMemo(() => packageData.map((pkg) => pkg.totalAmount), [packageData]);
-  console.log("📊 chartSeries calculated:", chartSeries);
   const chartOptions: ApexCharts.ApexOptions = useMemo(() => ({
     chart: {
       type: "donut",
@@ -201,7 +181,7 @@ const SalesByPackageChart = () => {
         </div>
       ) : error ? (
         <div className="flex h-80 items-center justify-center">
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500">{error.message}</p>
         </div>
       ) : packageData.length === 0 ? (
         <div className="flex h-80 items-center justify-center">

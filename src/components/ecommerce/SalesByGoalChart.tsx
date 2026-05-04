@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import dynamic from "next/dynamic";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 const ApexCharts = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -26,65 +27,64 @@ interface GoalResponse {
 
 const SalesByGoalChart = () => {
   const [goalData, setGoalData] = useState<GoalData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    const fetchGoalData = async () => {
-      setLoading(true);
-      try {
-        const authToken = Cookies.get("authToken");
-        if (!authToken) {
-          throw new Error("No authentication token found");
-        }
-
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-goals-mf?timeframe=${selectedOption}`;
-
-        if (selectedOption === "custom" && customDates.start && customDates.end) {
-                  url += `&startDate=${customDates.start}&endDate=${customDates.end}`;
-        }
-
-        const employeeId = selectedTeamMember || selectedEmployee;
-
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch top goals");
-        }
-
-        const data: GoalResponse = await response.json();
-        setGoalData(data.goalInvestmentData || []);
-        setError(null);
-      } catch (err: unknown) {
-        console.error("Error fetching goal data:", err);
-        setError(err instanceof Error ? err.message : "Failed to load data");
-        setGoalData([]);
-      } finally {
-        setLoading(false);
+  const { data: apiData, loading, error } = useFilteredFetch<GoalResponse>(
+    async (signal) => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    fetchGoalData();
-  }, [selectedOption, customDates.start, customDates.end, selectedEmployee, selectedTeamMember, selectedType, 
-hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-goals-mf?timeframe=${selectedOption}`;
 
-  const chartLabels = useMemo(() => goalData.map((goal) => `${goal.goalName} (${goal.userCount} users)`), 
-[goalData]);
+      if (selectedOption === "custom" && customDates.start && customDates.end) {
+        url += `&startDate=${customDates.start}&endDate=${customDates.end}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: GoalResponse = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData?.goalInvestmentData) {
+      setGoalData(apiData.goalInvestmentData);
+    }
+  }, [apiData]);
+
+  const chartLabels = useMemo(() => goalData.map((goal) => `${goal.goalName} (${goal.userCount} users)`), [goalData]);
   const chartSeries = useMemo(() => goalData.map((goal) => goal.totalRevenue), [goalData]);
 
   const chartOptions: ApexCharts.ApexOptions = useMemo(() => ({
@@ -159,8 +159,7 @@ hierarchyViewMode]);
   }), [chartLabels]);
 
   return (
-    <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] 
-sm:p-6">
+    <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Sales by Goal
@@ -176,7 +175,7 @@ sm:p-6">
         </div>
       ) : error ? (
         <div className="flex h-80 items-center justify-center">
-          <p className="text-red-500">{error}</p>
+          <p className="text-red-500">{error.message}</p>
         </div>
       ) : goalData.length === 0 ? (
         <div className="flex h-80 items-center justify-center">

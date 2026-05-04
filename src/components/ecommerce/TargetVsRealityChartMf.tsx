@@ -4,9 +4,9 @@ import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
-import RevenueUserToggle  from "../ui/button/RevenueUserToggle";
+import RevenueUserToggle from "../ui/button/RevenueUserToggle";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
-// Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
   loading: () => <p>Loading Chart...</p>,
@@ -22,74 +22,88 @@ interface SeriesData {
   name: string;
   data: number[];
 }
+
+interface ApiResponse {
+  progressData: ProgressItem[];
+}
+
 export default function TargetVsRealityChartMf() {
   const [series, setSeries] = useState<SeriesData[]>([
     { name: "Target", data: [] },
     { name: "Reality", data: [] },
   ]);
   const [categories, setCategories] = useState<string[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
   const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
-  
-  useEffect(() => {
-    const fetchData = async () => {
+
+  const { data: apiData } = useFilteredFetch<ApiResponse>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
-      try {
-
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/target-reality-mf?metricType=${currentView}&`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-        const response = await fetch(url,
-          {
-            headers: {
-              Authorization: `Bearer ${AUTH_TOKEN}`,
-            },
-          }
-        );
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        }
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders");
-        }   
-
-        const data = await response.json();
-        const progressData: ProgressItem[] = data.progressData;
-        if (data?.progressData) {
-          const categories = progressData.map((item) => item.label);
-          const targetData = progressData.map((item) => item.target);
-          const realityData = progressData.map((item) => item.reality);
-          setSeries([
-            { name: "Target", data: targetData },
-            { name: "Reality", data: realityData },
-          ]);
-
-          if(selectedOption != "till_date"){
-            setCategories(categories);
-          }             
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    fetchData();
-  }, [selectedOption,customDates,currentView,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/target-reality-mf?metricType=${currentView}&`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: ApiResponse = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      currentView,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData?.progressData) {
+      const progressData = apiData.progressData;
+      const cats = progressData.map((item) => item.label);
+      const targetData = progressData.map((item) => item.target);
+      const realityData = progressData.map((item) => item.reality);
+      setCategories(cats);
+      setSeries([
+        { name: "Target", data: targetData },
+        { name: "Reality", data: realityData },
+      ]);
+    }
+  }, [apiData]);
 
   const options: ApexOptions = {
     colors: ["#4AB58E", "#FFCF00"],
@@ -132,13 +146,13 @@ export default function TargetVsRealityChartMf() {
         <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
           Target vs Reality
         </h3>
-        <RevenueUserToggle 
-            initialView={currentView}
-            onChange={(view) => {
-              setCurrentView(view);
-            }}
-            className="ml-4"
-          />
+        <RevenueUserToggle
+          initialView={currentView}
+          onChange={(view) => {
+            setCurrentView(view);
+          }}
+          className="ml-4"
+        />
       </div>
 
       <div className="max-w-full overflow-x-auto custom-scrollbar">

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface TopGoal {
   goalId: number;
@@ -10,59 +11,73 @@ interface TopGoal {
   percentage: number;
 }
 
+interface TopGoalsResponse {
+  goalInvestmentData: TopGoal[];
+}
+
 export default function TopGoals() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    const fetchTopGoals = async () => {
+  const { data: apiData, loading, error } = useFilteredFetch<TopGoalsResponse>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
-      try {    
-        
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TOP_GOALS_ENDPOINT}?`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-        
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        } 
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch top goals");
-        }
-
-        const data = await response.json();
-        setTopGoals(data.goalInvestmentData as TopGoal[]); // Get the goal investment data
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    fetchTopGoals();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}${process.env.NEXT_PUBLIC_TOP_GOALS_ENDPOINT}?`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: TopGoalsResponse = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData?.goalInvestmentData) {
+      setTopGoals(apiData.goalInvestmentData);
+    }
+  }, [apiData]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
@@ -75,33 +90,32 @@ export default function TopGoals() {
       {loading ? (
         <p className="text-gray-500">Loading...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500">{error.message}</p>
       ) : topGoals.length === 0 ? (
         <p className="text-gray-500">No goal investment data found</p>
       ) : (
         <div className="space-y-5">
-
-        <div className="flex items-center justify-between top-product-rows">
-          <div className="flex items-center top-product-col-6">
-            <div className="items-center w-full rounded-full max-w-8">
-              <p>#</p>
+          <div className="flex items-center justify-between top-product-rows">
+            <div className="flex items-center top-product-col-6">
+              <div className="items-center w-full rounded-full max-w-8">
+                <p>#</p>
+              </div>
+              <div>
+                <p className="font-semibold text-gray-500 text-theme-sm dark:text-white/90">
+                  Goal Name
+                </p>              
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-gray-500 text-theme-sm dark:text-white/90">
-                Goal Name
-              </p>              
+
+            <div className="flex w-full max-w-[180px] items-center top-product-col-6">
+              <div className="w-full text-gray-500">
+                Popularity
+              </div>
+              <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 w-20">
+                Users (%)
+              </p>
             </div>
           </div>
-
-          <div className="flex w-full max-w-[180px] items-center top-product-col-6">
-            <div className="w-full text-gray-500">
-              Popularity
-            </div>
-            <p className="font-medium text-gray-500 text-theme-sm dark:text-white/90 w-20">
-              Users (%)
-            </p>
-          </div>
-        </div>
 
           {topGoals.map((goal, index) => (
             <div key={goal.goalId} className="flex items-center justify-between top-product-rows">
