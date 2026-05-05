@@ -135,7 +135,7 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
         queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveSelectedType}`;
       }
 
-      const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
+      const url = `${process.env.NEXT_PUBLIC_API_URL}${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
 
       const response = await fetch(url, {
         headers: {
