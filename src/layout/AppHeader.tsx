@@ -207,10 +207,16 @@ const AppHeader: React.FC = () => {
         }
       };
 
-      fetchHierarchyLevels();
-    }
-    // Don't clear in else block - let handleTypeChange handle individual clearing
-  }, [selectedEmployee, isTeamType]);
+       fetchHierarchyLevels();
+     } else if (!selectedEmployee && isTeamType) {
+       // Clear hierarchy states when employee is cleared (e.g., designation changed to empty)
+       //console.log('[DEBUG] selectedEmployee cleared, resetting hierarchy states');
+       setTeamSelections({});
+       setTeamEmployees({});
+       setLoadingLevels({});
+     }
+     // Don't clear in else block - let handleTypeChange handle individual clearing
+   }, [selectedEmployee, isTeamType]);
 
   // Fetch employees for a specific hierarchy level
   const fetchTeamEmployeesForLevel = useCallback(async (level: number, employeeId: string) => {

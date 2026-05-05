@@ -140,8 +140,7 @@ const Select: React.FC<SelectProps> = ({
     >
       {/* Placeholder option */}
       <div
-        onClick={() => handleSelect(null)}
-        className="px-4 py-2.5 text-sm text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 dark:text-gray-400 first:rounded-t-lg"
+        className="px-4 py-2.5 text-sm text-gray-400 cursor-default dark:text-gray-400 first:rounded-t-lg"
       >
         {placeholder}
       </div>
