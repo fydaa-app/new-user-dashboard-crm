@@ -1,74 +1,93 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
-import RevenueUserToggle  from "../ui/button/RevenueUserToggle";
+import RevenueUserToggle from "../ui/button/RevenueUserToggle";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
-// Dynamically import ReactApexChart
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
+interface ProgressData {
+  percentage: number;
+  goal: number;
+  achieved: number;
+}
+
 export default function MonthlyTargetMf() {
-  // State to store API data
-  const [progressData, setProgressData] = useState({
-    percentage:0,
+  const [progressData, setProgressData] = useState<ProgressData>({
+    percentage: 0,
     goal: 0,
     achieved: 0,
   });
-const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
-const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
-  // Fetch API data
-  useEffect(() => {
-    async function fetchData() {
+  const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
+
+  const { data: apiData } = useFilteredFetch<ProgressData>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
-      try {
-         
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/employee-progress-summary-mf?metricType=${currentView}&`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        }
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setProgressData(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
+
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/employee-progress-summary-mf?metricType=${currentView}&`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: ProgressData = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      currentView,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData) {
+      setProgressData(apiData);
     }
+  }, [apiData]);
 
-    fetchData();
-  }, [selectedOption,customDates, currentView,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
-
-  const series = [Number((progressData.percentage).toFixed(2))]; // Set percentage from API response
+  const series = [Number((progressData.percentage).toFixed(2))];
   const options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
@@ -112,11 +131,11 @@ const [currentView, setCurrentView] = useState<'revenue' | 'user'>('revenue');
             <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
               Target
             </h3>
-            <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
-              Target you’ve set for each month
-            </p>
+             <p className="mt-1 font-normal text-gray-500 text-theme-sm dark:text-gray-400">
+               Target you&apos;ve set for each month
+             </p>
           </div>
-          <RevenueUserToggle 
+          <RevenueUserToggle
             initialView={currentView}
             onChange={(view) => {
               setCurrentView(view);

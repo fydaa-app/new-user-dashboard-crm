@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -8,12 +8,13 @@ import {
   TableRow,
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
-import { useGlobalContext } from "@/context/GlobalState";
-import { apiClient } from "@/services/api-client";
-import { TransactionEndpoints } from "@/config/api-endpoints";
 import Select from "@/components/form/Select";
-import { ChevronDownIcon } from "@/icons";
 import Pagination from "@/components/tables/Pagination";
+import { ChevronDownIcon } from "@/icons";
+import { useGlobalContext } from "@/context/GlobalState";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import { TransactionEndpoints } from "@/config/api-endpoints";
+import Cookies from "js-cookie";
 
 interface Order {
   id: number;
@@ -72,130 +73,133 @@ const REPORT_TYPE_OPTIONS: FilterOption[] = [
   { value: "IN_PROCESS", label: "In Process" },
 ];
 
-async function fetchRedemptions(
-  page: number,
-  selectedOption: string,
-  selectedEmployee: string = "",
-  selectedTeamMember: string = "",
-  customDates: { start: string; end: string },
-  searchQuery: string = "",
-  reportType: string = "",
-  selectedType: string = "",
-  hierarchyViewMode: "team" | "individual" = "team"
-): Promise<{
-  transactions: Transaction[];
-  error: string | null;
-  totalItems?: number;
-  totalPages?: number;
-}> {
-  try {
-    let queryParams = `page=${page}&transactionType=SELL`;
+interface RedemptionApiResponse {
+  data: Transaction[];
+  pagination?: {
+    totalItems?: number;
+    totalPages?: number;
+  };
+}
 
-    if (selectedOption === 'custom') {
-      queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-    } else {
-      queryParams += `&timeframe=${selectedOption || "yearly"}`;
-    }
-
-    if (searchQuery) {
-      queryParams += `&search=${encodeURIComponent(searchQuery)}`;
-    }
-
-    if (reportType) {
-      queryParams += `&reportType=${reportType}`;
-    }
-
-    const employeeId = selectedTeamMember || selectedEmployee;
-    if (employeeId) {
-      queryParams += `&employeeId=${employeeId}`;
-    }
-
-    if (selectedType) {
-      queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
-    }
-
-    const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
-    
-    const response = await apiClient.get<{
-      data: Transaction[];
-      pagination?: {
-        totalItems?: number;
-        totalPages?: number;
-      };
-    }>(url);
-
-    if (!response.ok || !response.data) {
-      throw new Error("Failed to fetch");
-    }
-
-    return {
-      transactions: Array.isArray(response.data.data) ? response.data.data : [],
-      error: null,
-      totalItems: response.data.pagination?.totalItems,
-      totalPages: response.data.pagination?.totalPages,
-    };
-  } catch (err) {
-    console.error("Error fetching redemptions:", err);
-    return { transactions: [], error: "Error fetching data" };
-  }
+interface PreviousFilters {
+  selectedOption?: string;
+  selectedEmployee?: string;
+  selectedTeamMember?: string;
+  customDates?: { start: string; end: string };
+  selectedType?: string[];
+  reportType?: string;
+  searchQuery?: string;
 }
 
 export default function RedemptionsList({ reportType, onReportTypeChange }: RedemptionsListProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
-  
-  const previousFiltersRef = useRef({
+
+  // Build fetch dependencies
+  const effectiveSelectedType = selectedType && selectedType.length > 0 ? selectedType[0] : "team";
+
+   const { data: apiData, error, loading } = useFilteredFetch<RedemptionApiResponse>(
+    async (signal) => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
+      }
+
+      let queryParams = `page=${page}&transactionType=SELL`;
+
+      if (selectedOption === 'custom') {
+        queryParams += `&timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        queryParams += `&timeframe=${selectedOption || "yearly"}`;
+      }
+
+      if (searchQuery) {
+        queryParams += `&search=${encodeURIComponent(searchQuery)}`;
+      }
+
+      if (reportType) {
+        queryParams += `&reportType=${reportType}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        queryParams += `&employeeId=${employeeId}`;
+      }
+
+      if (selectedType) {
+        queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveSelectedType}`;
+      }
+
+      const url = `${process.env.NEXT_PUBLIC_API_URL}${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result: RedemptionApiResponse = await response.json();
+      return result;
+    },
+    [
+      page,
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      searchQuery,
+      reportType,
+      effectiveSelectedType,
+    ]
+  );
+
+  // Update derived state when apiData changes
+  useEffect(() => {
+    if (apiData?.data) {
+      setTransactions(Array.isArray(apiData.data) ? apiData.data : []);
+    }
+  }, [apiData]);
+
+  useEffect(() => {
+    if (apiData?.pagination) {
+      if (apiData.pagination.totalPages !== undefined) {
+        setTotalPages(apiData.pagination.totalPages);
+      }
+      if (apiData.pagination.totalItems !== undefined) {
+        setTotalItems(apiData.pagination.totalItems);
+      }
+    }
+  }, [apiData]);
+
+  // Track previous filters to reset page when filters change
+  const previousFiltersRef = useRef<PreviousFilters>({
     selectedOption,
     selectedEmployee,
     selectedTeamMember,
     customDates,
     selectedType,
     reportType,
+    searchQuery,
   });
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const effectiveSelectedType = selectedType && selectedType.length > 0 ? selectedType[0] : "team";
-
-      const result = await fetchRedemptions(
-        page,
-        selectedOption,
-        selectedEmployee,
-        selectedTeamMember,
-        customDates,
-        searchQuery,
-        reportType,
-        effectiveSelectedType,
-        hierarchyViewMode
-      );
-
-      setTransactions(result.transactions);
-      setError(result.error);
-      if (result.totalItems !== undefined) {
-        setTotalItems(result.totalItems);
-      }
-      if (result.totalPages !== undefined) {
-        setTotalPages(result.totalPages);
-      }
-    } catch (err) {
-      console.error("Error fetching redemptions:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [page, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, searchQuery, reportType]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
+  // Reset to page 1 when filters change (except page itself)
   useEffect(() => {
     const prev = previousFiltersRef.current;
     const hasChanged =
@@ -205,7 +209,8 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
       prev.selectedType !== selectedType ||
-      prev.reportType !== reportType;
+      prev.reportType !== reportType ||
+      prev.searchQuery !== searchQuery;
 
     previousFiltersRef.current = {
       selectedOption,
@@ -214,12 +219,13 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
       customDates,
       selectedType,
       reportType,
+      searchQuery,
     };
 
     if (hasChanged) {
       setPage(1);
     }
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, reportType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, reportType, searchQuery]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -228,7 +234,6 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
-    fetchData();
   };
 
   const handleReportTypeChangeLocal = (option: FilterOption | null) => {
@@ -300,7 +305,7 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
           <Select
             options={REPORT_TYPE_OPTIONS}
             placeholder="All Statuses"
-            value={reportType}
+            value={reportType || null}
             onChange={handleReportTypeChangeLocal}
           />
           <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 
@@ -314,12 +319,12 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <div className="max-w-full overflow-x-auto lg:overflow-visible">
           <div className="min-w-[1200px]">
-            {isLoading ? (
+            {loading ? (
               <div className="flex justify-center py-12">
                 <span className="loading loading-spinner loading-lg" />
               </div>
             ) : error ? (
-              <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>
+              <div className="m-4"><p style={{ color: "red" }}>{error.message}</p></div>
             ) : transactions.length > 0 ? (
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">

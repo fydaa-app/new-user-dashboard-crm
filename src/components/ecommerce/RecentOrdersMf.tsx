@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,6 +10,8 @@ import {
 import Badge from "../ui/badge/Badge";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+
 interface Order {
   date: string;
   userName: string;
@@ -19,54 +21,73 @@ interface Order {
   type: string;
 }
 
+interface OrdersResponse {
+  transactions: Order[];
+}
+
 export default function RecentOrdersMf() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    const fetchOrders = async () => {
+  const { data: apiData } = useFilteredFetch<OrdersResponse>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
-      try {
-
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/recent-orders-mf?`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        }
-        if (!response.ok) {
-          throw new Error("Failed to fetch orders");
-        }        
-        const data = await response.json();
-        setOrders(data.transactions || []);
-      } catch (error) {
-        console.error("Error fetching orders:", error);
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    fetchOrders();
-  }, [selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/recent-orders-mf?`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: OrdersResponse = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData?.transactions) {
+      setOrders(apiData.transactions);
+    }
+  }, [apiData]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
@@ -84,7 +105,7 @@ export default function RecentOrdersMf() {
       return { label: "Unknown", color: "light" };
     }
   };
-  
+
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">

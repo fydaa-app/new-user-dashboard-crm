@@ -1,9 +1,10 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Cookies from "js-cookie";
 import RevenueCards from "@/components/ecommerce/RevenueCards";
 import { useGlobalContext } from "@/context/GlobalState";
 import { DashboardEndpoints } from "@/config/api-endpoints";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface RevenueData {
   revenue: number;
@@ -15,92 +16,72 @@ interface RevenueData {
 }
 
 const RevenueCardsWrapper = () => {
-  const [revenueData, setRevenueData] = useState<RevenueData>({
-    revenue: 0,
-    aum: 0,
-    totalRevenue: 0,
-    totalAum: 0,
-    targetPercentage: null,
-    monthlyTargetPercentage: null,
-  });
-  const [loading, setLoading] = useState(true);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    const fetchRevenueData = async () => {
+  const { data: revenueData, loading } = useFilteredFetch<RevenueData>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
-        console.error("Auth token not found in cookies");
-        setLoading(false);
-        return;
+        throw new Error("Auth token not found");
       }
 
-      setLoading(true);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}${DashboardEndpoints.REVENUE_CARDS}?`;
 
-      try {
-        let url = `${process.env.NEXT_PUBLIC_API_URL}${DashboardEndpoints.REVENUE_CARDS}?`;
-
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-
-        if (response.status === 401) {
-          Cookies.remove('authToken');
-          window.location.href = "/signin";
-        }
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data: RevenueData = await response.json();
-
-        setRevenueData({
-          revenue: data.revenue || 0,
-          aum: data.aum || 0,
-          totalRevenue: data.totalRevenue || 0,
-          totalAum: data.totalAum || 0,
-          targetPercentage: data.targetPercentage,
-          monthlyTargetPercentage: data.monthlyTargetPercentage,
-        });
-
-      } catch (error) {
-        console.error("Error fetching revenue data:", error);
-      } finally {
-        setLoading(false);
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
       }
-    };
 
-    fetchRevenueData();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: RevenueData = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
 
   return (
     <>
       <RevenueCards
-        revenue={revenueData.revenue}
-        aum={revenueData.aum}
-        totalRevenue={revenueData.totalRevenue}
-        totalAum={revenueData.totalAum}
-        targetPercentage={revenueData.targetPercentage}
-        monthlyTargetPercentage={revenueData.monthlyTargetPercentage}
+        revenue={revenueData?.revenue || 0}
+        aum={revenueData?.aum || 0}
+        totalRevenue={revenueData?.totalRevenue || 0}
+        totalAum={revenueData?.totalAum || 0}
+        targetPercentage={revenueData?.targetPercentage || null}
+        monthlyTargetPercentage={revenueData?.monthlyTargetPercentage || null}
         timeframe={selectedOption || "monthly"}
         customDates={customDates}
         loading={loading}

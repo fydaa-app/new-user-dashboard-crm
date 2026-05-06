@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface TopGoal {
   goalId: number;
@@ -23,61 +24,71 @@ interface TopGoalsResponse {
 
 export default function TopGoalsMf() {
   const [topGoals, setTopGoals] = useState<TopGoal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  useEffect(() => {
-    const fetchTopGoals = async () => {
+  const { data: apiData, loading, error } = useFilteredFetch<TopGoalsResponse>(
+    async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
-      try {    
-        
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-goals-mf?`;
-    
-        if (selectedOption === 'custom') {
-          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
-        } else {
-          url += `timeframe=${selectedOption || "monthly"}`;
-        }
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-        const response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-        
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        } 
-        
-        if (!response.ok) {
-          throw new Error("Failed to fetch top goals");
-        }
-
-        const data: TopGoalsResponse = await response.json();
-        setTopGoals(data.goalInvestmentData);
-        setTotalAmount(data.totalRevenue);
-        setTotalUsersCount(data.totalUsers);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    fetchTopGoals();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/top-goals-mf?`;
+
+      if (selectedOption === 'custom') {
+        url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+      } else {
+        url += `timeframe=${selectedOption || "monthly"}`;
+      }
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: TopGoalsResponse = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (apiData) {
+      setTopGoals(apiData.goalInvestmentData);
+      setTotalAmount(apiData.totalRevenue);
+      setTotalUsersCount(apiData.totalUsers);
+    }
+  }, [apiData]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
@@ -102,7 +113,7 @@ export default function TopGoalsMf() {
       {loading ? (
         <p className="text-gray-500">Loading...</p>
       ) : error ? (
-        <p className="text-red-500">{error}</p>
+        <p className="text-red-500">{error.message}</p>
       ) : topGoals.length === 0 ? (
         <p className="text-gray-500">No goal investment data found</p>
       ) : (

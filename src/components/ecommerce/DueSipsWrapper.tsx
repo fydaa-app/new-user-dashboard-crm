@@ -1,59 +1,60 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import DueSips from "@/components/ecommerce/DueSips";
 import { DueSipItem } from "@/components/tables/DueSipsTable";
 import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from "js-cookie";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 type DuePeriod = 'overdue' | 'today' | 'thisWeek' | 'thisMonth' | 'nextMonth';
 
+interface DueSipsApiResponse {
+  data: DueSipItem[];
+  pagination?: {
+    totalPages: number;
+    totalItems: number;
+  };
+}
+
 const DueSipsWrapper = () => {
   const [dueSips, setDueSips] = useState<DueSipItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<DuePeriod>('today');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const fetchDueSips = useCallback(async () => {
-    const AUTH_TOKEN = Cookies.get("authToken");
+  // Resets page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [selectedPeriod, selectedDesignation, selectedEmployee, selectedTeamMember, selectedType]);
 
-    if (!AUTH_TOKEN) {
-      console.error("Auth token not found in cookies");
-      setLoading(false);
-      return;
+  const mapPeriodToTimeframe = (period: DuePeriod) => {
+    switch (period) {
+      case "overdue": return "overdue";
+      case "today": return "today";
+      case "thisWeek": return "week";
+      case "thisMonth": return "month";
+      case "nextMonth": return "next_month";
+      default: return "today";
     }
+  };
 
-    setLoading(true);
-    setError(null);
+  const fetchDueSips = useFilteredFetch<DueSipsApiResponse>(
+    async (signal) => {
+      const AUTH_TOKEN = Cookies.get("authToken");
 
-    const mapPeriodToTimeframe = (period: DuePeriod) => {
-      switch (period) {
-        case "overdue":
-          return "overdue";
-        case "today":
-          return "today";
-        case "thisWeek":
-          return "week";
-        case "thisMonth":
-          return "month";
-        case "nextMonth":
-          return "next_month";
-        default:
-          return "today";
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    };
 
-    try {
       const timeframe = mapPeriodToTimeframe(selectedPeriod);
       let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/due-sip-list-mf?page=${page}&limit=10&timeframe=${timeframe}`;
 
       if (selectedDesignation) url += `&designationId=${selectedDesignation}`;
-      // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
       const employeeId = selectedTeamMember || selectedEmployee;
       if (employeeId) url += `&employeeId=${employeeId}`;
       if (selectedType && selectedType.length > 0) {
@@ -62,12 +63,11 @@ const DueSipsWrapper = () => {
 
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
+        signal,
       });
 
       if (response.status === 401) {
-        setError("Authentication issue - please try again");
-        setLoading(false);
-        return;
+        throw new Error("Unauthorized");
       }
 
       if (!response.ok) {
@@ -75,45 +75,54 @@ const DueSipsWrapper = () => {
       }
 
       const result = await response.json();
+      return result;
+    },
+    [
+      selectedPeriod,
+      page,
+      selectedDesignation,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
 
-      if (Array.isArray(result.data)) {
-        setDueSips(result.data);
-      } else {
-        setDueSips([]);
+  // Update dueSips, pagination from fetch result
+  useEffect(() => {
+    if (fetchDueSips.data?.data) {
+      setDueSips(fetchDueSips.data.data);
+      if (fetchDueSips.data.pagination) {
+        setTotalPages(fetchDueSips.data.pagination.totalPages || 1);
+        setTotalItems(fetchDueSips.data.pagination.totalItems || 0);
       }
-
-      setTotalPages(result.pagination?.totalPages || 1);
-      setTotalItems(result.pagination?.totalItems || 0);
-
-    } catch (error) {
-      console.error("Error fetching due SIPs:", error);
-      setError("Error fetching due SIPs data");
-      setDueSips([]);
-    } finally {
-      setLoading(false);
     }
-  }, [selectedDesignation, selectedEmployee, selectedTeamMember, selectedPeriod, page, selectedType, hierarchyViewMode]);
+    if (fetchDueSips.error) {
+      setError(fetchDueSips.error.message);
+    }
+  }, [fetchDueSips.data, fetchDueSips.error]);
 
-  useEffect(() => {
-    fetchDueSips();
-  }, [fetchDueSips]);
-
-  // Reset to first page when period or filters change
-  useEffect(() => {
+  const handlePeriodChange = (period: DuePeriod) => {
+    setSelectedPeriod(period);
     setPage(1);
-  }, [selectedPeriod, selectedDesignation, selectedEmployee, selectedTeamMember, selectedType]);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   return (
     <DueSips
       sips={dueSips}
       error={error}
-      loading={loading}
+      loading={fetchDueSips.loading}
       selectedPeriod={selectedPeriod}
-      onPeriodChange={setSelectedPeriod}
+      onPeriodChange={handlePeriodChange}
       page={page}
       totalPages={totalPages}
       totalItems={totalItems}
-      onPageChange={setPage}
+      onPageChange={handlePageChange}
     />
   );
 };

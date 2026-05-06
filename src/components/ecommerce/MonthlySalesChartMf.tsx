@@ -5,8 +5,8 @@ import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import Select from "@/components/form/Select";
+import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
-// Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
@@ -31,50 +31,64 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode,userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
-  useEffect(() => {
-    async function fetchSalesData() {
-       const AUTH_TOKEN = Cookies.get("authToken");
-      try {
-        
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/sales-report-mf?`;
-    
-        // Use monthly timeframe even when custom is selected to prevent performance issues with long date ranges
-        const timeframe = selectedOption === "custom" ? "monthly" : (selectedOption || "monthly");
-        url += `timeframe=${timeframe}`;
 
-        // Use selectedTeamMember if available (team mode), otherwise use selectedEmployee
-        const employeeId = selectedTeamMember || selectedEmployee;
-        if (employeeId) {
-          url += `&employeeId=${employeeId}`;
-        }
-        if (selectedType && selectedType.length > 0) {
-          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
-        }
-
-        const response = await fetch(url,{
-          headers: {
-            Authorization: `Bearer ${AUTH_TOKEN}`,
-          },
-        });
-
-        if (response.status === 401) {
-          Cookies.remove('authToken'); 
-          window.location.href = "/signin";          
-        }
-
-        const data: { dataPoints: DataPoint[] } = await response.json();
-       
-        setDataPoints(data.dataPoints || []);
-
-      } catch (error) {
-        console.error("Error fetching sales data:", error);
+  const { data: chartData } = useFilteredFetch<{ dataPoints: DataPoint[] }>(
+    async (signal) => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+      if (!AUTH_TOKEN) {
+        throw new Error("Auth token not found");
       }
-    }
 
-    fetchSalesData();
-  }, [selectedOption,customDates,selectedEmployee,selectedTeamMember,selectedType,hierarchyViewMode]);
+      let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/sales-report-mf?`;
+
+      const timeframe = selectedOption === "custom" ? "monthly" : (selectedOption || "monthly");
+      url += `timeframe=${timeframe}`;
+
+      const employeeId = selectedTeamMember || selectedEmployee;
+      if (employeeId) {
+        url += `&employeeId=${employeeId}`;
+      }
+      if (selectedType && selectedType.length > 0) {
+        url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${AUTH_TOKEN}`,
+        },
+        signal,
+      });
+
+      if (response.status === 401) {
+        Cookies.remove('authToken');
+        window.location.href = "/signin";
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data: { dataPoints: DataPoint[] } = await response.json();
+      return data;
+    },
+    [
+      selectedOption,
+      customDates,
+      selectedEmployee,
+      selectedTeamMember,
+      selectedType,
+      hierarchyViewMode,
+      userAppTypeLock,
+    ]
+  );
+
+  useEffect(() => {
+    if (chartData?.dataPoints) {
+      setDataPoints(chartData.dataPoints);
+    }
+  }, [chartData]);
 
   useEffect(() => {
     if (dataPoints.length === 0) return;
@@ -95,12 +109,12 @@ export default function MonthlySalesChart() {
           return 0;
       }
     });
-   
+
     if(selectedOption != "till_date"){
       setCategories(labels);
     }    
     setSeries([{ name: seriesName, data: dataValues }]);
-  }, [dataPoints, selectedDataType,selectedOption]);
+  }, [dataPoints, selectedDataType, selectedOption]);
 
   const handleSelectChange = (selected: { value: string; label: string } | null) => {
     if (selected) {
