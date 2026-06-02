@@ -9,7 +9,6 @@ import {
   UserDetails,
   MutualFundDetails,
   FinancialPlan,
-  QuestionDefinition
 } from "./types";
 import UserProfileCard from "./UserProfileCard";
 import TabNavigation from "./TabNavigation";

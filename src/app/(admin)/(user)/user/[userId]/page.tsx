@@ -275,7 +275,7 @@ export default function UserDetails({ params }: PageProps) {
         // Fetch questions for financial plan editing
         let questionsData: QuestionDefinition[] = [];
         try {
-          const questionsResponse = await apiClient.get(
+          const questionsResponse = await apiClient.get<{ success: boolean; data: Record<string, QuestionDefinition[]> }>(
             FinancialPlanEndpoints.QUESTIONS,
             { baseUrl: 'onboarding' }
           );

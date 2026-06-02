@@ -26,8 +26,8 @@ const EditableInput = ({
   type = "text",
   className = ""
 }: {
-  value: any;
-  onChange: (value: any) => void;
+  value: string | number | undefined;
+  onChange: (value: string | number) => void;
   placeholder?: string;
   type?: string;
   className?: string;
@@ -50,8 +50,8 @@ const EditableBoolean = ({
   value,
   onChange
 }: {
-  value: any;
-  onChange: (value: any) => void;
+  value: boolean;
+  onChange: (value: boolean) => void;
 }) => {
   return (
     <select
@@ -142,8 +142,8 @@ const renderQuestionnaireSection = (
   items: QuestionItem[] | undefined | null,
   questionMap: Map<number, QuestionDefinition> | undefined,
   editing: boolean = false,
-  editedItems?: Record<string, any>,
-  onItemChange?: (questionId: string, value: any) => void,
+  editedItems?: Record<string, string | number | boolean>,
+  onItemChange?: (questionId: string, value: string | number | boolean) => void,
   showTitle: boolean = true,
 ) => {
   if (!items || items.length === 0) {
@@ -155,7 +155,7 @@ const renderQuestionnaireSection = (
       return {
         ...item,
         ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-          ? { option: editedItems?.[String(item.questionId)] ?? item.option }
+          ? { option: editedItems?.[String(item.questionId)]?.toString() ?? item.option }
           : { value: editedItems?.[String(item.questionId)] ?? item.value }
         ),
       };
@@ -235,8 +235,12 @@ const renderQuestionnaireSection = (
 const renderGoalsSection = (
   goals: Record<string, QuestionItem[]> | undefined | null,
   editingSectionId: string | null,
-  editedGoals?: Record<string, Record<string, any>>,
-  onGoalChange?: (goalId: string, questionId: string, value: any) => void,
+  editedGoals?: Record<string, Record<string, string | number | boolean>>,
+  onGoalChange?: (
+    goalId: string,
+    questionId: string,
+    value: string | number | boolean
+  ) => void,
   onEditSection?: (section: string) => void,
   onSaveSection?: (section: string) => void,
   onCancelSection?: () => void,
@@ -258,7 +262,7 @@ const renderGoalsSection = (
             ? items.filter(isEditableQuestion).map(item => ({
                 ...item,
                 ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-                  ? { option: editedGoals?.[editKey]?.[String(item.questionId)] ?? item.option }
+                  ? { option: editedGoals?.[editKey]?.[String(item.questionId)]?.toString() ?? item.option }
                   : { value: editedGoals?.[editKey]?.[String(item.questionId)] ?? item.value }
               ),
             }))
@@ -346,8 +350,12 @@ const renderGoalsSection = (
 const renderInsuranceSection = (
   insurance: Record<string, QuestionItem[]> | undefined | null,
   editingSectionId: string | null,
-  editedInsurance?: Record<string, Record<string, any>>,
-  onInsuranceChange?: (insuranceId: string, questionId: string, value: any) => void,
+  editedInsurance?: Record<string, Record<string, string | number | boolean>>,
+  onInsuranceChange?: (
+    insuranceId: string,
+    questionId: string,
+    value: string | number | boolean
+  ) => void,
   onEditSection?: (section: string) => void,
   onSaveSection?: (section: string) => void,
   onCancelSection?: () => void,
@@ -369,7 +377,7 @@ const renderInsuranceSection = (
             ? items.filter(isEditableQuestion).map(item => ({
                 ...item,
                 ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-                  ? { option: editedInsurance?.[editKey]?.[String(item.questionId)] ?? item.option }
+                  ? { option: editedInsurance?.[editKey]?.[String(item.questionId)]?.toString() ?? item.option }
                   : { value: editedInsurance?.[editKey]?.[String(item.questionId)] ?? item.value }
               ),
             }))
@@ -457,7 +465,7 @@ const renderInsuranceSection = (
 
 const renderPrimitiveValue = (
   key: string,
-  value: any,
+  value: unknown,
 ) => {
   if (typeof value === "boolean") {
     return (
@@ -502,10 +510,10 @@ const renderPrimitiveValue = (
 
 interface JsonFieldProps {
   label: string;
-  value: any;
+  value: unknown;
   depth?: number;
   editing?: boolean;
-  onValueChange?: (value: any) => void;
+  onValueChange?: (value: unknown) => void;
 }
 
 const JsonField = ({
@@ -585,7 +593,7 @@ const JsonField = ({
             {label.replace(/([A-Z])/g, " $1").trim()}
           </span>
 
-          {typeof value?.overallScore === "number" && (
+          {typeof (value as Record<string, unknown>)?.overallScore === "number" && (
             <span
               className={`
                 rounded-full
@@ -594,15 +602,15 @@ const JsonField = ({
                 text-xs
                 font-semibold
                 ${
-                  value.overallScore >= 80
+                  (value as { overallScore: number }).overallScore >= 80
                     ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : value.overallScore >= 60
+                    : (value as { overallScore: number }).overallScore >= 60
                     ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                     : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                 }
               `}
             >
-              {value.overallScore}/100
+              {(value as { overallScore: number }).overallScore}/100
             </span>
           )}
         </div>
@@ -619,7 +627,7 @@ const JsonField = ({
       {isOpen && (
         <div className="ml-6 mt-2 border-l border-gray-200 pl-4 dark:border-gray-700">
           {isArray ? (
-            value.map((item: any, index: number) => (
+            value.map((item: unknown, index: number) => (
               <JsonField
                 key={index}
                 label={`Item ${index + 1}`}
@@ -649,7 +657,7 @@ const JsonField = ({
 
 interface JsonSectionProps {
   title: string;
-  data: any;
+  data: Record<string, unknown>;
   editing?: boolean;
 }
 
@@ -685,7 +693,7 @@ const JsonSection = ({ title, data, editing = false }: JsonSectionProps) => {
             {title}
           </span>
 
-          {typeof data?.overallScore === "number" && (
+          {typeof (data as Record<string, unknown>)?.overallScore === "number" && (
             <span
               className={`
                 rounded-full
@@ -694,15 +702,15 @@ const JsonSection = ({ title, data, editing = false }: JsonSectionProps) => {
                 text-sm
                 font-semibold
                 ${
-                  data.overallScore >= 80
+                  (data as { overallScore: number }).overallScore >= 80
                     ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : data.overallScore >= 60
+                    : (data as { overallScore: number }).overallScore >= 60
                     ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                     : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
                 }
               `}
             >
-              {data.overallScore}/100
+              {(data as { overallScore: number }).overallScore}/100
             </span>
           )}
         </div>
@@ -737,12 +745,15 @@ const JsonSection = ({ title, data, editing = false }: JsonSectionProps) => {
 
 export default function PlanDataTab({ financialPlan, userId, questions, fromApp }: PlanDataTabProps) {
   const [editingSection, setEditingSection] = useState<string | null>(null);
-  const [editedValues, setEditedValues] = useState<Record<string, Record<string, any>>>({});
+  const [editedValues, setEditedValues] = useState<
+    Record<string, Record<string, string | number | boolean>>
+  >({});
   const [saving, setSaving] = useState(false);
 
   const questionMap = useQuestionMap(questions);
 
-  const handleItemChange = useCallback((questionId: string, value: any) => {
+  const handleItemChange = useCallback(
+    (questionId: string, value: string | number | boolean) => {
     if (editingSection) {
       setEditedValues(prev => ({
         ...prev,
@@ -754,7 +765,11 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
     }
   }, [editingSection]);
 
-  const handleGoalChange = useCallback((goalId: string, questionId: string, value: any) => {
+  const handleGoalChange = useCallback((
+    goalId: string,
+    questionId: string,
+    value: string | number | boolean
+  ) => {
     setEditedValues(prev => ({
       ...prev,
       [`goals_${goalId}`]: {
@@ -764,7 +779,11 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
     }));
   }, []);
 
-  const handleInsuranceChange = useCallback((insuranceId: string, questionId: string, value: any) => {
+  const handleInsuranceChange = useCallback((
+    insuranceId: string,
+    questionId: string,
+    value: string | number | boolean
+  ) => {
     setEditedValues(prev => ({
       ...prev,
       [`insurance_${insuranceId}`]: {
@@ -774,7 +793,11 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
     }));
   }, []);
 
-  const handleAssetChange = useCallback((assetId: string, questionId: string, value: any) => {
+  const handleAssetChange = useCallback((
+    assetId: string,
+    questionId: string,
+    value: string | number | boolean
+  ) => {
     setEditedValues(prev => ({
       ...prev,
       [`assets_${assetId}`]: {
@@ -796,7 +819,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
         data = editableItems.map(item => ({
           ...item,
           ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-            ? { option: editedValues.personalDetails?.[String(item.questionId)] ?? item.option }
+            ? { option: editedValues.personalDetails?.[String(item.questionId)]?.toString() ?? item.option }
             : { value: editedValues.personalDetails?.[String(item.questionId)] ?? item.value }
           ),
         }));
@@ -810,7 +833,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
         data = editableItems.map(item => ({
           ...item,
           ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-            ? { option: editedValues.budgeting?.[String(item.questionId)] ?? item.option }
+            ? { option: editedValues.budgeting?.[String(item.questionId)]?.toString() ?? item.option }
             : { value: editedValues.budgeting?.[String(item.questionId)] ?? item.value }
           ),
         }));
@@ -826,7 +849,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
         data = editableItems.map(item => ({
           ...item,
           ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-            ? { option: editedValues[editingSection]?.[String(item.questionId)] ?? item.option }
+            ? { option: editedValues[editingSection]?.[String(item.questionId)]?.toString() ?? item.option }
             : { value: editedValues[editingSection]?.[String(item.questionId)] ?? item.value }
           ),
           goalId: goalId,
@@ -843,7 +866,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
         data = editableItems.map((item: QuestionItem) => ({
           ...item,
           ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-            ? { option: editedValues[editingSection]?.[String(item.questionId)] ?? item.option }
+            ? { option: editedValues[editingSection]?.[String(item.questionId)]?.toString() ?? item.option }
             : { value: editedValues[editingSection]?.[String(item.questionId)] ?? item.value }
           ),
           goalId: insuranceId,
@@ -861,7 +884,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
         data = editableItems.map((item: QuestionItem) => ({
           ...item,
           ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-            ? { option: editedValues[editingSection]?.[String(item.questionId)] ?? item.option }
+            ? { option: editedValues[editingSection]?.[String(item.questionId)]?.toString() ?? item.option }
             : { value: editedValues[editingSection]?.[String(item.questionId)] ?? item.value }
           ),
           goalId: assetId,
@@ -1017,7 +1040,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
                 ? (items as QuestionItem[]).filter(isEditableQuestion).map(item => ({
                   ...item,
                   ...(hasPredefinedOptions(item.questionId || 0, questionMap!)
-                    ? { option: editedValues[`assets_${assetId}`]?.[String(item.questionId)] ?? item.option }
+                    ? { option: editedValues[`assets_${assetId}`]?.[String(item.questionId)]?.toString() ?? item.option }
                     : { value: editedValues[`assets_${assetId}`]?.[String(item.questionId)] ?? item.value }
                 ),
                 }))
@@ -1086,7 +1109,7 @@ export default function PlanDataTab({ financialPlan, userId, questions, fromApp 
                           ) : (
                             <EditableInput
                               type={typeof item.value === 'number' ? "number" : "text"}
-                              value={editedValues[`assets_${assetId}`]?.[String(item.questionId)] ?? item.value ?? ""}
+                              value={String(editedValues[`assets_${assetId}`]?.[String(item.questionId)] ?? item.value ?? "")}
                               onChange={(val) => handleAssetChange(assetId, String(item.questionId), val)}
                               className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
                             />

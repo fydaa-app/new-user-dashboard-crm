@@ -198,7 +198,7 @@ export interface MutualFundTransaction {
 // Financial Plan Types
 export interface QuestionItem {
   questionId?: number;
-  value?: any;
+  value?: string | number | boolean | null;
   option?: string;
   question?: string;
 }
@@ -206,7 +206,7 @@ export interface QuestionItem {
 export interface QuestionDefinition {
   questionId: number;
   question: string;
-  option?: Record<string, any>;
+  option?: Record<string, string | number | boolean>;
 }
 
 export interface FinancialPlan {
@@ -217,8 +217,8 @@ export interface FinancialPlan {
   budgeting?: QuestionItem[] | null;
   assetsLiabilities?: Record<string, QuestionItem[]> | QuestionItem[] | null;
   insurancePlanning?: Record<string, QuestionItem[]> | null;
-  healthScore?: any;
-  wealthScore?: any;
+  healthScore?: Record<string, unknown> | null;
+  wealthScore?: Record<string, unknown> | null;
   planPdf?: string;
   createdAt?: string;
   updatedAt?: string;

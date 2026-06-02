@@ -6,7 +6,7 @@ export const getTabDisplayName = (tab: string, fromApp?: string) => {
     return "Mutual Funds";
   }
   if (tab === "PlanData") {
-    return "Financial Plan";
+    return "Plan Data";
   }
   return tab;
 };
