@@ -10,7 +10,7 @@ interface TabNavigationProps {
   userDetails: UserDetails;
 }
 
-const allowedTabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile"];
+const allowedTabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile", "PlanData"];
 
 export default function TabNavigation({ activeTab, onTabChange, userDetails }: TabNavigationProps) {
   return (

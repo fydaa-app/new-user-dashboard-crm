@@ -163,6 +163,8 @@ export interface UserTabProps {
   stockOrders: StockOrder[];
   mutualFundDetails?: MutualFundDetails[];
   transactionsMF?: MutualFundTransaction[];
+  financialPlan?: FinancialPlan;
+  questions?: QuestionDefinition[];
 }
 
 export interface MutualFundOrder {
@@ -191,4 +193,33 @@ export interface MutualFundTransaction {
   status: 'FULLY_SUCCESSFUL' | 'PARTIALLY_SUCCESSFUL' | 'FAILED' | 'IN_PROCESS';
   createdAt: string;
   orders: MutualFundOrder[];
+}
+
+// Financial Plan Types
+export interface QuestionItem {
+  questionId?: number;
+  value?: any;
+  option?: string;
+  question?: string;
+}
+
+export interface QuestionDefinition {
+  questionId: number;
+  question: string;
+  option?: Record<string, any>;
+}
+
+export interface FinancialPlan {
+  id?: number;
+  userId?: number;
+  personalDetails?: QuestionItem[];
+  financialGoals?: Record<string, QuestionItem[]> | null;
+  budgeting?: QuestionItem[] | null;
+  assetsLiabilities?: Record<string, QuestionItem[]> | QuestionItem[] | null;
+  insurancePlanning?: Record<string, QuestionItem[]> | null;
+  healthScore?: any;
+  wealthScore?: any;
+  planPdf?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

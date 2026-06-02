@@ -5,6 +5,9 @@ export const getTabDisplayName = (tab: string, fromApp?: string) => {
   if (tab === "Stock" && fromApp?.toLowerCase() === "fydaa") {
     return "Mutual Funds";
   }
+  if (tab === "PlanData") {
+    return "Financial Plan";
+  }
   return tab;
 };
 
