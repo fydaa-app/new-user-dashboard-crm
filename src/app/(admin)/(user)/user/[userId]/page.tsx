@@ -4,8 +4,9 @@ import React, { useState, useEffect, useMemo } from "react";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserTab from "@/components/user-detail/UserTab";
-import { MutualFundTransaction } from "@/components/user-detail/types";
+import { MutualFundTransaction, FinancialPlan, QuestionDefinition } from "@/components/user-detail/types";
 import { useRouter, useSearchParams } from "next/navigation";
+import { apiClient } from "@/services/api-client";
 
 // Interfaces for nested mutual fund data per API response
 
@@ -214,8 +215,8 @@ interface UserData {
   stockOrders: StockOrder[];
   xirr: Record<string, unknown>;
   mutualFundDetails: MutualFundDetail[];
-  // Mutual fund SIP transaction groups for Fydaa users
   transactionsMF?: MutualFundTransaction[];
+  financialPlan?: FinancialPlan;
 }
 
 // UserDetails component body and return (updated with "Back to Users")
@@ -226,6 +227,7 @@ interface PageProps {
 
 export default function UserDetails({ params }: PageProps) {
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [questions, setQuestions] = useState<QuestionDefinition[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -243,30 +245,53 @@ export default function UserDetails({ params }: PageProps) {
         const resolvedParams = await params;
         const { userId } = resolvedParams;
 
-        // const authToken =
-        //   document.cookie
-        //     .split("; ")
-        //     .find((row) => row.startsWith("authToken="))
-        //     ?.split("=")[1] || "";
-
-        // Import at top of file
-        const { apiClient } = await import("@/services/api-client");
-        const { UserEndpoints } = await import("@/config/api-endpoints");
+        const { UserEndpoints, FinancialPlanEndpoints } = await import("@/config/api-endpoints");
         
-        const response = await apiClient.get<UserData>(
+        // Fetch user details
+        const userResponse = await apiClient.get<UserData>(
           `${UserEndpoints.USER_DETAILS}/${userId}`
         );
 
-        if (!response.ok || !response.data) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (!userResponse.ok || !userResponse.data) {
+          throw new Error(`HTTP error! status: ${userResponse.status}`);
         }
 
-        const data: UserData = response.data;
+        const userData: UserData = userResponse.data;
 
-        // Transform only transactions, keep mutualFundDetails and transactionsMF as-is
+        // Fetch financial plan for this user (optional - don't fail if not found)
+        let financialPlan: FinancialPlan | undefined;
+        try {
+          const planResponse = await apiClient.get<{ success: boolean; data: FinancialPlan | null }>(
+            `${FinancialPlanEndpoints.FINANCIAL_PLAN_BY_USER.replace('{userId}', userId)}`,
+            { baseUrl: 'onboarding' }
+          );
+          financialPlan = planResponse.ok && planResponse.data?.data ? planResponse.data.data : undefined;
+        } catch (planErr) {
+          // Financial plan not found is not a critical error - user may not have one
+          console.log('Financial plan not found for user', userId, planErr);
+          financialPlan = undefined;
+        }
+
+        // Fetch questions for financial plan editing
+        let questionsData: QuestionDefinition[] = [];
+        try {
+          const questionsResponse = await apiClient.get<{ success: boolean; data: Record<string, QuestionDefinition[]> }>(
+            FinancialPlanEndpoints.QUESTIONS,
+            { baseUrl: 'onboarding' }
+          );
+          if (questionsResponse.ok && questionsResponse.data?.data) {
+            // Flatten grouped questions into single array
+            questionsData = Object.values(questionsResponse.data.data).flat();
+          }
+        } catch (qErr) {
+          console.log('Failed to fetch questions for financial plan', qErr);
+        }
+
+        // Transform only transactions
         const transformedData = {
-          ...data,
-          userTransactionDetails: data.userTransactionDetails.map((transaction) => ({
+          ...userData,
+          financialPlan,
+          userTransactionDetails: userData.userTransactionDetails.map((transaction) => ({
             ...transaction,
             orderType:
               transaction.orderType === "BUY" || transaction.orderType === "SELL"
@@ -276,6 +301,7 @@ export default function UserDetails({ params }: PageProps) {
         };
 
         setUserData(transformedData);
+        setQuestions(questionsData);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to fetch user data");
       } finally {
@@ -327,18 +353,19 @@ export default function UserDetails({ params }: PageProps) {
             Back to Users
           </button>
         </div>
-        <ComponentCard title="User Details">
-          <UserTab
-            userDetails={userData.userDetails}
-            portfolioDetails={userData.portfolioDetails}
-            transactions={userData.userTransactionDetails as Transaction[]}
-            subscriptions={userData.userSubscriptionDetails}
-            stockOrders={userData.stockOrders}
-            mutualFundDetails={userData.mutualFundDetails}
-            // Pass through mutual fund transactions for Fydaa users
-            transactionsMF={userData.transactionsMF || []}
-          />
-        </ComponentCard>
+<ComponentCard title="User Details">
+           <UserTab
+             userDetails={userData.userDetails}
+             portfolioDetails={userData.portfolioDetails}
+             transactions={userData.userTransactionDetails as Transaction[]}
+             subscriptions={userData.userSubscriptionDetails}
+             stockOrders={userData.stockOrders}
+             mutualFundDetails={userData.mutualFundDetails}
+             transactionsMF={userData.transactionsMF || []}
+             financialPlan={userData.financialPlan}
+             questions={questions}
+           />
+         </ComponentCard>
       </div>
     </div>
   );

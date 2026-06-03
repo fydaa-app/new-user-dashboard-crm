@@ -138,6 +138,20 @@ export const PortfolioEndpoints = {
   ADD_PORTFOLIO: "portfolio", // Matches .env NEXT_PUBLIC_ADD_PORTFOLIO_ENDPOINT
 } as const;
 
+// Financial Plan Endpoints
+export const FinancialPlanEndpoints = {
+  FINANCIAL_PLAN: "/financial-plan",
+  FINANCIAL_PLAN_BY_USER: "/financial-plan/admin/{userId}", // Admin endpoint to fetch plan by userId
+  ADMIN_UPDATE_PERSONAL_DETAILS: "/financial-plan/admin/{userId}/personal-details",
+  ADMIN_UPDATE_FINANCIAL_GOALS: "/financial-plan/admin/{userId}/financial-goals",
+  ADMIN_UPDATE_BUDGETING: "/financial-plan/admin/{userId}/budgeting",
+  ADMIN_UPDATE_ASSETS_LIABILITIES: "/financial-plan/admin/{userId}/assets-liabilities",
+  ADMIN_UPDATE_INSURANCE_PLANNING: "/financial-plan/admin/{userId}/insurance-planning",
+  QUESTIONS: "/financial-plan/questions",
+  ADMIN_RECALCULATE_HEALTH_SCORE: "/financial-plan/admin/health-score/recalculate/{userId}",
+  ADMIN_RECALCULATE_WEALTH_SCORE: "/financial-plan/admin/wealth-score/recalculate/{userId}",
+} as const;
+
 // Export all endpoints as a single object for convenience
 export const APIEndpoints = {
   ...AuthEndpoints,
@@ -152,6 +166,7 @@ export const APIEndpoints = {
   ...PayoutEndpoints,
   ...MutualFundEndpoints,
   ...PortfolioEndpoints,
+  ...FinancialPlanEndpoints,
 } as const;
 
 // Type exports for TypeScript autocomplete
@@ -166,4 +181,5 @@ export type AdminEndpoint = typeof AdminEndpoints[keyof typeof AdminEndpoints];
 export type PayoutEndpoint = typeof PayoutEndpoints[keyof typeof PayoutEndpoints];
 export type MutualFundEndpoint = typeof MutualFundEndpoints[keyof typeof MutualFundEndpoints];
 export type PortfolioEndpoint = typeof PortfolioEndpoints[keyof typeof PortfolioEndpoints];
+export type FinancialPlanEndpoint = typeof FinancialPlanEndpoints[keyof typeof FinancialPlanEndpoints];
 

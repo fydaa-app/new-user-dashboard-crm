@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import { xirrService, XIRRTableData } from "../../services/xirrService";
-import { 
-  UserTabProps, 
-  Transaction, 
-  MutualFundTransaction, 
-  UserDetails, 
-  MutualFundDetails 
+import {
+  UserTabProps,
+  Transaction,
+  MutualFundTransaction,
+  UserDetails,
+  MutualFundDetails,
+  FinancialPlan,
 } from "./types";
 import UserProfileCard from "./UserProfileCard";
 import TabNavigation from "./TabNavigation";
@@ -16,9 +17,10 @@ import TransactionTab from "./TransactionTab";
 import SubscriptionTab from "./SubscriptionTab";
 import StockTab from "./StockTab";
 import ProfileTab from "./ProfileTab";
+import PlanDataTab from "./PlanDataTab";
 import XIRRTableSection from "./XIRRTableSection";
 import { apiClient } from "@/services/api-client";
-import { UserEndpoints, StockEndpoints, TransactionEndpoints } from "@/config/api-endpoints";
+import { UserEndpoints, StockEndpoints, TransactionEndpoints, FinancialPlanEndpoints } from "@/config/api-endpoints";
 
 interface UserDetailsApiResponse {
   transactionsMF?: MutualFundTransaction[];
@@ -29,7 +31,6 @@ interface UserDetailsApiResponse {
 
 export async function fetchUserTabData(userId: number) {
   try {
-    // --- CRITICAL FIX: Fetch and extract transactionsMF FIRST ---
     const userDetailsRes = await apiClient.get<UserDetailsApiResponse | UserDetails>(
       `${UserEndpoints.USER_DETAILS}/${userId}`,
       { baseUrl: 'crm' }
@@ -41,13 +42,22 @@ export async function fetchUserTabData(userId: number) {
 
     const mainData = userDetailsRes.data;
     
-    // Extract IMMEDIATELY - this is the data we need
     const transactionsMF: MutualFundTransaction[] = 
       (mainData as UserDetailsApiResponse).transactionsMF || [];
     const userDetails = (mainData as UserDetailsApiResponse).userDetails || (mainData as UserDetails);
     const isFydaa = userDetails.fromApp?.toLowerCase() === "fydaa";
 
     console.log(`[fetchUserTabData] ✅ Extracted ${transactionsMF.length} MF transactions for user ${userId}`);
+
+    // Fetch financial plan from onboarding service (admin endpoint)
+    const [financialPlanRes] = await Promise.all([
+      apiClient.get<FinancialPlan>(
+        `${FinancialPlanEndpoints.FINANCIAL_PLAN_BY_USER.replace('{userId}', userId.toString())}`,
+        { baseUrl: 'onboarding' }
+      ),
+    ]);
+
+    const financialPlan = financialPlanRes.ok ? financialPlanRes.data : undefined;
 
     // Now fetch the rest in parallel - if these fail, we still have transactionsMF
     const [portfolioRes, subscriptionsRes, stockOrdersRes, xirrRes] =
@@ -67,13 +77,11 @@ export async function fetchUserTabData(userId: number) {
         !isFydaa ? xirrService.getUserXIRR(userId) : Promise.resolve(null),
       ]);
 
-    // Parse responses
     const portfolioDetails = portfolioRes.ok ? portfolioRes.data : [];
     const subscriptions = subscriptionsRes.ok ? subscriptionsRes.data : [];
     const stockOrders = stockOrdersRes.ok ? stockOrdersRes.data : [];
     const xirrData: XIRRTableData | null = xirrRes;
 
-    // Standard transactions for Savestment (only fetch if needed)
     let transactions: Transaction[] = [];
     if (!isFydaa) {
       const transactionsRes = await apiClient.get<Transaction[]>(
@@ -83,7 +91,6 @@ export async function fetchUserTabData(userId: number) {
       transactions = transactionsRes.ok && Array.isArray(transactionsRes.data) ? transactionsRes.data : [];
     }
 
-    // Mutual Fund Details
     const mutualFundDetails = (mainData as UserDetailsApiResponse).mutualFundDetails || 
       (subscriptions as { mutualFundDetails?: MutualFundDetails[] }).mutualFundDetails || [];
 
@@ -95,11 +102,11 @@ export async function fetchUserTabData(userId: number) {
       stockOrders,
       xirrData,
       mutualFundDetails,
-      transactionsMF, // This now has data even if other fetches fail
+      transactionsMF,
+      financialPlan,
     };
   } catch (error) {
     console.error("[fetchUserTabData] ❌ Error:", error);
-    // Return empty data on error
     return {
       userDetails: {},
       portfolioDetails: [],
@@ -109,6 +116,7 @@ export async function fetchUserTabData(userId: number) {
       xirrData: null,
       mutualFundDetails: [],
       transactionsMF: [],
+      financialPlan: undefined,
     };
   }
 }
@@ -120,7 +128,9 @@ export default function UserTab({
   subscriptions,
   stockOrders,
   mutualFundDetails,
-  transactionsMF = [], // This will now receive the correct data
+  transactionsMF = [],
+  financialPlan,
+  questions,
 }: UserTabProps) {
   const [activeTab, setActiveTab] = useState<string>("Portfolio");
   const [xirrData, setXirrData] = useState<XIRRTableData | null>(null);
@@ -194,7 +204,7 @@ export default function UserTab({
               />
             )}
 
-            {activeTab === "Subscription" && (
+{activeTab === "Subscription" && (
               <SubscriptionTab
                 subscriptions={subscriptions}
                 userDetails={userDetails}
@@ -212,6 +222,10 @@ export default function UserTab({
 
             {activeTab === "Profile" && (
               <ProfileTab userDetails={userDetails} />
+            )}
+
+{activeTab === "PlanData" && (
+              <PlanDataTab financialPlan={financialPlan} userId={userDetails?.id?.toString()} questions={questions} fromApp={userDetails.fromApp}/>
             )}
           </div>
         </div>
