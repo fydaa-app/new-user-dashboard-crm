@@ -201,7 +201,7 @@ export default function TransactionTab({ transactions, transactionsMF, userDetai
                             <td colSpan={10} className="px-0 py-0 bg-gray-50 dark:bg-white/[0.01]">
                               <div className="px-8 py-4">
                                 <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                                  Order Details ({transaction.orders.length} orders)
+                                  Order Details ({transaction.orders?.length || 0} orders)
                                 </h4>
                                 <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-white/[0.05]">
                                   <table className="w-full">
