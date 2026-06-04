@@ -56,6 +56,7 @@ export default function SalesCRM() {
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorCategory, setErrorCategory] = useState<'none' | 'validation' | 'conflict' | 'fk' | 'notnull' | 'network' | 'auth' | 'server' | 'image'>('none');
   const [showAddLead, setShowAddLead] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -1041,7 +1042,24 @@ export default function SalesCRM() {
       };
       reader.readAsDataURL(file);
     }
-  };
+   };
+
+  function classifyError(message: string): 'validation' | 'conflict' | 'fk' | 'notnull' | 'network' | 'auth' | 'server' | 'image' {
+    const lower = message.toLowerCase();
+
+    if (lower === 'failed to fetch' || lower.includes('network error')) return 'network';
+    if (lower.includes('unauthorized')) return 'auth';
+    if (lower.includes('creation failed: foreign key constraint violated')) return 'fk';
+    if (lower.includes('unique constraint failed') || lower.includes('already exists')) return 'conflict';
+    if (lower.includes('notnull violation') || lower.includes('should not be null')) return 'notnull';
+    if (lower.includes('failed to upload image')) return 'image';
+    if (lower.includes('failed to create lead') && !lower.includes('creation failed')) return 'server';
+    return 'validation';
+  }
+
+  function needsRefresh(category: string): boolean {
+    return category === 'network' || category === 'auth' || category === 'server';
+  }
 
   const handleAddLead = async () => {
     if (newLead.name && newLead.mobileNumber && newLead.email) {
@@ -1095,6 +1113,7 @@ export default function SalesCRM() {
           notes: '',
           imageUrl: ''
         });
+        setErrorCategory('none');
         setSelectedDesignation('');
         setEmployees([]);
         // Reset validation states
@@ -1107,23 +1126,58 @@ export default function SalesCRM() {
         setImageError('');
         setShowAddLead(false);
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to create lead. Please try again.';
-        
-        // Check if error is related to mobile number conflict
-        const isMobileNumberError = errorMessage.toLowerCase().includes('mobile number') || 
-                                     errorMessage.toLowerCase().includes('phone number') ||
-                                     errorMessage.toLowerCase().includes('already exists');
-        
+        let errorMessage = err instanceof Error ? err.message : 'Failed to create lead. Please try again.';
+        const category = classifyError(errorMessage);
+
+        const errorMeta: Record<string, { title: string; description: string }> = {
+          network: {
+            title: 'Connection Failed',
+            description: 'Could not reach the server. Check your connection and try again.',
+          },
+          auth: {
+            title: 'Session Expired',
+            description: 'Your session has expired. Please refresh to log in again.',
+          },
+          server: {
+            title: 'Server Error',
+            description: 'Something went wrong on our end. Please try again in a moment.',
+          },
+          conflict: {
+            title: 'Duplicate Mobile Number',
+            description: 'A lead with this mobile number already exists.',
+          },
+          fk: {
+            title: 'Invalid Employee Selected',
+            description: 'The assigned employee or your account record could not be found.',
+          },
+          notnull: {
+            title: 'Missing Required Data',
+            description: 'A required field was not provided. Please check the form.',
+          },
+          image: {
+            title: 'Image Upload Failed',
+            description: 'Could not upload the image. Please try again or remove it.',
+          },
+          validation: {
+            title: 'Validation Error',
+            description: errorMessage,
+          },
+        };
+
+        const meta = errorMeta[category] || errorMeta.validation;
+        errorMessage = `${meta.title}: ${meta.description}`;
+
+        const isMobileNumberError = category === 'conflict';
+
         if (isMobileNumberError) {
-          // Set phone error to show below the phone input
           setPhoneError(errorMessage);
           setPhoneTouched(true);
-          // Also set general error for visibility
           setError(errorMessage);
         } else {
           setError(errorMessage);
         }
-        
+        setErrorCategory(category);
+
         console.error('Error creating lead:', err);
       } finally {
         setLoading(false);
@@ -1430,6 +1484,7 @@ export default function SalesCRM() {
           onClose={() => {
             setShowAddLead(false);
             setError(null); // Clear error when closing
+            setErrorCategory('none');
             // Reset validation states
             setEmailError('');
             setPhoneError('');
@@ -1449,24 +1504,55 @@ export default function SalesCRM() {
             <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-120px)] overflow-x-hidden">
               {/* Insert Error Message Here */}
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+                <div className={`${
+                  errorCategory === 'network' || errorCategory === 'auth' || errorCategory === 'server'
+                    ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
+                    : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                } rounded-lg p-4 mb-4`}>
                   <div className="flex items-start">
                     <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
+                      {errorCategory === 'network' || errorCategory === 'auth' || errorCategory === 'server' ? (
+                        <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                    <div className="ml-3 flex-1">
+                      <h3 className={`text-sm font-medium ${
+                        errorCategory === 'network' || errorCategory === 'auth' || errorCategory === 'server'
+                          ? 'text-orange-800 dark:text-orange-200'
+                          : 'text-red-800 dark:text-red-200'
+                      }`}>
                         Error Adding Lead
                       </h3>
-                      <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                      <div className={`mt-2 text-sm ${
+                        errorCategory === 'network' || errorCategory === 'auth' || errorCategory === 'server'
+                          ? 'text-orange-700 dark:text-orange-300'
+                          : 'text-red-700 dark:text-red-300'
+                      }`}>
                         <p>{error}</p>
                       </div>
+                      {needsRefresh(errorCategory) && (
+                        <div className="mt-3">
+                          <button
+                            onClick={() => window.location.reload()}
+                            className={`inline-flex items-center px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                              errorCategory === 'network' || errorCategory === 'auth' || errorCategory === 'server'
+                                ? 'bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-800/30 dark:text-orange-300 dark:hover:bg-orange-800/50'
+                                : 'bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-800/30 dark:text-red-300 dark:hover:bg-red-800/50'
+                            }`}
+                          >
+                            <svg className="mr-1.5 h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+                            </svg>
+                            Refresh Page
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1494,6 +1580,7 @@ export default function SalesCRM() {
                       // Clear any previous backend error when user starts typing
                       if (error && (error.toLowerCase().includes('mobile number') || error.toLowerCase().includes('phone number') || error.toLowerCase().includes('already exists'))) {
                         setError(null);
+                        setErrorCategory('none');
                       }
                       // Remove any non-digit characters for validation
                       const digitsOnly = value.replace(/\D/g, '');
