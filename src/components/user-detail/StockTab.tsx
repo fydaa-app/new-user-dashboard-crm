@@ -112,10 +112,10 @@ export default function StockTab({
                         <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                           {stockOrders
                             .slice()
-                            .sort((a, b) => a['stock.stockName'].localeCompare(b['stock.stockName']))
-                            .map((order) => (
-                              <TableRow key={order.stockId}>
-                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.stockName']}</TableCell>
+                            .sort((a, b) => String(a['stock.stockName'] || '').localeCompare(String(b['stock.stockName'] || '')))
+                            .map((order, index) => (
+                              <TableRow key={order.stockId ?? `unknown-${index}`}>
+                                <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.stockName'] || '—'}</TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order['stock.ticker']}</TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{order.quantityDifference}</TableCell>
                                 <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">{formatCurrency(order.avgValue)}</TableCell>

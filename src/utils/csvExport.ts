@@ -4,7 +4,7 @@
  */
 
 import { Lead } from '@/services/leadService';
-import * as XLSX from 'xlsx';
+import * as XLSX from '@e965/xlsx';
 
 /**
  * Format date with time for export

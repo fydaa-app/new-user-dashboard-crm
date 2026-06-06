@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@e965/xlsx": "^0.20.3",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
     "@fullcalendar/interaction": "^6.1.15",
@@ -35,9 +36,8 @@
     "react-dropzone": "^14.3.5",
     "react-flatpickr": "^3.10.13",
     "react-toastify": "^11.0.5",
-    "swiper": "^11.2.0",
-    "tailwind-merge": "^2.6.0",
-    "xlsx": "^0.18.5"
+    "swiper": "^12.2.0",
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

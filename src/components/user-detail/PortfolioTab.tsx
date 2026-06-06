@@ -84,7 +84,7 @@ export default function PortfolioTab({
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-500 dark:text-gray-400">Invested Amount</p>
                 <p className="font-medium dark:text-gray-400">
-                  {formatCurrency(mfPortfolio.mutualFunds.reduce((sum, fund) => sum + fund.investedValue, 0))}
+                  {formatCurrency((mfPortfolio.mutualFunds || []).reduce((sum, fund) => sum + fund.investedValue, 0))}
                 </p>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
