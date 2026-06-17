@@ -31,6 +31,7 @@ interface Sip {
   goalId?: number;
   totalPlans: number;
   goalName?: string;
+  updatedAt: Date;
 }
 
 
