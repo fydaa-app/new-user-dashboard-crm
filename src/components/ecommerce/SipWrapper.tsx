@@ -28,7 +28,7 @@ interface SipData {
 
 const transformSipData = (data: CardData[]): SipData => ({
   totalActiveSips: data.find((item) => item.type === "Total Active Sips")?.totalactivesip || 0,
-  totalInActiveSips: data.find((item) => item.type === "Total In Active Sips")?.totalinactivesip || 0,
+  totalInActiveSips: data.find((item) => item.type === "Total Inactive Sips")?.totalinactivesip || 0,
   totalCompletedSips: data.find((item) => item.type === "Total Completed Sips")?.totalcompletedsip || 0,
   totalInProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
   totalPartiallyExitedSips: data.find((item) => item.type === "Partially Exited Sips")?.totalpartiallyexitsip || 0,

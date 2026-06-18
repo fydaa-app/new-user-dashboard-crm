@@ -197,7 +197,15 @@ export default function ActiveSipListPage() {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Active SIP List" />
+            <PageBreadcrumb pageTitle="Active SIP List" parentTitle="SIP" parentHref="/sip" />
+
+            <button
+                onClick={() => router.push("/sip")}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 mb-4"
+            >
+                ← Back to SIP
+            </button>
+
             <div className="space-y-6">
                 <ComponentCard title="Active SIP List">
                     <div>
