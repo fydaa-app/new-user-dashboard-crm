@@ -27,6 +27,8 @@ interface GoalResponse {
 
 const SalesByGoalChart = () => {
   const [goalData, setGoalData] = useState<GoalData[]>([]);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
@@ -86,16 +88,36 @@ const SalesByGoalChart = () => {
 
   const chartLabels = useMemo(() => goalData.map((goal) => `${goal.goalName} (${goal.userCount} users)`), [goalData]);
   const chartSeries = useMemo(() => goalData.map((goal) => goal.totalRevenue), [goalData]);
-
+  const totalRevenue = useMemo(
+    () => chartSeries.reduce((sum, value) => sum + value, 0),
+    [chartSeries]
+  );
+  const activeIndex = hoveredIndex ?? selectedIndex;
+  const activeLabel = activeIndex !== null ? chartLabels[activeIndex] : "";
+  const activeValue =
+    activeIndex !== null ? chartSeries[activeIndex] : null;
   const chartOptions: ApexCharts.ApexOptions = useMemo(() => ({
     chart: {
       type: "donut",
       fontFamily: "Inter, sans-serif",
+      events: {
+        dataPointMouseEnter: (_event, _chartContext, config) => {
+          setHoveredIndex(config.dataPointIndex);
+        },
+        dataPointMouseLeave: () => {
+          setHoveredIndex(null);
+        },
+        dataPointSelection: (_event, _chartContext, config) => {
+          setSelectedIndex((prev) =>
+            prev === config.dataPointIndex ? null : config.dataPointIndex
+          );
+        },
+      },
     },
     labels: chartLabels,
     colors: ["#3C50E0", "#6577F3", "#8FD0EF", "#0FADCF", "#80CAEE"],
     legend: {
-      show: true,
+      show: false,
       position: "right",
       fontSize: "14px",
       fontWeight: 500,
@@ -114,22 +136,14 @@ const SalesByGoalChart = () => {
           size: "55%",
           labels: {
             show: true,
-            total: {
-              show: true,
-              showAlways: true,
-              label: "Total Revenue",
-              fontSize: "16px",
-              fontWeight: 600,
-              color: "#64748B",
-              formatter: function (w) {
-                return w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0).toString();
-              },
+            name: {
+              show: false,
             },
             value: {
-              show: true,
-              fontSize: "24px",
-              fontWeight: 700,
-              color: "#1F2937",
+              show: false,
+            },
+            total: {
+              show: false,
             },
           },
         },
@@ -160,13 +174,19 @@ const SalesByGoalChart = () => {
 
   return (
     <div className="h-full rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Sales by Goal
-        </h3>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          Revenue distribution across goals
-        </span>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Sales by Goal
+          </h3>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Revenue distribution across goals
+          </span>
+        </div>
+
+        <p className="shrink-0 text-sm font-semibold text-gray-800 dark:text-white/90">
+          Total: {totalRevenue.toLocaleString("en-IN")}
+        </p>
       </div>
 
       {loading ? (
@@ -183,6 +203,13 @@ const SalesByGoalChart = () => {
         </div>
       ) : (
         <div className="relative">
+          <div className="mb-2 h-7 flex items-center justify-center">
+            {activeLabel && (
+              <p className="truncate text-center text-lg font-semibold text-gray-800 dark:text-white/90">
+                {activeLabel}
+              </p>
+            )}
+          </div>
           <ApexCharts
             options={chartOptions}
             series={chartSeries}
@@ -190,6 +217,11 @@ const SalesByGoalChart = () => {
             height={350}
             width="100%"
           />
+          {activeValue !== null && (
+            <div className="pointer-events-none absolute left-1/2 top-[55%] -translate-x-1/2 -translate-y-1/2 text-center text-xl font-bold text-gray-800 dark:text-white">
+              {activeValue.toLocaleString("en-IN")}
+            </div>
+          )}
         </div>
       )}
     </div>
