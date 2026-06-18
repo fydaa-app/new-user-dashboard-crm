@@ -31,6 +31,7 @@ interface Sip {
   goalId?: number;
   totalPlans: number;
   goalName?: string;
+  updatedAt: Date;
 }
 
 
@@ -213,7 +214,15 @@ export default function CancelledSipListPage() {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Cancelled SIP List" />
+            <PageBreadcrumb pageTitle="Cancelled SIP List" parentTitle="SIP" parentHref="/sip" />
+
+            <button
+                onClick={() => router.push("/sip")}
+                className="text-sm font-medium text-blue-600 hover:text-blue-800 mb-4"
+            >
+                ← Back to SIP
+            </button>
+
             <div className="space-y-6">
                 <ComponentCard title="Cancelled SIP List">
                     <div>

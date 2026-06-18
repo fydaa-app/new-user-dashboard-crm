@@ -30,6 +30,7 @@ export interface CancelledSipTableProps {
     goalId?: number;
     totalPlans: number;
     goalName?: string;
+    updatedAt: Date;
   }[];
   error: string | null;
 }
@@ -51,6 +52,17 @@ const formatDate = (date: Date): string => {
 };
 
 
+const formatDateTime = (date: Date): string => {
+  return new Date(date).toLocaleDateString('en-IN', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+
 export default function CancelledSipTable({ sips, error }: CancelledSipTableProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -64,6 +76,9 @@ export default function CancelledSipTable({ sips, error }: CancelledSipTableProp
                 <TableRow>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     Onboarding Date
+                  </TableCell>
+                  <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
+                    Cancelled At
                   </TableCell>
                   <TableCell isHeader className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400">
                     User Name
@@ -103,52 +118,55 @@ export default function CancelledSipTable({ sips, error }: CancelledSipTableProp
               {/* Table Body */}
               <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                 {sips.map((sip, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="px-5 py-4 sm:px-6 text-start">
-                      {formatDate(sip.userOnboardingDate)}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 sm:px-6 text-start">
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                            {sip.userName}
-                          </span>
+<TableRow key={index}>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start">
+                        {formatDate(sip.userOnboardingDate)}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start">
+                        {sip.updatedAt ? formatDateTime(sip.updatedAt) : '-'}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                              {sip.userName}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.referredByName || '-'}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.userMobileNumber}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.goalName || '-'}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.sipName || '-'}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {formatCurrency(sip.sipAmount)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.sipTenure} months
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {formatCurrency(sip.goalAmount)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {sip.totalPlans}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {formatDate(sip.startDate)}
-                    </TableCell>
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">                     
-                      <Badge color={sip.status === 'CANCELLED' ? 'error' : 'warning'}>
-                        {sip.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.referredByName || '-'}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.userMobileNumber}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.goalName || '-'}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.sipName || '-'}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {formatCurrency(sip.sipAmount)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.sipTenure} months
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {formatCurrency(sip.goalAmount)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                        {sip.totalPlans}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                        {formatDate(sip.startDate)}
+                      </TableCell>
+                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">                     
+                        <Badge color={sip.status === 'CANCELLED' ? 'error' : 'warning'}>
+                          {sip.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
                 ))}
               </TableBody>
             </Table>

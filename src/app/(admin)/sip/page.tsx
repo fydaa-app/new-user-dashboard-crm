@@ -92,7 +92,7 @@ const SipIndexPage = () => {
 
         const counts: SipCounts = {
           activeSips: data.find((item) => item.type === "Total Active Sips")?.totalactivesip || 0,
-          inactiveSips: data.find((item) => item.type === "Total In Active Sips")?.totalinactivesip || 0,
+          inactiveSips: data.find((item) => item.type === "Total Inactive Sips")?.totalinactivesip || 0,
           investedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
           cancelledSips: data.find((item) => item.type === "Cancelled Sips")?.totalcancelledsip || 0,
           inProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
