@@ -53,6 +53,7 @@ import MoreDotIcon from "./more-dot.svg";
 import BellIcon from "./bell.svg";
 import ExportIcon from "./export.svg";
 import NewCustomerIcon from "./new-customer.svg";
+import NewCustomerRedIcon from "./new-customer-red.svg";
 import DiscIcon from "./disc.svg";
 import OrderIcon from "./order.svg";
 import SalesIcon from "./sales.svg";
@@ -130,6 +131,7 @@ export {
   ChatIcon,
   ExportIcon,
   NewCustomerIcon,
+  NewCustomerRedIcon,
   DiscIcon,
   OrderIcon,
   SalesIcon,

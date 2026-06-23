@@ -1,17 +1,31 @@
 "use client";
 
-interface BehindGoalItem {
+export interface BehindGoalItem {
   sipId: number;
+  userId: number;
   username: string;
+  referredByName: string;
+  userMobileNumber: string;
+  userOnboardingDate: Date;
+  userSipName: string;
   sipName: string;
+  sipAmount: number;
+  sipDate: Date;
+  sipTenure: number;
+  sipFrequency: string;
+  startDate: Date;
+  endDate: Date;
+  portfolioId: number;
+  goalId: number;
+  totalPlans: number;
+  nextInstallmentDate: Date | null;
   goalName: string;
   goalPercentage: number;
   investedAmount: number;
-  expectedAmount: number;
   goalAmount: number;
 }
 
-interface BehindGoalsData {
+export interface BehindGoalsData {
   data: BehindGoalItem[];
   pagination: {
     currentPage: number;

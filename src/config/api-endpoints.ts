@@ -51,6 +51,7 @@ export const SipEndpoints = {
   COMPLETED_SIP_LIST_MF: "/referrals/completed-sip-list-mf",
   IN_PROGRESS_SIP_LIST_MF: "/referrals/inProgress-sip-list-mf",
   PARTIALLY_EXITED_SIP_LIST_MF: "/referrals/partially-exited-sip-list-mf",
+  BEHIND_GOALS_SIP_LIST_MF: "/referrals/behind-goals-list",
 } as const;
 
 // Dashboard & Analytics Endpoints

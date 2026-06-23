@@ -6,7 +6,7 @@ import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import GoalsByCategoryCard from "@/components/ecommerce/GoalsByCategoryCard";
-import BehindGoalsList from "@/components/ecommerce/BehindGoalsList";
+import BehindGoalsList, { BehindGoalsData } from "@/components/ecommerce/BehindGoalsList";
 import { apiClient } from "@/services/api-client";
 
 interface GoalCardsData {
@@ -40,26 +40,26 @@ interface GoalsByCategoryData {
   };
 }
 
-interface BehindGoalItem {
-  sipId: number;
-  username: string;
-  sipName: string;
-  goalName: string;
-  goalPercentage: number;
-  investedAmount: number;
-  expectedAmount: number;
-  goalAmount: number;
-}
+// interface BehindGoalItem {
+//   sipId: number;
+//   username: string;
+//   sipName: string;
+//   goalName: string;
+//   goalPercentage: number;
+//   investedAmount: number;
+//   expectedAmount: number;
+//   goalAmount: number;
+// }
 
-interface BehindGoalsData {
-  data: BehindGoalItem[];
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
-}
+// interface BehindGoalsData {
+//   data: BehindGoalItem[];
+//   pagination: {
+//     currentPage: number;
+//     totalPages: number;
+//     totalItems: number;
+//     itemsPerPage: number;
+//   };
+// }
 
 async function fetchGoalCards(
   selectedOption: string = "yearly",
@@ -384,7 +384,7 @@ export default function GoalsPlansPage() {
           />
         </ComponentCard>
 
-        <ComponentCard title="Behind Goals List">
+        <ComponentCard title="Failed SIP List">
           <BehindGoalsList
             data={behindGoals}
             loading={isLoadingList}
