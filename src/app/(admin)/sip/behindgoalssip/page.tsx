@@ -7,7 +7,8 @@ import BehindGoalsSipTable from "@/components/tables/BehindGoalsSipTable";
 import { useGlobalContext } from "@/context/GlobalState";
 import Cookies from "js-cookie";
 import Pagination from "@/components/tables/Pagination";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useListQueryState } from "@/hooks/useListQueryState";
 
 interface Sip {
   sipId: number;
@@ -98,20 +99,17 @@ export default function BehindGoalsSipListPage() {
   const [error, setError] = useState<string | null>(null);
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } =
     useGlobalContext();
-  const [page, setPage] = useState(1);
+  
+  const { page, setPage, searchQuery, setSearchQuery, skipNextPageResetRef } = useListQueryState("sip_behindgoalssip");
+  
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const query = searchParams.get("search") || "";
-    setSearchQuery(query);
-  }, [searchParams]);
+  const previousFiltersRef = useRef({ searchQuery, selectedOption, selectedType, customDates });
 
   const fetchData = useCallback(async () => {
     try {
@@ -152,8 +150,13 @@ export default function BehindGoalsSipListPage() {
   }, [fetchData]);
 
   useEffect(() => {
+    const prev = previousFiltersRef.current;
+    const hasChanged = prev.searchQuery !== searchQuery || prev.selectedOption !== selectedOption || prev.selectedType !== selectedType || prev.customDates?.start !== customDates?.start || prev.customDates?.end !== customDates?.end;
+    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates };
+    if (!hasChanged) return;
+    if (skipNextPageResetRef.current) { skipNextPageResetRef.current = false; return; }
     setPage(1);
-  }, [selectedOption, customDates, searchQuery, selectedType]);
+  }, [searchQuery, selectedOption, selectedType, customDates, setPage, skipNextPageResetRef]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -162,15 +165,6 @@ export default function BehindGoalsSipListPage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearching(true);
-
-    const params = new URLSearchParams();
-    if (searchQuery) {
-      params.set("search", searchQuery);
-    } else {
-      params.delete("search");
-    }
-
-    router.push(`?${params.toString()}`, { scroll: false });
     setPage(1);
   };
 

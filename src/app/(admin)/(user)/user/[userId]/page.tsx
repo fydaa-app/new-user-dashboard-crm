@@ -350,7 +350,7 @@ export default function UserDetails({ params }: PageProps) {
                 clipRule="evenodd"
               />
             </svg>
-            Back to Users
+            Back
           </button>
         </div>
 <ComponentCard title="User Details">
