@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
-import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconViolet, InvestorIcon } from "@/icons";
+import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconViolet, NewCustomerRedIcon, SalesIconGreen, OrderIconGreen, OrderIconPurple } from "@/icons";
+import { useRouter } from "next/navigation";
 import InvestmentTrendsChart from "./InvestmentTrendsChart";
 import SalesByPackageChart from "./SalesByPackageChart";
 import TopGoalsMf from "./TopGoalsMf";
@@ -33,12 +34,15 @@ interface CardData {
 interface SipCardData {
   type: string;
   totalSips?: number;
+  totalactivesip?: number;
   totalinvestedsip?: number;
-  cancelledSips?: number;
+  totalcancelledsip?: number;
+  behindgoalscount?: number;
   pausedSips?: number;
 }
 
 const NonAdminDashboard = () => {
+  const router = useRouter();
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, appType } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
   
@@ -65,6 +69,9 @@ const NonAdminDashboard = () => {
   const [activeSipsTillDate, setActiveSipsTillDate] = useState<number>(0);
   const [avgTicketSizeTillDate, setAvgTicketSizeTillDate] = useState<number>(0);
   const [redemptionRateTillDate, setRedemptionRateTillDate] = useState<number>(0);
+  const [newSipsCount, setNewSipsCount] = useState<number>(0);
+  const [cancelledSipsCount, setCancelledSipsCount] = useState<number>(0);
+  const [failedSipsCount, setFailedSipsCount] = useState<number>(0);
 
 
 
@@ -264,11 +271,14 @@ const NonAdminDashboard = () => {
           throw new Error("Failed to fetch SIP data");
         }
 
-        //const data: SipCardData[] = await response.json();
+        const data: SipCardData[] = await response.json();
+        const activeSipsData = data.find((item) => item.type === "Total Active Sips");
+        const cancelledSipsData = data.find((item) => item.type === "Cancelled Sips");
+        const failedSipsData = data.find((item) => item.type === "Behind Goals");
 
-        // Extract Active SIPs
-        //const activeSipsData = data.find((item) => item.type === "Total Invested Sips");
-        //setActiveSips(activeSipsData?.totalinvestedsip || 0);
+        setNewSipsCount(activeSipsData?.totalactivesip || 0);
+        setCancelledSipsCount(cancelledSipsData?.totalcancelledsip || 0);
+        setFailedSipsCount(failedSipsData?.behindgoalscount || 0);
         setLoading(false);
       } catch (error) {
         console.error("Error fetching SIP data:", error);
@@ -300,7 +310,7 @@ const NonAdminDashboard = () => {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
-      {/* Row 1: Total Revenue, Total AUM, New Investors, Net Inflow, Redemptions */}
+      {/* Row 1: Total Revenue, Total AUM, Net Inflow, Redemptions */}
       <div className="col-span-12">
         <div className="grid">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
@@ -331,34 +341,26 @@ const NonAdminDashboard = () => {
                 <div className="box-total-sales h-full">
                   <SalesIconOrange />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(aum)}</h2>
-                  <p className="total-sale-text">Total AUM</p>
-                  <p className="text-xs font-medium" style={{ color: "#000000" }}>
-                    <span style={{ color: "#000000" }}>Invested: </span>
-                    <span className="text-green-600">{formatCurrency(invested)}</span>
-                    {" | "}
-                    <span style={{ color: "#000000" }}>Returns: </span>
-                    <span className={returns >= 0 ? "text-green-600" : "text-red-600"}>
-                      {returns?.toFixed(2)}%
-                    </span>
-                  </p>
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
+                    <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
+                      <span style={{ color: "#000000" }}>Invested: </span>
+                      <span className="text-green-600">{formatCurrency(invested)}</span>
+                      {" | "}
+                      <span style={{ color: "#000000" }}>Returns: </span>
+                      <span className={returns >= 0 ? "text-green-600" : "text-red-600"}>
+                        {returns?.toFixed(2)}%
+                      </span>
+                    </p>
+                  </div>
                   <span className="total-yes"></span>
                 </div>
               </div>
-              
-              {/* New Investors */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <InvestorIcon />
-                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
-                  <p className="total-sale-text">New Investors</p>
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-              
+
               {/* Net Inflow */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconViolet />
+                  <SalesIconGreen />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(netInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
                   <span className="total-yes"></span>
@@ -368,14 +370,105 @@ const NonAdminDashboard = () => {
               {/* Redemptions */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g transform="translate(40,0) scale(-1,1)">
                       <circle cx="20" cy="20" r="20" fill="#FA5A7D"/>
                       <path fillRule="evenodd" clipRule="evenodd" d="M13 11C11.8954 11 11 11.8954 11 13V27C11 28.1046 11.8954 29 13 29H27C28.1046 29 29 28.1046 29 27V13C29 11.8954 28.1046 11 27 11H13ZM16 21C16 20.4477 15.5523 20 15 20C14.4477 20 14 20.4477 14 21V25C14 25.5523 14.4477 26 15 26C15.5523 26 16 25.5523 16 25V21ZM20 17C20.5523 17 21 17.4477 21 18V25C21 25.5523 20 26 19.4477 26C18.8954 26 18.4477 25.5523 18.4477 25V18C18.4477 17.4477 18.8954 17 19.4477 17H20ZM26 15C26 14.4477 25.5523 14 25 14C24.4477 14 24 14.4477 24 15V25C24 25.5523 24.4477 26 25 26C25.5523 26 26 25.5523 26 25V15Z" fill="white"/>
                     </g>
-                  </svg>
+                  </svg> */}
+                  <SalesIconViolet/>
                   <h2 className="numbers-sale text-gray-900">{formatNumber(redemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: SIP Activity */}
+      <div className="col-span-12">
+        <div className="grid">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                  SIP Activity
+                </h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Track investor onboarding and SIP lifecycle activity including new, cancelled, and failed SIPs.
+                </span>
+              </div>
+            </div>
+
+            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <NewCustomerRedIcon />
+                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
+                  <p className="total-sale-text">New Investors</p>
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push("/sip/activesip")}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push("/sip/activesip");
+                    }
+                  }}
+                  className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
+                >
+                  <OrderIcon />
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(newSipsCount)}</h2>
+                  <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">New SIPs</p>
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push("/sip/cancelledsip")}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push("/sip/cancelledsip");
+                    }
+                  }}
+                  className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
+                >
+                  <OrderIconGreen />
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(cancelledSipsCount)}</h2>
+                  <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Cancelled SIPs</p>
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => router.push("/sip/behindgoalssip")}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push("/sip/behindgoalssip");
+                    }
+                  }}
+                  className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
+                >
+                  <OrderIconPurple />
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(failedSipsCount)}</h2>
+                  <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Failed SIPs</p>
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -384,7 +477,7 @@ const NonAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Row 2: Existing Clients, Active SIPs, Avg Ticket Size, Redemption Rate */}
+      {/* Row 3: Existing Clients, Active SIPs, Avg Ticket Size, Redemption Rate */}
       <div className="col-span-12">
         <div className="grid">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">

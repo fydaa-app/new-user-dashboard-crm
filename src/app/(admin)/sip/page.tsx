@@ -24,6 +24,7 @@ interface CardData {
   totalpartiallyexitsip?: number;
   totalinvestedsip?: number;
   totalcancelledsip?: number;
+  behindgoalscount?: number;
 }
 
 interface SipCounts {
@@ -34,6 +35,7 @@ interface SipCounts {
   inProgressSips: number;
   completedSips: number;
   partiallyExitSips: number;
+  behindGoalsSips: number;
 }
 
 const SipIndexPage = () => {
@@ -51,6 +53,7 @@ const SipIndexPage = () => {
     inProgressSips: 0,
     completedSips: 0,
     partiallyExitSips: 0,
+    behindGoalsSips: 0,
   });
 
   useEffect(() => {
@@ -92,12 +95,13 @@ const SipIndexPage = () => {
 
         const counts: SipCounts = {
           activeSips: data.find((item) => item.type === "Total Active Sips")?.totalactivesip || 0,
-          inactiveSips: data.find((item) => item.type === "Total Inactive Sips")?.totalinactivesip || 0,
+          inactiveSips: data.find((item) => item.type === "Total In Active Sips")?.totalinactivesip || 0,
           investedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
           cancelledSips: data.find((item) => item.type === "Cancelled Sips")?.totalcancelledsip || 0,
           inProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
           completedSips: data.find((item) => item.type === "Total Completed Sips")?.totalcompletedsip || 0,
-          partiallyExitSips: data.find((item) => item.type === "Total Partially Exit Sips")?.totalpartiallyexitsip || 0,
+          partiallyExitSips: data.find((item) => item.type === "Partially Exited Sips")?.totalpartiallyexitsip || 0,
+          behindGoalsSips: data.find((item) => item.type === "Behind Goals")?.behindgoalscount || 0,
         };
 
         setSipCounts(counts);
@@ -149,6 +153,14 @@ const SipIndexPage = () => {
       icon: OrderIconRed,
       color: "bg-white dark:dark:bg-white/[0.03]",
       count: sipCounts.cancelledSips,
+    },
+    {
+      title: "Failed SIPs",
+      description: "SIPs falling behind their goal targets",
+      route: "/sip/behindgoalssip",
+      icon: OrderIconRed,
+      color: "bg-white dark:dark:bg-white/[0.03]",
+      count: sipCounts.behindGoalsSips,
     },
     {
       title: "Partially Exit SIPs",

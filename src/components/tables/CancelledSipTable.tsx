@@ -1,4 +1,6 @@
+"use client";
 import React from "react";
+import { useUserNavigation } from "@/hooks/useUserNavigation";
 import {
   Table,
   TableBody,
@@ -64,6 +66,7 @@ const formatDateTime = (date: Date): string => {
 
 
 export default function CancelledSipTable({ sips, error }: CancelledSipTableProps) {
+  const { navigateToUser } = useUserNavigation();
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto">
@@ -126,13 +129,17 @@ export default function CancelledSipTable({ sips, error }: CancelledSipTableProp
                         {sip.updatedAt ? formatDateTime(sip.updatedAt) : '-'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start">
-                        <div className="flex items-center gap-3">
-                          <div>
-                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-                              {sip.userName}
-                            </span>
-                          </div>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigateToUser(sip.userId);
+                          }}
+                          className="block font-medium text-gray-800 hover:underline text-theme-sm text-left dark:text-white/90"
+                        >
+                          {sip.userName}
+                        </button>
                       </TableCell>
                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
                         {sip.referredByName || '-'}
