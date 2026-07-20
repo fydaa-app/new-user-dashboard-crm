@@ -7,11 +7,9 @@ import { fetchPartnerEarnings, fetchPartnerPayoutList, checkPendingWithdrawals, 
 import PayoutListTable, { PayoutListItem } from "../tables/PayoutListTable";
 import PartnerTransactionsTable from "../tables/PartnerTransactionsTable";
 import Pagination from "../tables/Pagination";
+import { useAuth } from "@/context/AuthContext";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 
-
-interface PayoutsProps {
-  userRole?: string;
-}
 
 interface TransactionEntry {
   date: string;
@@ -20,11 +18,15 @@ interface TransactionEntry {
   type: string;
 }
 
-export default function Payouts({ userRole }: PayoutsProps) {
+export default function Payouts() {
+  const { user } = useAuth();
+  const { roleNameMap } = useRoleNameMap();
   const searchParams = useSearchParams();
   const partnerIdParam = searchParams.get("partnerId");
 
-  // State for admin viewing specific partner's earnings
+  const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
+  const isAdmin = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "admin";
   const [adminEarnings, setAdminEarnings] = useState<{
     totalEarnings: number;
     totalWithdrawn: number;
@@ -63,8 +65,6 @@ export default function Payouts({ userRole }: PayoutsProps) {
   const [isFetchingData, setIsFetchingData] = useState(false);
 
   const router = useRouter();
-  const isPartner = userRole === "5";
-  const isAdmin = userRole === "0";
 
   // Function to fetch transactions
   const fetchTransactions = async (page: number, partnerId?: number) => {

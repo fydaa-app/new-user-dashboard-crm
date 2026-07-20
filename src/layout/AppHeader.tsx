@@ -9,6 +9,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import { useModal } from "@/hooks/useModal";
 import { CustomDateModal } from "@/components/ui/modal/CustomDateModal";
 import Cookies from 'js-cookie';
@@ -30,15 +31,6 @@ interface HierarchyLevel {
   hierarchyName: string;
   level: number;
 }
-
-const ROLE_NAMES: { [key: number]: string } = {
-  0: "Admin",
-  1: "National Manager",
-  2: "Zonal Manager",
-  3: "Area Manager",
-  4: "Sales Manager",
-  5: "Partner"
-};
 
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
@@ -80,6 +72,7 @@ const AppHeader: React.FC = () => {
     appType,
     setAppType
   } = useGlobalContext();
+  const { roleNameMap } = useRoleNameMap();
   const displayAppType = userAppTypeLock || appType;
   console.log('[DEBUG AppHeader] userAppTypeLock:', userAppTypeLock, 'appType:', appType, 'displayAppType:', displayAppType, 'isLocked:', !!userAppTypeLock);
 
@@ -94,7 +87,8 @@ const AppHeader: React.FC = () => {
       console.error('Failed to decode token:', error);
     }
   }
-  const isPartner = userRole === "5";
+  const userRoleLevel = userRole ? parseInt(userRole, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === 'partner';
 
   // Check if type is team or member (both show hierarchy dropdowns)
   const isTeamType = Array.isArray(selectedType) 
@@ -142,7 +136,7 @@ const AppHeader: React.FC = () => {
               .map((item: EmployeeItem) => ({
                 value: item.id.toString(),
                 label: item.name,
-                secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
+                secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
               }))
               .sort((a, b) => {
                 const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
@@ -235,7 +229,7 @@ const AppHeader: React.FC = () => {
           .map((item: EmployeeItem) => ({
             value: item.id.toString(),
             label: item.name,
-            secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
+            secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
           }))
           .sort((a, b) => {
             const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");

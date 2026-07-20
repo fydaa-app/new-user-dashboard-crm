@@ -1,34 +1,24 @@
 // src/app/(admin)/payouts/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Payouts from "@/components/payout/Payouts";
-import { fetchPartnerPayoutList, PartnerPayoutListItem } from "@/services/payoutService";
 
 export default function PayoutsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const partnerIdParam = searchParams.get("partnerId");
   const { user, isLoading } = useAuth();
+  const { roleNameMap } = useRoleNameMap();
 
-  const [partnerName, setPartnerName] = useState<string>("");
-
-  useEffect(() => {
-    const fetchPartnerName = async () => {
-      if (partnerIdParam) {
-        const { payouts } = await fetchPartnerPayoutList(1, 100);
-        const partner = payouts.find((p: PartnerPayoutListItem) => p.partnerId === parseInt(partnerIdParam, 10));
-        setPartnerName(partner?.partnerName || `Partner #${partnerIdParam}`);
-      }
-    };
-    fetchPartnerName();
-  }, [partnerIdParam]);
-
-  const canAccess = user?.role === '0' || user?.role === '5';
+  const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
+  const canAccess = user?.role === '0' || isPartner;
 
   useEffect(() => {
     if (!isLoading && !canAccess) {
@@ -54,10 +44,10 @@ export default function PayoutsPage() {
       <div className="space-y-6">
         <ComponentCard title={
           partnerIdParam 
-            ? `Transactions - ${partnerName}` 
-            : (user?.role === "5" ? "Payouts" : "Payouts - List")
+            ? `Transactions - Partner #${partnerIdParam}` 
+            : (isPartner ? "Payouts" : "Payouts - List")
         }>
-          <Payouts userRole={user?.role} />
+          <Payouts />
         </ComponentCard>
       </div>
     </div>
