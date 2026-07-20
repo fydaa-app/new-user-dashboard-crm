@@ -1,13 +1,14 @@
 // src/app/(admin)/payouts/page.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useRoleNameMap } from "@/context/RoleNameContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Payouts from "@/components/payout/Payouts";
+import { fetchPartnerPayoutList, PartnerPayoutListItem } from "@/services/payoutService";
 
 export default function PayoutsPage() {
   const router = useRouter();
@@ -19,6 +20,19 @@ export default function PayoutsPage() {
   const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
   const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
   const canAccess = user?.role === '0' || isPartner;
+
+  const [partnerName, setPartnerName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchPartnerName = async () => {
+      if (partnerIdParam) {
+        const { payouts } = await fetchPartnerPayoutList(1, 100);
+        const partner = payouts.find((p: PartnerPayoutListItem) => p.partnerId === parseInt(partnerIdParam, 10));
+        setPartnerName(partner?.partnerName || `Partner #${partnerIdParam}`);
+      }
+    };
+    fetchPartnerName();
+  }, [partnerIdParam]);
 
   useEffect(() => {
     if (!isLoading && !canAccess) {
@@ -44,7 +58,7 @@ export default function PayoutsPage() {
       <div className="space-y-6">
         <ComponentCard title={
           partnerIdParam 
-            ? `Transactions - Partner #${partnerIdParam}` 
+            ? `Transactions - ${partnerName}` 
             : (isPartner ? "Payouts" : "Payouts - List")
         }>
           <Payouts />
