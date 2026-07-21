@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import Payouts from "@/components/payout/Payouts";
@@ -14,6 +15,11 @@ export default function PayoutsPage() {
   const searchParams = useSearchParams();
   const partnerIdParam = searchParams.get("partnerId");
   const { user, isLoading } = useAuth();
+  const { roleNameMap } = useRoleNameMap();
+
+  const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
+  const canAccess = user?.role === '0' || isPartner;
 
   const [partnerName, setPartnerName] = useState<string>("");
 
@@ -27,8 +33,6 @@ export default function PayoutsPage() {
     };
     fetchPartnerName();
   }, [partnerIdParam]);
-
-  const canAccess = user?.role === '0' || user?.role === '5';
 
   useEffect(() => {
     if (!isLoading && !canAccess) {
@@ -55,9 +59,9 @@ export default function PayoutsPage() {
         <ComponentCard title={
           partnerIdParam 
             ? `Transactions - ${partnerName}` 
-            : (user?.role === "5" ? "Payouts" : "Payouts - List")
+            : (isPartner ? "Payouts" : "Payouts - List")
         }>
-          <Payouts userRole={user?.role} />
+          <Payouts />
         </ComponentCard>
       </div>
     </div>

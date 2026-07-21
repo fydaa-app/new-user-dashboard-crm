@@ -5,10 +5,11 @@ import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "../context/GlobalState";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import { useModal } from "@/hooks/useModal";
 import { CustomDateModal } from "@/components/ui/modal/CustomDateModal";
 import Cookies from 'js-cookie';
@@ -31,26 +32,32 @@ interface HierarchyLevel {
   level: number;
 }
 
-const ROLE_NAMES: { [key: number]: string } = {
-  0: "Admin",
-  1: "National Manager",
-  2: "Zonal Manager",
-  3: "Area Manager",
-  4: "Sales Manager",
-  5: "Partner"
-};
-
 const AppHeader: React.FC = () => {
   const { isOpen, openModal, closeModal } = useModal();
   const { userAppTypeLock } = useGlobalContext();
+  const { roleNameMap } = useRoleNameMap();
   const isAppTypeLocked = !!userAppTypeLock;
   // const [startDate, setStartDate] = useState("");
   // const [endDate, setEndDate] = useState("");
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const [designations, setDesignations] = useState<{value: string, label: string}[]>([]);
-  const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
+  const [rawEmployees, setRawEmployees] = useState<EmployeeItem[]>([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+
+  const employees = useMemo(() => {
+    return rawEmployees
+      .map((item) => ({
+        value: item.id.toString(),
+        label: item.name,
+        secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
+      }))
+      .sort((a, b) => {
+        const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+        if (roleCompare !== 0) return roleCompare;
+        return a.label.localeCompare(b.label);
+      });
+  }, [rawEmployees, roleNameMap]);
   
   // Team hierarchy states
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
@@ -94,7 +101,8 @@ const AppHeader: React.FC = () => {
       console.error('Failed to decode token:', error);
     }
   }
-  const isPartner = userRole === "5";
+  const userRoleLevel = userRole ? parseInt(userRole, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === 'partner';
 
   // Check if type is team or member (both show hierarchy dropdowns)
   const isTeamType = Array.isArray(selectedType) 
@@ -138,22 +146,11 @@ const AppHeader: React.FC = () => {
           const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
           if (response.ok && response.data.success) {
-            const employeeOptions = response.data.data
-              .map((item: EmployeeItem) => ({
-                value: item.id.toString(),
-                label: item.name,
-                secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
-              }))
-              .sort((a, b) => {
-                const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
-                if (roleCompare !== 0) return roleCompare;
-                return a.label.localeCompare(b.label);
-              });
-            setEmployees(employeeOptions);
+            setRawEmployees(response.data.data);
           }
         } catch (error) {
           console.error("Failed to fetch employees:", error);
-          setEmployees([]);
+          setRawEmployees([]);
         } finally {
           setIsLoadingEmployees(false);
         }
@@ -161,7 +158,7 @@ const AppHeader: React.FC = () => {
 
       fetchEmployees();
     } else {
-      setEmployees([]);
+      setRawEmployees([]);
       setSelectedEmployee("");
     }
   }, [selectedDesignation, setSelectedEmployee]);
@@ -235,7 +232,7 @@ const AppHeader: React.FC = () => {
           .map((item: EmployeeItem) => ({
             value: item.id.toString(),
             label: item.name,
-            secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
+            secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
           }))
           .sort((a, b) => {
             const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
@@ -258,7 +255,7 @@ const AppHeader: React.FC = () => {
     } finally {
       setLoadingLevels(prev => ({ ...prev, [level]: false }));
     }
-  }, []);
+  }, [roleNameMap]);
 
   // Fetch hierarchy levels for a specific employee (used when selecting from hierarchy dropdowns)
   const fetchHierarchyLevelsForEmployee = useCallback(async (employeeId: string) => {

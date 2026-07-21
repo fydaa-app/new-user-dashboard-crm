@@ -17,6 +17,7 @@ import {
   
 } from "../icons/index";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 
 type NavItem = {
   name: string;
@@ -151,7 +152,11 @@ const AppSidebar: React.FC = () => {
 
   const { user, isLoading } = useAuth();
   const { appType, userAppTypeLock } = useGlobalContext();
+  const { roleNameMap } = useRoleNameMap();
   const effectiveAppType = userAppTypeLock || appType;
+
+  const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
 
   // Filter nav items based on role (same logic as designations)
   const filteredNavItems = React.useMemo(() => {
@@ -161,7 +166,7 @@ const AppSidebar: React.FC = () => {
     return navItems.filter((item) => {
       // Filter Payouts by role
       if (item.name === "Payouts") {
-        return user?.role === '0' || user?.role === '5';
+        return user?.role === '0' || isPartner;
       }
       // Filter SIP and SIP Transaction by appType
       if (["SIP", "Investments", "Portfolio", "Revenue", "Goals & Plans", "Packages", "Redemption"].includes(item.name)) {
@@ -169,7 +174,7 @@ const AppSidebar: React.FC = () => {
       }
       return true;
     });
-  }, [isLoading, user?.role, appType, userAppTypeLock]);
+  }, [isLoading, user?.role, isPartner, appType, userAppTypeLock]);
   
 
   const handleSignOut = () => {

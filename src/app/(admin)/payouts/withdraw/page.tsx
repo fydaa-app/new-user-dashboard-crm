@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { setupWithdrawalAccount, checkWithdrawalAccountStatus, withdrawDirect, fetchPartnerEarnings } from "@/services/payoutService";
@@ -38,8 +39,11 @@ export default function WithdrawPage() {
 
   const router = useRouter();
   const { user, isLoading } = useAuth();
+  const { roleNameMap } = useRoleNameMap();
 
-  const canAccess = user?.role === '5';
+  const userRoleLevel = user?.role ? parseInt(user.role, 10) : NaN;
+  const isPartner = !isNaN(userRoleLevel) && roleNameMap[userRoleLevel]?.toLowerCase() === "partner";
+  const canAccess = isPartner;
 
   useEffect(() => {
     if (!isLoading && !canAccess) {

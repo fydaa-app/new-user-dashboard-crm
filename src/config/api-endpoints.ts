@@ -98,6 +98,7 @@ export const LeaderboardEndpoints = {
 export const AdminEndpoints = {
   ADMIN_PARTNERS_LIST: "/referrals/admin/partners",
   DESIGNATION_LIST: "/referrals/designation-list",
+  ROLE_NAME_MAP: "/referrals/role-name-map",
   ROLE_WISE_EMPLOYEE_LIST: "/referrals/role-wise-employee-list",
   PAYMENTS_LIST: "/referrals/payments-list",
   PAYMENTS_LIST_MF: "/referrals/payments-list-mf", // Fydaa app type

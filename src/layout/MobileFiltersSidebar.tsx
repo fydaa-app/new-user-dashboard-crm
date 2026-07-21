@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "@/context/GlobalState";
+import { useRoleNameMap } from "@/context/RoleNameContext";
 import { useSidebar } from "@/context/SidebarContext";
 import { apiClient } from "@/services/api-client";
 import { AdminEndpoints } from "@/config/api-endpoints";
@@ -18,15 +19,6 @@ interface EmployeeItem {
   name: string;
   role?: number;
 }
-
-const ROLE_NAMES: { [key: number]: string } = {
-  0: "Admin",
-  1: "National Manager",
-  2: "Zonal Manager",
-  3: "Area Manager",
-  4: "Sales Manager",
-  5: "Partner"
-};
 
 interface HierarchyLevel {
   hierarchyName: string;
@@ -62,11 +54,27 @@ const MobileFiltersSidebar: React.FC = () => {
 
   const { isMobileFiltersOpen, toggleMobileFilters } = useSidebar();
 
+  const { roleNameMap } = useRoleNameMap();
+
   // Local state for dropdown data (same as desktop header)
   const [designations, setDesignations] = useState<{ value: string; label: string }[]>([]);
-  const [employees, setEmployees] = useState<{ value: string; label: string; secondaryLabel?: string }[]>([]);
+  const [rawEmployees, setRawEmployees] = useState<EmployeeItem[]>([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+
+  const employees = useMemo(() => {
+    return rawEmployees
+      .map((item) => ({
+        value: item.id.toString(),
+        label: item.name,
+        secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
+      }))
+      .sort((a, b) => {
+        const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
+        if (roleCompare !== 0) return roleCompare;
+        return a.label.localeCompare(b.label);
+      });
+  }, [rawEmployees, roleNameMap]);
 
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
   const [teamSelections, setTeamSelections] = useState<{ [key: number]: string }>({});
@@ -119,22 +127,11 @@ const MobileFiltersSidebar: React.FC = () => {
           const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
           if (response.ok && response.data.success) {
-            const employeeOptions = response.data.data
-              .map((item: EmployeeItem) => ({
-                value: item.id.toString(),
-                label: item.name,
-                secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
-              }))
-              .sort((a, b) => {
-                const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
-                if (roleCompare !== 0) return roleCompare;
-                return a.label.localeCompare(b.label);
-              });
-            setEmployees(employeeOptions);
+            setRawEmployees(response.data.data);
           }
         } catch (error) {
           console.error("Failed to fetch employees (mobile):", error);
-          setEmployees([]);
+          setRawEmployees([]);
         } finally {
           setIsLoadingEmployees(false);
         }
@@ -142,7 +139,7 @@ const MobileFiltersSidebar: React.FC = () => {
 
       fetchEmployees();
     } else {
-      setEmployees([]);
+      setRawEmployees([]);
       setSelectedEmployee("");
     }
   }, [selectedDesignation, setSelectedEmployee]);
@@ -198,7 +195,7 @@ const MobileFiltersSidebar: React.FC = () => {
             .map((item: EmployeeItem) => ({
               value: item.id.toString(),
               label: item.name,
-              secondaryLabel: item.role !== undefined ? ROLE_NAMES[item.role] : undefined
+              secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
             }))
             .sort((a, b) => {
               const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
@@ -221,7 +218,7 @@ const MobileFiltersSidebar: React.FC = () => {
         setLoadingLevels((prev) => ({ ...prev, [level]: false }));
       }
     },
-    []
+    [roleNameMap]
   );
 
   const handleDesignationChange = useCallback(
