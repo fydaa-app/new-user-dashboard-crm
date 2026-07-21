@@ -117,8 +117,9 @@ export default function TopGoalsMf() {
       ) : topGoals.length === 0 ? (
         <p className="text-gray-500">No goal investment data found</p>
       ) : (
-        <div className="space-y-5">
-          <div className="flex items-center justify-between top-product-rows">
+        <div className="max-w-full overflow-x-auto custom-scrollbar">
+          <div className="space-y-5 min-w-[600px]">
+            <div className="flex items-center justify-between top-product-rows">
             <div className="flex items-center top-product-col-6">
               <p className="w-6 text-center">#</p>
               <p className="ml-4 font-semibold text-gray-500 text-theme-sm dark:text-white/90">
@@ -172,6 +173,7 @@ export default function TopGoalsMf() {
             </div>
           ))}
         </div>
+      </div>
       )}
     </div>
   );
