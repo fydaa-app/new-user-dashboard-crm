@@ -6,6 +6,7 @@ import MobileHeader from "@/layout/MobileHeader";
 import MobileFiltersSidebar from "@/layout/MobileFiltersSidebar";
 import Backdrop from "@/layout/Backdrop";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { RoleNameProvider } from "@/context/RoleNameContext";
 import React, { useEffect, useState } from "react";
 
 export default function AdminLayout({
@@ -62,7 +63,8 @@ export default function AdminLayout({
 
   return (
     <ProtectedRoute>
-      <div className="w-full overflow-x-hidden">
+      <RoleNameProvider>
+        <div className="w-full overflow-x-hidden">
         {/* Sidebar and Backdrop */}
         <AppSidebar />
         <Backdrop />
@@ -96,6 +98,7 @@ style={{ width: 'inherit' }}>
           </div>
         </main>
       </div>
+      </RoleNameProvider>
     </ProtectedRoute>
   );
 }
