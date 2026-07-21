@@ -6,7 +6,6 @@ import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { GlobalProvider } from "@/context/GlobalState";
-import { RoleNameProvider } from "@/context/RoleNameContext";
 
 const outfit = Outfit({
   variable: "--font-outfit-sans",
@@ -31,10 +30,8 @@ export default function RootLayout({
           <SidebarProvider>
             <AuthProvider>
             <GlobalProvider>
-              <RoleNameProvider>
-                {children}
-              </RoleNameProvider>
-            </GlobalProvider>
+              {children}
+              </GlobalProvider>
             </AuthProvider>
           </SidebarProvider>
         </ThemeProvider>
