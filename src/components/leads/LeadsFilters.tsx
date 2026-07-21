@@ -110,13 +110,14 @@ const LeadsFilters = React.memo(function LeadsFilters({
           <div className="relative">
             <Select 
               options={[
+                { value: "all", label: "All" },
                 { value: "new", label: "New" },
                 { value: "in-progress", label: "In Progress" },
                 { value: "converted", label: "Converted" },
                 { value: "lost", label: "Lost" }
               ]}
               placeholder="All Status"
-              onChange={(option) => handleFilterChange("status", option?.value || undefined)}
+              onChange={(option) => handleFilterChange("status", option?.value === "all" ? undefined : option?.value)}
               value={filters.status || null}
               className="dark:bg-dark-900"
             />
@@ -134,6 +135,7 @@ const LeadsFilters = React.memo(function LeadsFilters({
           <div className="relative">
             <Select 
               options={[
+                { value: "all", label: "All" },
                 { value: "overdue", label: "Overdue" },
                 { value: "today", label: "Today" },
                 { value: "week", label: "This Week" },
@@ -142,7 +144,7 @@ const LeadsFilters = React.memo(function LeadsFilters({
                 { value: "till_date", label: "Till Date" },
               ]}
               placeholder="Follow-up Due"
-              onChange={(option) => handleFilterChange("followUpTimeframe", option?.value || undefined)}
+              onChange={(option) => handleFilterChange("followUpTimeframe", option?.value === "all" ? undefined : option?.value)}
               value={filters.followUpTimeframe || null}
               className="dark:bg-dark-900"
             />

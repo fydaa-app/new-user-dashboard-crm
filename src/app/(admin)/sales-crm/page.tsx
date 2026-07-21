@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageBreadCrumb from '@/components/common/PageBreadCrumb';
 import Button from '@/components/ui/button/Button';
@@ -105,8 +105,8 @@ export default function SalesCRM() {
       };
       
       if (urlSearch) newFilters.search = urlSearch;
-      if (urlStatus) newFilters.status = urlStatus;
-      if (urlFollowUp) newFilters.followUpTimeframe = urlFollowUp as "overdue" | "today" | "week" | "month" | "year" | "till_date";
+      if (urlStatus && urlStatus !== "all") newFilters.status = urlStatus;
+      if (urlFollowUp && urlFollowUp !== "all") newFilters.followUpTimeframe = urlFollowUp as "overdue" | "today" | "week" | "month" | "year" | "till_date";
       if (urlPage) newFilters.page = parseInt(urlPage);
       
       setFilters(newFilters as LeadFilters);
@@ -150,15 +150,21 @@ export default function SalesCRM() {
   // Phone regex pattern - exactly 10 digits
   const phoneRegex = /^\d{10}$/;
 
+  const leadsRequestIdRef = useRef(0);
+  const statsRequestIdRef = useRef(0);
+
   const loadLeads = useCallback(async (filtersToUse?: LeadFilters) => {
+    const currentRequestId = ++leadsRequestIdRef.current;
     console.log('🔍 DEBUG: loadLeads STARTED', { 
       filtersToUse, 
+      currentRequestId,
       currentLeadsLength: leads?.length,
       loading 
     });
     try {
       setLoading(true);
       setError(null);
+      setLeads([]);
       
       // Build filters based on AppHeader selections
       const baseFilters = filtersToUse || filters;
@@ -303,13 +309,19 @@ export default function SalesCRM() {
       // The designation dropdown is only for selecting which employee to view, not for filtering leads
       // Stats show the correct full hierarchy count, list should match
 
-      // Don't send type parameter - use employeeId vs assignedToId to control behavior
-      // (The type parameter is not needed because viewMode already determines the filtering)
+      // Send type parameter - backend needs it to filter by team/member/individual
+      if (selectedType && selectedType.length > 0) {
+        const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+        const effectiveViewMode = typeValue === "team" ? "team" : "individual";
+        enhancedFilters.type = selectedTeamMember ? effectiveViewMode : typeValue;
+      }
 
       console.log('🔍 Enhanced filters being applied:', enhancedFilters);
       
       const response = await leadService.getLeads(enhancedFilters);
       
+      if (currentRequestId !== leadsRequestIdRef.current) return;
+
       // Access the data from the response structure
       const leads = response.leads || [];
       const pagination = response.pagination || { page: 1, limit: 10, total: 0, totalPages: 0 };
@@ -347,13 +359,14 @@ export default function SalesCRM() {
   }, [filters, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedDesignation, selectedType]);
 
   const loadStats = useCallback(async () => {
+    const currentRequestId = ++statsRequestIdRef.current;
     try {
-      console.log('🔄 Loading lead stats...');
+      console.log('🔄 Loading lead stats...', { currentRequestId });
       console.log('👤 Auth Status:', { isAuthenticated, user: user?.name, hasToken: !!token });
       console.log('🍪 Token from cookie:', document.cookie.includes('authToken'));
       
       // Apply the same filters to stats as used for leads
-      let statsFilters = {};
+      let statsFilters: LeadFilters = {};
       
       // Apply date filtering
       console.log('📊 Stats date filtering check:', { selectedOption, customDates });
@@ -500,8 +513,18 @@ export default function SalesCRM() {
         }
       }
 
+      // Send type parameter - backend needs it to filter by team/member/individual
+      if (selectedType && selectedType.length > 0) {
+        const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+        const effectiveViewMode = typeValue === "team" ? "team" : "individual";
+        statsFilters.type = selectedTeamMember ? effectiveViewMode : typeValue;
+      }
+
       console.log('📊 Loading stats with filters:', statsFilters);
       const statsData = await leadService.getLeadStats(Object.keys(statsFilters).length > 0 ? statsFilters : undefined);
+      
+      if (currentRequestId !== statsRequestIdRef.current) return;
+      
       console.log('✅ Lead stats loaded:', statsData);
       setStats(statsData);
     } catch (err) {
@@ -660,7 +683,12 @@ export default function SalesCRM() {
 
       // Don't send designationLevel for export either - list should show full hierarchy
 
-      // Don't send type parameter for export either - use employeeId vs assignedToId
+      // Send type parameter for export - backend needs it to filter by team/member/individual
+      if (selectedType && selectedType.length > 0) {
+        const typeValue = Array.isArray(selectedType) ? selectedType[0] : selectedType;
+        const effectiveViewMode = typeValue === "team" ? "team" : "individual";
+        enhancedFilters.type = selectedTeamMember ? effectiveViewMode : typeValue;
+      }
 
       // Add search and status filters from the filters state
       if (filters.search) {
@@ -1005,7 +1033,7 @@ export default function SalesCRM() {
   useEffect(() => {
     console.log('🔄 AppHeader filters changed, resetting to page 1');
     setFilters(prev => ({ ...prev, page: 1 }));
-  }, [selectedOption, selectedEmployee, selectedTeamMember, selectedDesignation, customDates, viewMode]);
+  }, [selectedOption, selectedEmployee, selectedTeamMember, selectedDesignation, customDates, viewMode, selectedType]);
 
   // Load stats when filters change
   useEffect(() => {
