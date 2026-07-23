@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconViolet, NewCustomerRedIcon, SalesIconGreen, OrderIconGreen, OrderIconPurple } from "@/icons";
@@ -57,6 +57,22 @@ const NonAdminDashboard = () => {
   }, [userAppTypeLock, selectedType, effectiveType, appType]);
   
   const [loading, setLoading] = useState(true);
+  const activeRequestsRef = useRef(0);
+
+  const startLoading = () => {
+    activeRequestsRef.current++;
+    setLoading(true);
+  };
+
+  const endLoading = () => {
+    if (activeRequestsRef.current > 0) {
+      activeRequestsRef.current--;
+    }
+    if (activeRequestsRef.current <= 0) {
+      activeRequestsRef.current = 0;
+      setLoading(false);
+    }
+  };
   const [aum, setAum] = useState<number>(0);
   const [netInflow, setNetInflow] = useState<number>(0);
   const [redemptions, setRedemptions] = useState<number>(0);
@@ -80,12 +96,15 @@ const NonAdminDashboard = () => {
 
   // Fetch cards data for AUM and Existing Clients
   useEffect(() => {
+    const controller = new AbortController();
+    startLoading();
+
     const fetchCardsData = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
         console.error("Auth token not found in cookies");
-        setLoading(false);
+        endLoading();
         return;
       }
 
@@ -111,7 +130,13 @@ const NonAdminDashboard = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
 
         if (!response.ok) {
           throw new Error("Failed to fetch cards data");
@@ -151,21 +176,33 @@ const NonAdminDashboard = () => {
         //const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
         //setRedemptionRate(redemptionRateData?.redemptionRate || 0);
       } catch (error) {
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
         console.error("Error fetching cards data:", error);
+      } finally {
+        endLoading();
       }
     };
 
     fetchCardsData();
+
+    return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
 
   // Fetch till-date data for Client & SIP Metrics (Row 2) - Not affected by date filter
   useEffect(() => {
+    const controller = new AbortController();
+    startLoading();
+
     const fetchTillDateMetrics = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
         console.error("Auth token not found in cookies");
+        endLoading();
         return;
       }
 
@@ -186,7 +223,13 @@ const NonAdminDashboard = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
 
         if (cardsResponse.ok) {
           const cardsData: CardData[] = await cardsResponse.json();
@@ -215,7 +258,13 @@ const NonAdminDashboard = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
 
         if (sipResponse.ok) {
           const sipData: SipCardData[] = await sipResponse.json();
@@ -224,22 +273,33 @@ const NonAdminDashboard = () => {
           setActiveSipsTillDate(activeSipsData?.totalinvestedsip || 0);
         }
       } catch (error) {
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
         console.error("Error fetching till-date metrics:", error);
+      } finally {
+        endLoading();
       }
     };
 
     fetchTillDateMetrics();
+
+    return () => controller.abort();
   }, [selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
 
   // Fetch SIP data for Active SIPs
   useEffect(() => {
+    const controller = new AbortController();
+    startLoading();
+
     const fetchSipData = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
         console.error("Auth token not found in cookies");
-        setLoading(false);
+        endLoading();
         return;
       }
 
@@ -265,7 +325,13 @@ const NonAdminDashboard = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
 
         if (!response.ok) {
           throw new Error("Failed to fetch SIP data");
@@ -279,14 +345,20 @@ const NonAdminDashboard = () => {
         setNewSipsCount(activeSipsData?.totalactivesip || 0);
         setCancelledSipsCount(cancelledSipsData?.totalcancelledsip || 0);
         setFailedSipsCount(failedSipsData?.behindgoalscount || 0);
-        setLoading(false);
       } catch (error) {
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
         console.error("Error fetching SIP data:", error);
-        setLoading(false);
+      } finally {
+        endLoading();
       }
     };
 
     fetchSipData();
+
+    return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
   // Format currency

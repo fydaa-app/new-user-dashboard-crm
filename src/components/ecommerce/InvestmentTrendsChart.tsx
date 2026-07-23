@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
@@ -23,12 +23,14 @@ const InvestmentTrendsChart: React.FC = () => {
   const effectiveType = userAppTypeLock || selectedType || "team";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-    const [chartData, setChartData] = useState<{
+  const [chartData, setChartData] = useState<{
     categories: string[];
     newInvestments: number[];
     existingInvestments: number[];
     redemptions: number[];
   } | null>(null);
+
+  const requestIdRef = useRef(0);
 
   // Timeline controls - independent from global date filter
   const [timeframe, setTimeframe] = useState<"weekly" | "monthly" | "yearly">("monthly");
@@ -42,6 +44,9 @@ const InvestmentTrendsChart: React.FC = () => {
 
   // Fetch data from API
   useEffect(() => {
+    const controller = new AbortController();
+    const currentRequestId = ++requestIdRef.current;
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -66,23 +71,35 @@ const InvestmentTrendsChart: React.FC = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) return;
 
         if (!response.ok) {
           throw new Error("Failed to fetch investment trends");
         }
 
         const data = await response.json();
-        setChartData(data);
+
+        if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
+          setChartData(data);
+        }
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load data");
-        console.error("Investment Trends Chart Error:", err);
+        if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : "Failed to load data");
+          console.error("Investment Trends Chart Error:", err);
+        }
       } finally {
-        setLoading(false);
+        if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => controller.abort();
   }, [timeframe, currentPeriod, selectedEmployee, selectedTeamMember, selectedType]);
 
 

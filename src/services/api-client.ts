@@ -207,6 +207,10 @@ class ApiClient {
         throw error;
       }
 
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
+
       // Network or other errors
       throw new ApiError(
         error instanceof Error ? error.message : 'Network error occurred',

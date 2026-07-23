@@ -67,8 +67,11 @@ async function fetchGoalCards(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  signal?: AbortSignal
 ): Promise<GoalCardsData> {
+  if (signal?.aborted) throw new Error('Request aborted');
+
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -89,7 +92,7 @@ async function fetchGoalCards(
     }
 
     const cardsUrl = `/referrals/goal-cards?${queryParams}`;
-    const cardsResponse = await apiClient.get<GoalCardsData>(cardsUrl);
+    const cardsResponse = await apiClient.get<GoalCardsData>(cardsUrl, signal ? { signal } : undefined);
 
     if (!cardsResponse.ok) {
       throw new Error("Failed to fetch goal cards");
@@ -98,6 +101,7 @@ async function fetchGoalCards(
     return cardsResponse.data;
   } catch (err) {
     console.error("Error fetching goal cards:", err);
+    if (signal?.aborted) throw err;
     return {
       totalActiveGoals: 0,
       completedGoals: 0,
@@ -113,8 +117,11 @@ async function fetchGoalsByCategory(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  signal?: AbortSignal
 ): Promise<GoalsByCategoryData | null> {
+  if (signal?.aborted) throw new Error('Request aborted');
+
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -133,10 +140,11 @@ async function fetchGoalsByCategory(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
-    const response = await apiClient.get<GoalsByCategoryData>(`/referrals/goals-by-category?${queryParams}`);
+    const response = await apiClient.get<GoalsByCategoryData>(`/referrals/goals-by-category?${queryParams}`, signal ? { signal } : undefined);
     return response.data;
   } catch (err) {
     console.error("Error fetching goals by category:", err);
+    if (signal?.aborted) throw err;
     return null;
   }
 }
@@ -149,8 +157,11 @@ async function fetchBehindGoalsList(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  signal?: AbortSignal
 ): Promise<BehindGoalsData> {
+  if (signal?.aborted) throw new Error('Request aborted');
+
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -169,10 +180,11 @@ async function fetchBehindGoalsList(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
-    const response = await apiClient.get<BehindGoalsData>(`/referrals/behind-goals-list?${queryParams}`);
+    const response = await apiClient.get<BehindGoalsData>(`/referrals/behind-goals-list?${queryParams}`, signal ? { signal } : undefined);
     return response.data;
   } catch (err) {
     console.error("Error fetching behind goals list:", err);
+    if (signal?.aborted) throw err;
     return {
       data: [],
       pagination: {
@@ -220,7 +232,18 @@ export default function GoalsPlansPage() {
     selectedType,
   });
 
+  const goalsRequestIdRef = useRef(0);
+  const goalsControllerRef = useRef<AbortController | null>(null);
+
   const fetchAllData = useCallback(async () => {
+    const currentRequestId = ++goalsRequestIdRef.current;
+
+    if (goalsControllerRef.current) {
+      goalsControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    goalsControllerRef.current = controller;
+
     if (!appType || appType !== "Fydaa") {
       return;
     }
@@ -239,7 +262,8 @@ export default function GoalsPlansPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          controller.signal
         ),
         fetchGoalsByCategory(
           selectedOption,
@@ -247,7 +271,8 @@ export default function GoalsPlansPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          controller.signal
         ),
         fetchBehindGoalsList(
           page,
@@ -257,21 +282,36 @@ export default function GoalsPlansPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          controller.signal
         ),
       ]);
 
-      setGoalCards(cardsResult);
-      setGoalsByCategory(categoryResult);
-      setBehindGoals(listResult);
+      if (!controller.signal.aborted && currentRequestId === goalsRequestIdRef.current) {
+        setGoalCards(cardsResult);
+        setGoalsByCategory(categoryResult);
+        setBehindGoals(listResult);
+      }
     } catch (err) {
-      console.error("Error fetching goals data:", err);
+      if (!controller.signal.aborted && currentRequestId === goalsRequestIdRef.current) {
+        console.error("Error fetching goals data:", err);
+      }
     } finally {
-      setIsLoadingCards(false);
-      setIsLoadingCategory(false);
-      setIsLoadingList(false);
+      if (!controller.signal.aborted && currentRequestId === goalsRequestIdRef.current) {
+        setIsLoadingCards(false);
+        setIsLoadingCategory(false);
+        setIsLoadingList(false);
+      }
     }
   }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, page]);
+
+  useEffect(() => {
+    return () => {
+      if (goalsControllerRef.current) {
+        goalsControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchAllData();

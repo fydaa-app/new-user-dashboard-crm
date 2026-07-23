@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
@@ -56,7 +56,12 @@ const SipIndexPage = () => {
     behindGoalsSips: 0,
   });
 
+  const sipRequestIdRef = useRef(0);
+
   useEffect(() => {
+    const controller = new AbortController();
+    const currentRequestId = ++sipRequestIdRef.current;
+
     const fetchSipCounts = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) return;
@@ -84,7 +89,10 @@ const SipIndexPage = () => {
           headers: {
             Authorization: `Bearer ${AUTH_TOKEN}`,
           },
+          signal: controller.signal,
         });
+
+        if (controller.signal.aborted) return;
 
         if (response.status === 401) {
           Cookies.remove("authToken");
@@ -99,18 +107,24 @@ const SipIndexPage = () => {
           investedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
           cancelledSips: data.find((item) => item.type === "Cancelled Sips")?.totalcancelledsip || 0,
           inProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
-          completedSips: data.find((item) => item.type === "Total Completed Sips")?.totalcompletedsip || 0,
-          partiallyExitSips: data.find((item) => item.type === "Partially Exited Sips")?.totalpartiallyexitsip || 0,
+          completedSips: data.find((item) => item.type === "Total Completed SIPs")?.totalcompletedsip || 0,
+          partiallyExitSips: data.find((item) => item.type === "Partially Exited SIPs")?.totalpartiallyexitsip || 0,
           behindGoalsSips: data.find((item) => item.type === "Behind Goals")?.behindgoalscount || 0,
         };
 
-        setSipCounts(counts);
+        if (currentRequestId === sipRequestIdRef.current && !controller.signal.aborted) {
+          setSipCounts(counts);
+        }
       } catch (error) {
-        console.error("Error fetching SIP counts:", error);
+        if (currentRequestId === sipRequestIdRef.current && !controller.signal.aborted) {
+          console.error("Error fetching SIP counts:", error);
+        }
       }
     };
 
     fetchSipCounts();
+
+    return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
   const sipCategories = [
