@@ -204,8 +204,13 @@ const MobileFiltersSidebar: React.FC = () => {
       };
 
       fetchHierarchyLevels();
+    } else if (!selectedEmployee && isTeamType) {
+      // Clear stale hierarchy UI when the root employee is cleared (e.g. designation change).
+      setHierarchyLevels([]);
+      setTeamSelections({});
+      setTeamEmployees({});
+      setLoadingLevels({});
     }
-    // Don't clear in else block - let handleTypeChange handle individual clearing
   }, [selectedEmployee, isTeamType]);
 
   // Self-cancelling controllers for per-level team employee fetches
@@ -280,9 +285,15 @@ const MobileFiltersSidebar: React.FC = () => {
 
   const handleEmployeeChange = useCallback(
     (option: { value: string; label: string } | null) => {
-      setSelectedEmployee(option?.value || "");
+      const employeeId = option?.value || "";
+
+      // Reset only child hierarchy selections when re-selecting the main employee.
+      // Keep hierarchyLevels/teamEmployees so the hierarchy dropdown remains visible.
+      setTeamSelections({});
+      setSelectedEmployee(employeeId);
+      setSelectedTeamMember(employeeId || undefined);
     },
-    [setSelectedEmployee]
+    [setSelectedEmployee, setSelectedTeamMember]
   );
 
   const handleTypeChange = useCallback(
@@ -629,7 +640,7 @@ const MobileFiltersSidebar: React.FC = () => {
                           isLoading
                             ? "Loading..."
                             : !hasEmployees && index > 0
-                            ? `No ${hierarchy.hierarchyName}`
+                            ? "No Employee"
                             : "Select Employee"
                         }
                         onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}
