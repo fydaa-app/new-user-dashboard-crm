@@ -239,6 +239,7 @@ const AppHeader: React.FC = () => {
       setTeamSelections({});
       setTeamEmployees({});
       setLoadingLevels({});
+      setHierarchyLevels([]);
     }
      // Don't clear in else block - let handleTypeChange handle individual clearing
    }, [selectedEmployee, isTeamType]);
@@ -526,6 +527,27 @@ const AppHeader: React.FC = () => {
 
   const handleEmployeeChange = useCallback((option: { value: string; label: string } | null) => {
     const employeeId = option?.value || "";
+
+    // Selecting from the main employee dropdown means we are returning to
+    // that employee as the active root. Clear any lower hierarchy selection
+    // explicitly, because selectedEmployee may already have the same value
+    // (for example A -> child B -> A), in which case the selectedEmployee
+    // useEffect would not run again to reset the hierarchy UI.
+    Object.values(teamEmployeeControllersRef.current).forEach((controller) => {
+      controller.abort();
+    });
+    teamEmployeeControllersRef.current = {};
+
+    if (hierarchyLevelAbortRef.current) {
+      hierarchyLevelAbortRef.current.abort();
+      hierarchyLevelAbortRef.current = null;
+    }
+
+    setTeamSelections({});
+    //setTeamEmployees({});
+    setLoadingLevels({});
+    //setHierarchyLevels([]);
+
     setSelectedEmployee(employeeId);
     setSelectedTeamMember(employeeId || undefined);
   }, [setSelectedEmployee, setSelectedTeamMember]);
@@ -704,7 +726,7 @@ const AppHeader: React.FC = () => {
                         isLoading
                           ? "Loading..." 
                           : !hasEmployees && index > 0
-                          ? `No ${hierarchy.hierarchyName}`
+                          ? `No Employee`
                           : "Select Employee"
                       }
                       onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}
