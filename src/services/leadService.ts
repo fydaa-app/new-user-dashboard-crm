@@ -92,7 +92,7 @@ class LeadService {
   // Use the singleton API client instance
 
   // Get all leads with filters
-  async getLeads(filters?: LeadFilters): Promise<LeadsResponse> {
+  async getLeads(filters?: LeadFilters, signal?: AbortSignal): Promise<LeadsResponse> {
     try {
       const queryParams = new URLSearchParams();
       
@@ -108,19 +108,18 @@ class LeadService {
         `${LeadEndpoints.LEADS}?${queryParams.toString()}` : 
         LeadEndpoints.LEADS;
       
-      
-      const response = await apiClient.get<LeadsResponse>(url);
-      // The API client wraps responses, so we need response.data
+      const response = await apiClient.get<LeadsResponse>(url, signal ? { signal } : undefined);
       return response.data;
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       console.error('Error loading leads:', error);
-      
-      // If it's already an error with a meaningful message, pass it through
+
       if (error instanceof Error && error.message && error.message !== '[object Object]') {
         throw error;
       }
-      
-      // Otherwise, provide a generic message
+
       throw new Error('Failed to fetch leads. Please try again.');
     }
   }
@@ -336,7 +335,7 @@ class LeadService {
   }
 
   // Get lead statistics
-  async getLeadStats(filters?: LeadFilters | number): Promise<LeadStats> {
+  async getLeadStats(filters?: LeadFilters | number, signal?: AbortSignal): Promise<LeadStats> {
     try {
       let url: string = LeadEndpoints.LEAD_STATS;
       
@@ -362,7 +361,7 @@ class LeadService {
       }
 
       console.log('🔍 Fetching lead stats from URL:', url);
-      const response = await apiClient.get<LeadStats>(url);
+      const response = await apiClient.get<LeadStats>(url, signal ? { signal } : undefined);
       console.log('📊 API Response:', response);
       console.log('📊 Response.data:', response.data);
       console.log('📊 Response type:', typeof response.data);
@@ -381,6 +380,9 @@ class LeadService {
         return apiData as LeadStats;
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw error;
+      }
       console.error('❌ Error fetching lead stats:', error);
       throw new Error('Failed to fetch lead statistics. Please try again.');
     }

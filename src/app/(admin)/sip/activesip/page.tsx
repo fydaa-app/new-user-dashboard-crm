@@ -40,7 +40,8 @@ async function fetchActiveSips(
   customDates: { start: string; end: string },
   searchQuery: string = "",
   selectedType: string = "",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  signal?: AbortSignal
 ): Promise<{
   sips: Sip[];
   error: string | null;
@@ -80,7 +81,12 @@ async function fetchActiveSips(
             ?.split("=")[1] || ""
         }`,
       },
+      signal,
     });
+
+    if (signal?.aborted) {
+      return { sips: [], error: null };
+    }
 
     if (response.status === 401) {
       Cookies.remove("authToken");
@@ -101,6 +107,9 @@ async function fetchActiveSips(
       totalPages: result.pagination?.totalPages,
     };
   } catch (err) {
+    if (signal?.aborted) {
+      return { sips: [], error: null };
+    }
     console.error("Error fetching data:", err);
     return { sips: [], error: "Error fetching data" };
   }
@@ -126,6 +135,9 @@ export default function ActiveSipListPage() {
   const [totalItems, setTotalItems] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
 
+  const requestIdRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -137,6 +149,14 @@ export default function ActiveSipListPage() {
   });
 
   const fetchData = useCallback(async () => {
+    const currentRequestId = ++requestIdRef.current;
+
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    controllerRef.current = controller;
+
     try {
       const {
         sips,
@@ -151,22 +171,28 @@ export default function ActiveSipListPage() {
         customDates,
         searchQuery,
         selectedType as unknown as string,
-        hierarchyViewMode
+        hierarchyViewMode,
+        controller.signal
       );
-      setSips(sips);
-      setError(error);
 
-      if (apiTotalPages) {
-        setTotalPages(apiTotalPages);
+      if (!controller.signal.aborted && currentRequestId === requestIdRef.current) {
+        setSips(sips);
+        setError(error);
+
+        if (apiTotalPages) {
+          setTotalPages(apiTotalPages);
+        }
+        if (apiTotalItems) {
+          setTotalItems(apiTotalItems);
+        }
+        setIsSearching(false);
       }
-      if (apiTotalItems) {
-        setTotalItems(apiTotalItems);
-      }
-      setIsSearching(false);
     } catch (err) {
-      console.error("Error in fetchData:", err);
-      setError("Failed to load data");
-      setIsSearching(false);
+      if (!controller.signal.aborted && currentRequestId === requestIdRef.current) {
+        console.error("Error in fetchData:", err);
+        setError("Failed to load data");
+        setIsSearching(false);
+      }
     }
   }, [
     page,

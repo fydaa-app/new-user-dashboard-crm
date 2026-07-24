@@ -111,12 +111,17 @@ const AppHeader: React.FC = () => {
 
   // Fetch designations on component mount
   useEffect(() => {
+    const controller = new AbortController();
+
     const fetchDesignations = async () => {
       setIsLoadingDesignations(true);
       try {
         const response = await apiClient.get<{ success: boolean; data: DesignationItem[] }>(
-          AdminEndpoints.DESIGNATION_LIST
+          AdminEndpoints.DESIGNATION_LIST,
+          { signal: controller.signal }
         );
+
+        if (controller.signal.aborted) return;
 
         if (response.ok && response.data.success) {
           const designationOptions = response.data.data.map((item: DesignationItem) => ({
@@ -126,33 +131,48 @@ const AppHeader: React.FC = () => {
           setDesignations(designationOptions);
         }
       } catch (error) {
+        if (controller.signal.aborted) return;
         console.error("Failed to fetch designations:", error);
       } finally {
-        setIsLoadingDesignations(false);
+        if (!controller.signal.aborted) {
+          setIsLoadingDesignations(false);
+        }
       }
     };
 
     fetchDesignations();
+
+    return () => controller.abort();
   }, []);
 
   // Fetch employees when designation changes
   useEffect(() => {
+    const controller = new AbortController();
+
     if (selectedDesignation) {
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
         setSelectedEmployee(""); // Reset employee selection
         try {
           const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${selectedDesignation}`;
-          const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
+          const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(
+            endpoint,
+            { signal: controller.signal }
+          );
+
+          if (controller.signal.aborted) return;
 
           if (response.ok && response.data.success) {
             setRawEmployees(response.data.data);
           }
         } catch (error) {
+          if (controller.signal.aborted) return;
           console.error("Failed to fetch employees:", error);
           setRawEmployees([]);
         } finally {
-          setIsLoadingEmployees(false);
+          if (!controller.signal.aborted) {
+            setIsLoadingEmployees(false);
+          }
         }
       };
 
@@ -161,10 +181,14 @@ const AppHeader: React.FC = () => {
       setRawEmployees([]);
       setSelectedEmployee("");
     }
+
+    return () => controller.abort();
   }, [selectedDesignation, setSelectedEmployee]);
 
   // Fetch hierarchy levels when employee and team type are selected
   useEffect(() => {
+    const controller = new AbortController();
+
     if (selectedEmployee && isTeamType) {
       const fetchHierarchyLevels = async () => {
         try {
@@ -172,8 +196,11 @@ const AppHeader: React.FC = () => {
           console.log('[DEBUG] useEffect TRIGGERED - selectedEmployee:', selectedEmployee, 'isTeamType:', isTeamType);
           console.log('[DEBUG] Fetching hierarchy levels for employee:', selectedEmployee);
           const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
-            `/referrals/get-employees-designation/${selectedEmployee}`
+            `/referrals/get-employees-designation/${selectedEmployee}`,
+            { signal: controller.signal }
           );
+
+          if (controller.signal.aborted) return;
 
           console.log('[DEBUG] get-employees-designation response:', response.data);
 
@@ -199,6 +226,7 @@ const AppHeader: React.FC = () => {
             }
           }
         } catch (error) {
+          if (controller.signal.aborted) return;
           console.error("[DEBUG] Failed to fetch hierarchy levels:", error);
           setHierarchyLevels([]);
         }
@@ -206,24 +234,37 @@ const AppHeader: React.FC = () => {
 
        fetchHierarchyLevels();
      } else if (!selectedEmployee && isTeamType) {
-       // Clear hierarchy states when employee is cleared (e.g., designation changed to empty)
-       //console.log('[DEBUG] selectedEmployee cleared, resetting hierarchy states');
-       setTeamSelections({});
-       setTeamEmployees({});
-       setLoadingLevels({});
-     }
+      // Clear hierarchy states when employee is cleared (e.g., designation changed to empty)
+      //console.log('[DEBUG] selectedEmployee cleared, resetting hierarchy states');
+      setTeamSelections({});
+      setTeamEmployees({});
+      setLoadingLevels({});
+      setHierarchyLevels([]);
+    }
      // Don't clear in else block - let handleTypeChange handle individual clearing
    }, [selectedEmployee, isTeamType]);
 
+  // Self-cancelling controllers for per-level team employee fetches
+  const teamEmployeeControllersRef = useRef<{ [key: number]: AbortController }>({});
+
   // Fetch employees for a specific hierarchy level
   const fetchTeamEmployeesForLevel = useCallback(async (level: number, employeeId: string) => {
+    if (teamEmployeeControllersRef.current[level]) {
+      teamEmployeeControllersRef.current[level].abort();
+    }
+    const controller = new AbortController();
+    teamEmployeeControllersRef.current[level] = controller;
+    
     setLoadingLevels(prev => ({ ...prev, [level]: true }));
     
     try {
       console.log(`[DEBUG] fetchTeamEmployeesForLevel - level: ${level}, employeeId: ${employeeId}`);
       const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(
-        `/referrals/get-manager-wise-employes/${employeeId}`
+        `/referrals/get-manager-wise-employes/${employeeId}`,
+        { signal: controller.signal }
       );
+
+      if (controller.signal.aborted) return;
 
       console.log(`[DEBUG] get-manager-wise-employes/${employeeId} response:`, response.data);
 
@@ -247,23 +288,40 @@ const AppHeader: React.FC = () => {
         }));
       }
     } catch (error) {
+      if (controller.signal.aborted) return;
       console.error(`Failed to fetch employees for level ${level}:`, error);
       setTeamEmployees(prev => ({
         ...prev,
         [level]: []
       }));
     } finally {
-      setLoadingLevels(prev => ({ ...prev, [level]: false }));
+      if (!controller.signal.aborted) {
+        setLoadingLevels(prev => ({ ...prev, [level]: false }));
+      }
+      if (teamEmployeeControllersRef.current[level] === controller) {
+        delete teamEmployeeControllersRef.current[level];
+      }
     }
   }, [roleNameMap]);
 
+  const hierarchyLevelAbortRef = useRef<AbortController | null>(null);
+
   // Fetch hierarchy levels for a specific employee (used when selecting from hierarchy dropdowns)
   const fetchHierarchyLevelsForEmployee = useCallback(async (employeeId: string) => {
+    if (hierarchyLevelAbortRef.current) {
+      hierarchyLevelAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    hierarchyLevelAbortRef.current = controller;
+    
     try {
       console.log(`[DEBUG] fetchHierarchyLevelsForEmployee - employeeId: ${employeeId}`);
       const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
-        `/referrals/get-employees-designation/${employeeId}`
+        `/referrals/get-employees-designation/${employeeId}`,
+        { signal: controller.signal }
       );
+
+      if (controller.signal.aborted) return [];
 
       console.log(`[DEBUG] get-employees-designation/${employeeId} response:`, response.data);
 
@@ -273,6 +331,7 @@ const AppHeader: React.FC = () => {
         return sortedLevels;
       }
     } catch (error) {
+      if (controller.signal.aborted) return [];
       console.error("Failed to fetch hierarchy levels:", error);
     }
     return [];
@@ -468,6 +527,27 @@ const AppHeader: React.FC = () => {
 
   const handleEmployeeChange = useCallback((option: { value: string; label: string } | null) => {
     const employeeId = option?.value || "";
+
+    // Selecting from the main employee dropdown means we are returning to
+    // that employee as the active root. Clear any lower hierarchy selection
+    // explicitly, because selectedEmployee may already have the same value
+    // (for example A -> child B -> A), in which case the selectedEmployee
+    // useEffect would not run again to reset the hierarchy UI.
+    Object.values(teamEmployeeControllersRef.current).forEach((controller) => {
+      controller.abort();
+    });
+    teamEmployeeControllersRef.current = {};
+
+    if (hierarchyLevelAbortRef.current) {
+      hierarchyLevelAbortRef.current.abort();
+      hierarchyLevelAbortRef.current = null;
+    }
+
+    setTeamSelections({});
+    //setTeamEmployees({});
+    setLoadingLevels({});
+    //setHierarchyLevels([]);
+
     setSelectedEmployee(employeeId);
     setSelectedTeamMember(employeeId || undefined);
   }, [setSelectedEmployee, setSelectedTeamMember]);
@@ -646,7 +726,7 @@ const AppHeader: React.FC = () => {
                         isLoading
                           ? "Loading..." 
                           : !hasEmployees && index > 0
-                          ? `No ${hierarchy.hierarchyName}`
+                          ? `No Employee`
                           : "Select Employee"
                       }
                       onChange={(option) => handleTeamEmployeeChange(hierarchy.level, option)}

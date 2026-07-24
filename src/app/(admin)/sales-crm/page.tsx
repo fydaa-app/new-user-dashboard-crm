@@ -152,9 +152,18 @@ export default function SalesCRM() {
 
   const leadsRequestIdRef = useRef(0);
   const statsRequestIdRef = useRef(0);
+  const leadsControllerRef = useRef<AbortController | null>(null);
+  const statsControllerRef = useRef<AbortController | null>(null);
 
   const loadLeads = useCallback(async (filtersToUse?: LeadFilters) => {
     const currentRequestId = ++leadsRequestIdRef.current;
+
+    if (leadsControllerRef.current) {
+      leadsControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    leadsControllerRef.current = controller;
+
     console.log('🔍 DEBUG: loadLeads STARTED', { 
       filtersToUse, 
       currentRequestId,
@@ -318,7 +327,7 @@ export default function SalesCRM() {
 
       console.log('🔍 Enhanced filters being applied:', enhancedFilters);
       
-      const response = await leadService.getLeads(enhancedFilters);
+      const response = await leadService.getLeads(enhancedFilters, controller.signal);
       
       if (currentRequestId !== leadsRequestIdRef.current) return;
 
@@ -346,20 +355,31 @@ export default function SalesCRM() {
         await loadAllUserNamesFromLeads(leads);
       }
     } catch (err: unknown) {
+      if (currentRequestId !== leadsRequestIdRef.current) return;
+      if (err instanceof Error && err.name === 'AbortError') return;
       const errorMessage = err instanceof Error ? err.message : 'Failed to load leads. Please try again.';
       setError(errorMessage);
       console.error('Error loading leads:', err);
     } finally {
-      console.log('🔍 DEBUG: loadLeads FINISHED', { 
-        leadsLength: leads?.length,
-        settingLoadingToFalse: true 
-      });
-      setLoading(false);
+      if (currentRequestId === leadsRequestIdRef.current && !controller.signal.aborted) {
+        console.log('🔍 DEBUG: loadLeads FINISHED', { 
+          leadsLength: leads?.length,
+          settingLoadingToFalse: true 
+        });
+        setLoading(false);
+      }
     }
   }, [filters, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedDesignation, selectedType]);
 
   const loadStats = useCallback(async () => {
     const currentRequestId = ++statsRequestIdRef.current;
+
+    if (statsControllerRef.current) {
+      statsControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    statsControllerRef.current = controller;
+
     try {
       console.log('🔄 Loading lead stats...', { currentRequestId });
       console.log('👤 Auth Status:', { isAuthenticated, user: user?.name, hasToken: !!token });
@@ -521,13 +541,14 @@ export default function SalesCRM() {
       }
 
       console.log('📊 Loading stats with filters:', statsFilters);
-      const statsData = await leadService.getLeadStats(Object.keys(statsFilters).length > 0 ? statsFilters : undefined);
+      const statsData = await leadService.getLeadStats(Object.keys(statsFilters).length > 0 ? statsFilters : undefined, controller.signal);
       
       if (currentRequestId !== statsRequestIdRef.current) return;
       
       console.log('✅ Lead stats loaded:', statsData);
       setStats(statsData);
     } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error('❌ Error loading stats:', err);
       setError('Failed to load lead statistics. Please check your authentication.');
     }
@@ -1023,6 +1044,18 @@ export default function SalesCRM() {
       setEmployees([]);
     }
   }, [selectedDesignation]);
+
+  // Abort in-flight requests on unmount
+  useEffect(() => {
+    return () => {
+      if (leadsControllerRef.current) {
+        leadsControllerRef.current.abort();
+      }
+      if (statsControllerRef.current) {
+        statsControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Load leads when filters change
   useEffect(() => {

@@ -37,7 +37,8 @@ async function fetchCancelledSips(
   page: number, selectedOption: string, selectedEmployee: string = "",
   selectedTeamMember: string = "", customDates: { start: string; end: string },
   searchQuery: string = "", selectedType: string = "",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  signal?: AbortSignal
 ): Promise<{ sips: Sip[]; error: string | null; totalItems?: number; itemsPerPage?: number; totalPages?: number }> {
   try {
     let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/cancelled-sip-list-mf?page=${page}`;
@@ -53,12 +54,19 @@ async function fetchCancelledSips(
     console.log("URL:", url);
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${document.cookie.split("; ").find((row) => row.startsWith("authToken="))?.split("=")[1] || ""}` },
+      signal,
     });
+    if (signal?.aborted) {
+      return { sips: [], error: null };
+    }
     if (response.status === 401) { Cookies.remove("authToken"); window.location.href = "/signin"; }
     if (!response.ok) throw new Error("Failed to fetch");
     const result = await response.json();
     return { sips: Array.isArray(result.data) ? result.data : [], error: null, totalItems: result.pagination?.totalItems, itemsPerPage: result.pagination?.itemsPerPage, totalPages: result.pagination?.totalPages };
   } catch (err) {
+    if (signal?.aborted) {
+      return { sips: [], error: null };
+    }
     console.error("Error fetching data:", err);
     return { sips: [], error: "Error fetching data" };
   }
@@ -73,20 +81,39 @@ export default function CancelledSipListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isSearching, setIsSearching] = useState(false);
+
+  const requestIdRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const previousFiltersRef = useRef({ searchQuery, selectedOption, selectedType, customDates });
 
   const fetchData = useCallback(async () => {
+    const currentRequestId = ++requestIdRef.current;
+
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    controllerRef.current = controller;
+
     try {
       const { sips, error, totalItems: apiTotalItems, totalPages: apiTotalPages } = await fetchCancelledSips(
-        page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, selectedType as unknown as string, hierarchyViewMode
+        page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, selectedType as unknown as string, hierarchyViewMode, controller.signal
       );
-      setSips(sips); setError(error);
-      if (apiTotalPages) setTotalPages(apiTotalPages);
-      if (apiTotalItems) setTotalItems(apiTotalItems);
-      setIsSearching(false);
-    } catch (err) { console.error("Error in fetchData:", err); setError("Failed to load data"); setIsSearching(false); }
+
+      if (!controller.signal.aborted && currentRequestId === requestIdRef.current) {
+        setSips(sips); setError(error);
+        if (apiTotalPages) setTotalPages(apiTotalPages);
+        if (apiTotalItems) setTotalItems(apiTotalItems);
+        setIsSearching(false);
+      }
+    } catch (err) {
+      if (!controller.signal.aborted && currentRequestId === requestIdRef.current) {
+        console.error("Error in fetchData:", err); setError("Failed to load data"); setIsSearching(false);
+      }
+    }
   }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
