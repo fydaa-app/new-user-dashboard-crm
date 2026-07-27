@@ -20,6 +20,7 @@ interface User {
   onboardingDate: string;
   netWorth: number;
   status:string;
+  mandateStatus: string;
 }
 
 async function fetchUsers(

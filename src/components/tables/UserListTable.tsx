@@ -22,6 +22,7 @@ export interface UserTableProps {
     onboardingDate: string;
     netWorth: number;
     status: string;
+    mandateStatus: string;
     dueSips?: { sipName: string; dueDate: string }[];
   }[];
   error: string | null;
@@ -117,15 +118,21 @@ export default function UserListTable({ users, error, appType }: UserTableProps)
                   <TableCell
                     isHeader
                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Onboarding Date
-                  </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Status
-                  </TableCell>
+                   >
+                     Onboarding Date
+                   </TableCell>
+                   <TableCell
+                     isHeader
+                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                   >
+                     Mandate
+                   </TableCell>
+                   <TableCell
+                     isHeader
+                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                   >
+                     Status
+                   </TableCell>
                   {appType === "Fydaa" && (
                     <TableCell
                       isHeader
@@ -175,6 +182,12 @@ export default function UserListTable({ users, error, appType }: UserTableProps)
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
                       {new Date(user.onboardingDate).toLocaleString()}
+                    </TableCell>
+
+                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                      <Badge color={user.mandateStatus === "Cancelled" ? "error" : "success"}>
+                        {user.mandateStatus}
+                      </Badge>
                     </TableCell>
 
                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
