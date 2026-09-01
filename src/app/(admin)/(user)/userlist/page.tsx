@@ -10,6 +10,8 @@ import Pagination from "@/components/tables/Pagination";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/services/api-client";
 import { UserEndpoints } from "@/config/api-endpoints";
+import Select from "@/components/form/Select";
+import { ChevronDownIcon } from "@/icons";
 
 interface User {
   userId:number;
@@ -33,7 +35,8 @@ async function fetchUsers(
     appType: string = "",
     selectedType: string = "team",
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    hierarchyViewMode: "team" | "individual" = "team"
+    hierarchyViewMode: "team" | "individual" = "team",
+    investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ): 
     Promise<{ 
         users: User[]; 
@@ -68,6 +71,10 @@ async function fetchUsers(
 
         if (selectedType) {
             queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
+        }
+
+        if (investmentModelFilter !== "ALL") {
+            queryParams += `&investmentModel=${investmentModelFilter}`;
         }
 
         const url = `${endpoint}?${queryParams}`;
@@ -112,6 +119,7 @@ export default function UserTablesPage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [isLoading, setIsLoading] = useState(false);
+  const [investmentModelFilter, setInvestmentModelFilter] = useState<"ALL" | "RIA" | "ARN">("ALL");
 
   const inputRef = useRef<HTMLInputElement>(null);
   const skipNextPageResetRef = useRef(false);
@@ -123,6 +131,7 @@ export default function UserTablesPage() {
     customDates,
     appType,
     selectedType,
+    investmentModelFilter: "ALL" as "ALL" | "RIA" | "ARN",
   });
 
   // When navigating back from the user detail page, skip the first automatic page reset
@@ -133,6 +142,20 @@ export default function UserTablesPage() {
       sessionStorage.removeItem("usersSkipNextPageReset");
     }
   }, []);
+
+  const investmentModelOptions = [
+    { value: "ALL", label: "All" },
+    { value: "RIA", label: "RIA - Direct" },
+    { value: "ARN", label: "ARN - Regular" },
+  ];
+
+  const handleInvestmentModelChange = useCallback((option: { value: string; label: string } | null) => {
+    if (option) {
+      setInvestmentModelFilter(option.value as "ALL" | "RIA" | "ARN");
+    } else {
+      setInvestmentModelFilter("ALL");
+    }
+  }, [setInvestmentModelFilter]);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -146,7 +169,8 @@ export default function UserTablesPage() {
         searchQuery,
         appType,
         selectedType as unknown as string,
-        hierarchyViewMode
+        hierarchyViewMode,
+        investmentModelFilter
       );
       // DEBUG: Log user list page data received
       console.log("═══════════════════════════════════════════════════════════");
@@ -178,7 +202,7 @@ export default function UserTablesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   useEffect(() => {
     fetchData();
@@ -195,7 +219,8 @@ export default function UserTablesPage() {
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
       prev.appType !== appType ||
-      prev.selectedType !== selectedType;
+      prev.selectedType !== selectedType ||
+      prev.investmentModelFilter !== investmentModelFilter;
 
     previousFiltersRef.current = { 
       searchQuery, 
@@ -205,6 +230,7 @@ export default function UserTablesPage() {
       customDates,
       appType,
       selectedType,
+      investmentModelFilter,
     };
 
     if (!hasChanged) return;
@@ -215,7 +241,7 @@ export default function UserTablesPage() {
     }
 
     setPage(1);
-  }, [searchQuery, selectedOption, selectedEmployee, selectedTeamMember, customDates, appType, selectedType]);
+  }, [searchQuery, selectedOption, selectedEmployee, selectedTeamMember, customDates, appType, selectedType, investmentModelFilter]);
 
   // Keep URL query parameters in sync with pagination and search state
   useEffect(() => {
@@ -269,9 +295,9 @@ export default function UserTablesPage() {
             onSubmit={(e) => {
               e.preventDefault();
             }}
-            className="mb-4"
+            className="mb-4 flex items-center gap-3"
           >
-            <div className="relative search-box">
+            <div className="relative search-box flex-1">
               <span className="absolute -translate-y-1/2 left-4 top-1/2 pointer-events-none">
                 {/* search icon svg preserved from previous code */}
               </span>
@@ -284,6 +310,23 @@ export default function UserTablesPage() {
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
             </div>
+
+            {appType === "Fydaa" && (
+              <div className="relative w-40 flex-shrink-0">
+                <Select
+                  options={investmentModelOptions}
+                  placeholder="Investment Model"
+                  onChange={handleInvestmentModelChange}
+                  value={investmentModelFilter}
+                  menuAlign="left"
+                  className="dark:bg-dark-900"
+                  key={`invmodel-${investmentModelFilter}`}
+                />
+                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                  <ChevronDownIcon />
+                </span>
+              </div>
+            )}
           </form>
 
           {!isLoading && totalUsers > 0 && (

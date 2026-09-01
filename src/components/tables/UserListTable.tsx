@@ -23,6 +23,7 @@ export interface UserTableProps {
     netWorth: number;
     status: string;
     mandateStatus: string;
+    investmentModel?: string;
     dueSips?: { sipName: string; dueDate: string }[];
   }[];
   error: string | null;
@@ -97,12 +98,14 @@ export default function UserListTable({ users, error, appType }: UserTableProps)
                   >
                     Mobile Number
                   </TableCell>
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Plan
-                  </TableCell>
+                  {appType !== "Fydaa" && (
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Plan
+                    </TableCell>
+                  )}
                   <TableCell
                     isHeader
                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
@@ -121,32 +124,42 @@ export default function UserListTable({ users, error, appType }: UserTableProps)
                    >
                      Onboarding Date
                    </TableCell>
-                   <TableCell
-                     isHeader
-                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                   >
-                     Mandate
-                   </TableCell>
+                   {appType === "Fydaa" && (
+                     <TableCell
+                       isHeader
+                       className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                     >
+                       Mandate
+                     </TableCell>
+                   )}
                    <TableCell
                      isHeader
                      className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
                    >
                      Status
                    </TableCell>
-                  {appType === "Fydaa" && (
-                    <TableCell
-                      isHeader
-                      className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                    >
-                      Due SIPs
-                    </TableCell>
-                  )}
-                  <TableCell
-                    isHeader
-                    className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
-                  >
-                    Action
-                  </TableCell>
+                   {appType === "Fydaa" && (
+                     <TableCell
+                       isHeader
+                       className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                     >
+                       Due SIPs
+                     </TableCell>
+                   )}
+                   {appType === "Fydaa" && (
+                     <TableCell
+                       isHeader
+                       className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                     >
+                       Type
+                     </TableCell>
+                   )}
+                   <TableCell
+                     isHeader
+                     className="px-5 py-3 font-bold text-gray-900 text-start text-theme-xs dark:text-gray-400"
+                   >
+                     Action
+                   </TableCell>
                 </TableRow>
               </TableHeader>
 
@@ -164,67 +177,77 @@ export default function UserListTable({ users, error, appType }: UserTableProps)
                       </div>
                     </TableCell>
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.mobileNumber}
-                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                       {user.mobileNumber}
+                     </TableCell>
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.planName}
-                    </TableCell>
+                     {appType !== "Fydaa" && (
+                       <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                         {user.planName}
+                       </TableCell>
+                     )}
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {user.managerName}
-                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                       {user.managerName}
+                     </TableCell>
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
-                      {formatCurrency(user.netWorth)}
-                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-start text-theme-sm dark:text-gray-400">
+                       {formatCurrency(user.netWorth)}
+                     </TableCell>
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      {new Date(user.onboardingDate).toLocaleString()}
-                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                       {new Date(user.onboardingDate).toLocaleString()}
+                     </TableCell>
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      <Badge color={user.mandateStatus === "Cancelled" ? "error" : "success"}>
-                        {user.mandateStatus}
-                      </Badge>
-                    </TableCell>
+                     {appType === "Fydaa" && (
+                       <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                         <Badge color={user.mandateStatus === "Cancelled" ? "error" : "success"}>
+                           {user.mandateStatus}
+                         </Badge>
+                       </TableCell>
+                     )}
 
-                    <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                      <Badge color={user.status === "Active" ? "success" : "error"}>
-                        {user.status}
-                      </Badge>
-                    </TableCell>
+                     <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                       <Badge color={user.status === "Active" ? "success" : "error"}>
+                         {user.status}
+                       </Badge>
+                     </TableCell>
 
-                    {appType === "Fydaa" && (
-                      <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
-                        {!user.dueSips || user.dueSips.length === 0 ? (
-                          "-"
-                        ) : user.dueSips.length === 1 ? (
-                          <span>{new Date(user.dueSips[0].dueDate).toLocaleDateString()}</span>
-                          ) : (
-                          <div>
-                            <button
-                              onClick={() => toggleRow(user.userId)}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none"
-                            >
-                              {user.dueSips.length} SIPs {expandedRows.has(user.userId) ? "▲" : "▼"}
-                            </button>
-                            {expandedRows.has(user.userId) && (
-                              <div className="mt-2 space-y-1 transition-all duration-200 ease-in-out">
-                                {user.dueSips.map((sip, idx) => (
-                                  <div key={idx} className="text-xs text-blue-700 pl-2 border-l-2 border-blue-300">
-                                    {sip.sipName} — {new Date(sip.dueDate).toLocaleDateString()}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </TableCell>
-                    )}
+                     {appType === "Fydaa" && (
+                       <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                         {!user.dueSips || user.dueSips.length === 0 ? (
+                           "-"
+                         ) : user.dueSips.length === 1 ? (
+                           <span>{new Date(user.dueSips[0].dueDate).toLocaleDateString()}</span>
+                           ) : (
+                           <div>
+                             <button
+                               onClick={() => toggleRow(user.userId)}
+                               className="text-blue-600 hover:text-blue-800 text-sm font-medium focus:outline-none"
+                             >
+                               {user.dueSips.length} SIPs {expandedRows.has(user.userId) ? "▲" : "▼"}
+                             </button>
+                             {expandedRows.has(user.userId) && (
+                               <div className="mt-2 space-y-1 transition-all duration-200 ease-in-out">
+                                 {user.dueSips.map((sip, idx) => (
+                                   <div key={idx} className="text-xs text-blue-700 pl-2 border-l-2 border-blue-300">
+                                     {sip.sipName} — {new Date(sip.dueDate).toLocaleDateString()}
+                                   </div>
+                                 ))}
+                               </div>
+                             )}
+                           </div>
+                         )}
+                       </TableCell>
+                     )}
 
-                    <TableCell>
+                     {appType === "Fydaa" && (
+                       <TableCell className="px-4 py-3 text-gray-500 text-theme-sm dark:text-gray-400">
+                         {user.investmentModel && user.investmentModel !== "-" ? user.investmentModel : "-"}
+                       </TableCell>
+                     )}
+
+                     <TableCell>
                       <button
                         type="button"
                         onClick={() => handleViewUser(user.userId)}
