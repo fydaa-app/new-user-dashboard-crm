@@ -14,7 +14,7 @@ export default function TabNavigation({ activeTab, onTabChange, userDetails }: T
   const allowedTabs = useMemo(() => {
     const tabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile", "PlanData"];
     if (userDetails.fromApp?.toLowerCase() === "savestment") {
-      tabs.splice(4, 0, "Accounts");
+      tabs.splice(4, 0, "Account Ledger");
     }
     return tabs;
   }, [userDetails.fromApp]);
