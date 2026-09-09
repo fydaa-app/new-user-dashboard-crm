@@ -212,7 +212,7 @@ export default function UserTab({
               />
             )}
 
-            {activeTab === "Accounts" && (
+            {activeTab === "Account Ledger" && (
               <AccountsTab userId={userDetails.id} />
             )}
 
