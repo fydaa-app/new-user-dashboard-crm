@@ -11,7 +11,7 @@
 import Cookies from 'js-cookie';
 
 // Base URL types for different microservices
-export type ApiBaseUrl = 'crm' | 'stock' | 'onboarding';
+  export type ApiBaseUrl = 'crm' | 'stock' | 'onboarding' | 'payment';
 
 // Request configuration
 export interface ApiRequestConfig extends RequestInit {
@@ -45,6 +45,7 @@ class ApiClient {
     crm: process.env.NEXT_PUBLIC_API_URL || '',
     stock: process.env.NEXT_PUBLIC_STOCK_API_URL || '',
     onboarding: process.env.NEXT_PUBLIC_ONBOARDING_API_URL || '',
+    payment: process.env.NEXT_PUBLIC_PAYMENT_API_URL || '',
   };
 
   private readonly authCookieName: string = process.env.NEXT_PUBLIC_AUTH_COOKIE_NAME || 'authToken';

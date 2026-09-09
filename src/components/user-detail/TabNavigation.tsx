@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { getTabDisplayName } from "./utils";
 import { UserDetails } from "./types";
 
@@ -10,9 +10,15 @@ interface TabNavigationProps {
   userDetails: UserDetails;
 }
 
-const allowedTabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile", "PlanData"];
-
 export default function TabNavigation({ activeTab, onTabChange, userDetails }: TabNavigationProps) {
+  const allowedTabs = useMemo(() => {
+    const tabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile", "PlanData"];
+    if (userDetails.fromApp?.toLowerCase() === "savestment") {
+      tabs.splice(4, 0, "Account Ledger");
+    }
+    return tabs;
+  }, [userDetails.fromApp]);
+
   return (
     <div className="flex gap-2 overflow-x-auto">
       {allowedTabs.map((tab) => (

@@ -140,6 +140,11 @@ export const PortfolioEndpoints = {
   ADD_PORTFOLIO: "portfolio", // Matches .env NEXT_PUBLIC_ADD_PORTFOLIO_ENDPOINT
 } as const;
 
+// Payment Endpoints
+export const PaymentEndpoints = {
+  USER_ACCOUNT_LEDGERS: "/subscription/account-ledgers/user",
+} as const;
+
 // Financial Plan Endpoints
 export const FinancialPlanEndpoints = {
   FINANCIAL_PLAN: "/financial-plan",
@@ -169,6 +174,7 @@ export const APIEndpoints = {
   ...MutualFundEndpoints,
   ...PortfolioEndpoints,
   ...FinancialPlanEndpoints,
+  ...PaymentEndpoints,
 } as const;
 
 // Type exports for TypeScript autocomplete
@@ -184,4 +190,5 @@ export type PayoutEndpoint = typeof PayoutEndpoints[keyof typeof PayoutEndpoints
 export type MutualFundEndpoint = typeof MutualFundEndpoints[keyof typeof MutualFundEndpoints];
 export type PortfolioEndpoint = typeof PortfolioEndpoints[keyof typeof PortfolioEndpoints];
 export type FinancialPlanEndpoint = typeof FinancialPlanEndpoints[keyof typeof FinancialPlanEndpoints];
+export type PaymentEndpoint = typeof PaymentEndpoints[keyof typeof PaymentEndpoints];
 

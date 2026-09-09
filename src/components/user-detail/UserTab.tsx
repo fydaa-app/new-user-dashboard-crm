@@ -19,6 +19,7 @@ import StockTab from "./StockTab";
 import ProfileTab from "./ProfileTab";
 import PlanDataTab from "./PlanDataTab";
 import XIRRTableSection from "./XIRRTableSection";
+import AccountsTab from "./AccountsTab";
 import { apiClient } from "@/services/api-client";
 import { UserEndpoints, StockEndpoints, TransactionEndpoints, FinancialPlanEndpoints } from "@/config/api-endpoints";
 
@@ -204,11 +205,15 @@ export default function UserTab({
               />
             )}
 
-{activeTab === "Subscription" && (
+            {activeTab === "Subscription" && (
               <SubscriptionTab
                 subscriptions={subscriptions}
                 userDetails={userDetails}
               />
+            )}
+
+            {activeTab === "Account Ledger" && (
+              <AccountsTab userId={userDetails.id} />
             )}
 
             {activeTab === "Stock" && (
