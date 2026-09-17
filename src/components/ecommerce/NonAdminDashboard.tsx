@@ -16,29 +16,77 @@ import TopPackagesMf from "./TopPackagesMf";
 interface CardData {
   type: string;
   totalRevenue?: number;
+  totalRevenueRia?: number;
+  totalRevenueArn?: number;
   totalNoOfTransactions?: number;
+  totalNoOfTransactionsRia?: number;
+  totalNoOfTransactionsArn?: number;
   noOfPayments?: number;
+  noOfPaymentsRia?: number;
+  noOfPaymentsArn?: number;
   activeUsers?: number;
+  activeUsersRia?: number;
+  activeUsersArn?: number;
   inactiveUsers?: number;
+  inactiveUsersRia?: number;
+  inactiveUsersArn?: number;
   totalUsers?: number;
+  totalUsersRia?: number;
+  totalUsersArn?: number;
   newInvestors?: number;
+  newInvestorsRia?: number;
+  newInvestorsArn?: number;
   assetsUnderManagement?: number;
+  assetsUnderManagementRia?: number;
+  assetsUnderManagementArn?: number;
   netInflow?: number;
+  netInflowRia?: number;
+  netInflowArn?: number;
   redemptions?: number;
+  redemptionsRia?: number;
+  redemptionsArn?: number;
   redemptionRate?: number;
+  redemptionRateRia?: number;
+  redemptionRateArn?: number;
   averageTicketSize?: number;
+  averageTicketSizeRia?: number;
+  averageTicketSizeArn?: number;
   invested?: number;
+  investedRia?: number;
+  investedArn?: number;
   returns?: number;
+  returnsRia?: number;
+  returnsArn?: number;
 }
 
 interface SipCardData {
   type: string;
   totalSips?: number;
   totalactivesip?: number;
+  totalactivesipRia?: number;
+  totalactivesipArn?: number;
+  totalinactivesip?: number;
+  totalinactivesipRia?: number;
+  totalinactivesipArn?: number;
+  totalcompletedsip?: number;
+  totalcompletedsipRia?: number;
+  totalcompletedsipArn?: number;
+  totalinprogresssip?: number;
+  totalinprogresssipRia?: number;
+  totalinprogresssipArn?: number;
+  totalpartiallyexitsip?: number;
+  totalpartiallyexitsipRia?: number;
+  totalpartiallyexitsipArn?: number;
   totalinvestedsip?: number;
-  totalcancelledsip?: number;
+  totalinvestedsipRia?: number;
+  totalinvestedsipArn?: number;
   behindgoalscount?: number;
+  behindgoalscountRia?: number;
+  behindgoalscountArn?: number;
   pausedSips?: number;
+  totalcancelledsip?: number;
+  totalcancelledsipRia?: number;
+  totalcancelledsipArn?: number;
 }
 
 const NonAdminDashboard = () => {
@@ -74,20 +122,44 @@ const NonAdminDashboard = () => {
     }
   };
   const [aum, setAum] = useState<number>(0);
+  const [aumRia, setAumRia] = useState<number>(0);
+  const [aumArn, setAumArn] = useState<number>(0);
   const [netInflow, setNetInflow] = useState<number>(0);
+  const [netInflowRia, setNetInflowRia] = useState<number>(0);
+  const [netInflowArn, setNetInflowArn] = useState<number>(0);
   const [redemptions, setRedemptions] = useState<number>(0);
+  const [redemptionsRia, setRedemptionsRia] = useState<number>(0);
+  const [redemptionsArn, setRedemptionsArn] = useState<number>(0);
   const [newInvestors, setNewInvestors] = useState<number>(0);
+  const [newInvestorsRia, setNewInvestorsRia] = useState<number>(0);
+  const [newInvestorsArn, setNewInvestorsArn] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
+  const [totalRevenueRia, setTotalRevenueRia] = useState<number>(0);
+  const [totalRevenueArn, setTotalRevenueArn] = useState<number>(0);
   const [invested, setInvested] = useState<number>(0);
   const [returns, setReturns] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
+  const [totalUsersTillDateRia, setTotalUsersTillDateRia] = useState<number>(0);
+  const [totalUsersTillDateArn, setTotalUsersTillDateArn] = useState<number>(0);
   const [activeSipsTillDate, setActiveSipsTillDate] = useState<number>(0);
+  const [activeSipsTillDateRia, setActiveSipsTillDateRia] = useState<number>(0);
+  const [activeSipsTillDateArn, setActiveSipsTillDateArn] = useState<number>(0);
   const [avgTicketSizeTillDate, setAvgTicketSizeTillDate] = useState<number>(0);
+  const [avgTicketSizeTillDateRia, setAvgTicketSizeTillDateRia] = useState<number>(0);
+  const [avgTicketSizeTillDateArn, setAvgTicketSizeTillDateArn] = useState<number>(0);
   const [redemptionRateTillDate, setRedemptionRateTillDate] = useState<number>(0);
+  const [redemptionRateTillDateRia, setRedemptionRateTillDateRia] = useState<number>(0);
+  const [redemptionRateTillDateArn, setRedemptionRateTillDateArn] = useState<number>(0);
   const [newSipsCount, setNewSipsCount] = useState<number>(0);
+  const [newSipsCountRia, setNewSipsCountRia] = useState<number>(0);
+  const [newSipsCountArn, setNewSipsCountArn] = useState<number>(0);
   const [cancelledSipsCount, setCancelledSipsCount] = useState<number>(0);
+  const [cancelledSipsCountRia, setCancelledSipsCountRia] = useState<number>(0);
+  const [cancelledSipsCountArn, setCancelledSipsCountArn] = useState<number>(0);
   const [failedSipsCount, setFailedSipsCount] = useState<number>(0);
+  const [failedSipsCountRia, setFailedSipsCountRia] = useState<number>(0);
+  const [failedSipsCountArn, setFailedSipsCountArn] = useState<number>(0);
 
 
 
@@ -152,29 +224,31 @@ const NonAdminDashboard = () => {
         //const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
         const revenueData = data.find((item) => item.type === "Total Revenue");
 
-        setTotalRevenue(revenueData?.totalRevenue || 0);
-        //setAvgTicketSize(avgTicketSizeData?.averageTicketSize || 0);
-        setAum(aumData?.assetsUnderManagement || 0);
-        //setTotalUsers(totalUsersData?.totalUsers || 0);
-        //setActiveUsers(activeUsersData?.activeUsers || 0);
-        setNewInvestors(newInvestorsData?.newInvestors || 0);
-
-
+        setTotalRevenue(revenueData?.totalRevenue ?? 0);
+        setTotalRevenueRia(revenueData?.totalRevenueRia ?? 0);
+        setTotalRevenueArn(revenueData?.totalRevenueArn ?? 0);
+        setAum(aumData?.assetsUnderManagement ?? 0);
+        setAumRia(aumData?.assetsUnderManagementRia ?? 0);
+        setAumArn(aumData?.assetsUnderManagementArn ?? 0);
+        setNewInvestors(newInvestorsData?.newInvestors ?? 0);
+        setNewInvestorsRia(newInvestorsData?.newInvestorsRia ?? 0);
+        setNewInvestorsArn(newInvestorsData?.newInvestorsArn ?? 0);
 
         const netInflowData = data.find((item) => item.type === "Net Inflow");
-        setNetInflow(netInflowData?.netInflow || 0);
+        setNetInflow(netInflowData?.netInflow ?? 0);
+        setNetInflowRia(netInflowData?.netInflowRia ?? 0);
+        setNetInflowArn(netInflowData?.netInflowArn ?? 0);
 
         const redemptionsData = data.find((item) => item.type === "Redemptions");
-        setRedemptions(redemptionsData?.redemptions || 0);
+        setRedemptions(redemptionsData?.redemptions ?? 0);
+        setRedemptionsRia(redemptionsData?.redemptionsRia ?? 0);
+        setRedemptionsArn(redemptionsData?.redemptionsArn ?? 0);
 
         const investedData = data.find((item) => item.type === "Invested");
-        setInvested(investedData?.invested || 0);
+        setInvested(investedData?.invested ?? 0);
 
         const returnsData = data.find((item) => item.type === "Returns (%)");
-        setReturns(returnsData?.returns || 0);
-
-        //const redemptionRateData = data.find((item) => item.type === "Redemption Rate");
-        //setRedemptionRate(redemptionRateData?.redemptionRate || 0);
+        setReturns(returnsData?.returns ?? 0);
       } catch (error) {
         if (controller.signal.aborted) {
           endLoading();
@@ -238,9 +312,15 @@ const NonAdminDashboard = () => {
           const avgTicketSizeData = cardsData.find((item) => item.type === "Average Ticket Size");
           const redemptionRateData = cardsData.find((item) => item.type === "Redemption Rate");
           
-          setTotalUsersTillDate(totalUsersData?.totalUsers || 0);
-          setAvgTicketSizeTillDate(avgTicketSizeData?.averageTicketSize || 0);
-          setRedemptionRateTillDate(redemptionRateData?.redemptionRate || 0);
+          setTotalUsersTillDate(totalUsersData?.totalUsers ?? 0);
+          setTotalUsersTillDateRia(totalUsersData?.totalUsersRia ?? 0);
+          setTotalUsersTillDateArn(totalUsersData?.totalUsersArn ?? 0);
+          setAvgTicketSizeTillDate(avgTicketSizeData?.averageTicketSize ?? 0);
+          setAvgTicketSizeTillDateRia(avgTicketSizeData?.averageTicketSizeRia ?? 0);
+          setAvgTicketSizeTillDateArn(avgTicketSizeData?.averageTicketSizeArn ?? 0);
+          setRedemptionRateTillDate(redemptionRateData?.redemptionRate ?? 0);
+          setRedemptionRateTillDateRia(redemptionRateData?.redemptionRateRia ?? 0);
+          setRedemptionRateTillDateArn(redemptionRateData?.redemptionRateArn ?? 0);
         }
 
         // SIP API for till-date metrics
@@ -270,7 +350,9 @@ const NonAdminDashboard = () => {
           const sipData: SipCardData[] = await sipResponse.json();
           
           const activeSipsData = sipData.find((item) => item.type === "Total Invested Sips");
-          setActiveSipsTillDate(activeSipsData?.totalinvestedsip || 0);
+          setActiveSipsTillDate(activeSipsData?.totalinvestedsip ?? 0);
+          setActiveSipsTillDateRia(activeSipsData?.totalinvestedsipRia ?? 0);
+          setActiveSipsTillDateArn(activeSipsData?.totalinvestedsipArn ?? 0);
         }
       } catch (error) {
         if (controller.signal.aborted) {
@@ -342,9 +424,15 @@ const NonAdminDashboard = () => {
         const cancelledSipsData = data.find((item) => item.type === "Cancelled Sips");
         const failedSipsData = data.find((item) => item.type === "Behind Goals");
 
-        setNewSipsCount(activeSipsData?.totalactivesip || 0);
-        setCancelledSipsCount(cancelledSipsData?.totalcancelledsip || 0);
-        setFailedSipsCount(failedSipsData?.behindgoalscount || 0);
+        setNewSipsCount(activeSipsData?.totalactivesip ?? 0);
+        setNewSipsCountRia(activeSipsData?.totalactivesipRia ?? 0);
+        setNewSipsCountArn(activeSipsData?.totalactivesipArn ?? 0);
+        setCancelledSipsCount(cancelledSipsData?.totalcancelledsip ?? 0);
+        setCancelledSipsCountRia(cancelledSipsData?.totalcancelledsipRia ?? 0);
+        setCancelledSipsCountArn(cancelledSipsData?.totalcancelledsipArn ?? 0);
+        setFailedSipsCount(failedSipsData?.behindgoalscount ?? 0);
+        setFailedSipsCountRia(failedSipsData?.behindgoalscountRia ?? 0);
+        setFailedSipsCountArn(failedSipsData?.behindgoalscountArn ?? 0);
       } catch (error) {
         if (controller.signal.aborted) {
           endLoading();
@@ -376,6 +464,27 @@ const NonAdminDashboard = () => {
     return new Intl.NumberFormat("en-IN").format(value);
   };
 
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(2)}%`;
+  };
+
+  const renderMetricBreakdown = (
+    arn: number,
+    ria: number,
+    formatValue: (value: number) => string
+  ) => (
+    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-white/70 p-2 dark:bg-white/10">
+      <div className="min-w-0 text-center">
+        <p className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">ARN</p>
+        <p className="truncate text-xs font-semibold text-gray-900 dark:text-white">{formatValue(arn)}</p>
+      </div>
+      <div className="min-w-0 text-center">
+        <p className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">RIA</p>
+        <p className="truncate text-xs font-semibold text-gray-900 dark:text-white">{formatValue(ria)}</p>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return <p>Loading dashboard data...</p>;
   }
@@ -404,6 +513,11 @@ const NonAdminDashboard = () => {
                   <SalesIcon />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(totalRevenue)}</h2>
                   <p className="total-sale-text">Total Revenue</p>
+                  {renderMetricBreakdown(
+                    totalRevenueArn,
+                    totalRevenueRia,
+                    formatCurrency
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -425,6 +539,11 @@ const NonAdminDashboard = () => {
                       </span>
                     </p>
                   </div>
+                  {renderMetricBreakdown(
+                    aumArn,
+                    aumRia,
+                    formatCurrency
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -435,6 +554,11 @@ const NonAdminDashboard = () => {
                   <SalesIconGreen />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(netInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
+                  {renderMetricBreakdown(
+                    netInflowArn,
+                    netInflowRia,
+                    formatCurrency
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -445,12 +569,17 @@ const NonAdminDashboard = () => {
                   {/* <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g transform="translate(40,0) scale(-1,1)">
                       <circle cx="20" cy="20" r="20" fill="#FA5A7D"/>
-                      <path fillRule="evenodd" clipRule="evenodd" d="M13 11C11.8954 11 11 11.8954 11 13V27C11 28.1046 11.8954 29 13 29H27C28.1046 29 29 28.1046 29 27V13C29 11.8954 28.1046 11 27 11H13ZM16 21C16 20.4477 15.5523 20 15 20C14.4477 20 14 20.4477 14 21V25C14 25.5523 14.4477 26 15 26C15.5523 26 16 25.5523 16 25V21ZM20 17C20.5523 17 21 17.4477 21 18V25C21 25.5523 20 26 19.4477 26C18.8954 26 18.4477 25.5523 18.4477 25V18C18.4477 17.4477 18.8954 17 19.4477 17H20ZM26 15C26 14.4477 25.5523 14 25 14C24.4477 14 24 14.4477 24 15V25C24 25.5523 24.4477 26 25 26C25.5523 26 26 25.5523 26 25V15Z" fill="white"/>
+                      <path fillRule="evenodd" clipRule="evenodd" d="M13 11C11.8954 11 11 11.8954 11 13V27C11 28.1046 11.8954 29 13 29H27C28.1046 29 28.1046 29 27V13C29 11.8954 28.1046 11 27 11H13ZM16 21C16 20.4477 15.5523 20 15 20C14.4477 20 14 20.4477 14 21V25C14 25.5523 14.4477 26 15 26C15.5523 26 16 25.5523 16 25V21ZM20 17C20.5523 17 21 17.4477 21 18V25C21 25.5523 20 26 19.4477 26C18.8954 26 18.4477 25.5523 18.4477 25V18C18.4477 17.4477 18.8954 17 19.4477 17H20ZM26 15C26 14.4477 25.5523 14 25 14C24.4477 14 24 14.4477 24 15V25C24 25.5523 24.4477 26 25 26C25.5523 26 26 25.5523 26 25V15Z" fill="white"/>
                     </g>
                   </svg> */}
                   <SalesIconViolet/>
                   <h2 className="numbers-sale text-gray-900">{formatNumber(redemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
+                  {renderMetricBreakdown(
+                    redemptionsArn,
+                    redemptionsRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -479,8 +608,13 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <NewCustomerRedIcon />
-                  <h2 className="numbers-sale text-gray-900">{newInvestors.toLocaleString()}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(newInvestors)}</h2>
                   <p className="total-sale-text">New Investors</p>
+                  {renderMetricBreakdown(
+                    newInvestorsArn,
+                    newInvestorsRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -501,6 +635,11 @@ const NonAdminDashboard = () => {
                   <OrderIcon />
                   <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(newSipsCount)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">New SIPs</p>
+                  {renderMetricBreakdown(
+                    newSipsCountArn,
+                    newSipsCountRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -521,6 +660,11 @@ const NonAdminDashboard = () => {
                   <OrderIconGreen />
                   <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(cancelledSipsCount)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Cancelled SIPs</p>
+                  {renderMetricBreakdown(
+                    cancelledSipsCountArn,
+                    cancelledSipsCountRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -541,6 +685,11 @@ const NonAdminDashboard = () => {
                   <OrderIconPurple />
                   <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(failedSipsCount)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Failed SIPs</p>
+                  {renderMetricBreakdown(
+                    failedSipsCountArn,
+                    failedSipsCountRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -570,6 +719,11 @@ const NonAdminDashboard = () => {
                   <SalesIcon />
                   <h2 className="numbers-sale text-gray-900">{formatNumber(totalUsersTillDate)}</h2>
                   <p className="total-sale-text">Existing Clients</p>
+                  {renderMetricBreakdown(
+                    totalUsersTillDateArn,
+                    totalUsersTillDateRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -579,6 +733,11 @@ const NonAdminDashboard = () => {
                   <OrderIcon />
                   <h2 className="numbers-sale text-gray-900">{formatNumber(activeSipsTillDate)}</h2>
                   <p className="total-sale-text">Active Invested SIPs</p>
+                  {renderMetricBreakdown(
+                    activeSipsTillDateArn,
+                    activeSipsTillDateRia,
+                    formatNumber
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
@@ -587,14 +746,24 @@ const NonAdminDashboard = () => {
                   <DiscIcon />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(avgTicketSizeTillDate)}</h2>
                   <p className="total-sale-text">Avg Ticket Size</p>
+                  {renderMetricBreakdown(
+                    avgTicketSizeTillDateArn,
+                    avgTicketSizeTillDateRia,
+                    formatCurrency
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{redemptionRateTillDate.toFixed(2)}%</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatPercentage(redemptionRateTillDate)}</h2>
                   <p className="total-sale-text">Redemption Rate</p>
+                  {renderMetricBreakdown(
+                    redemptionRateTillDateArn,
+                    redemptionRateTillDateRia,
+                    formatPercentage
+                  )}
                   <span className="total-yes"></span>
                 </div>
               </div>
