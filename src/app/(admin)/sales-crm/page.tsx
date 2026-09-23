@@ -29,7 +29,7 @@ import { exportLeadsToCSV, exportLeadsToXLSX } from '@/utils/csvExport';
 
 // Interfaces for designation and employee data
 interface DesignationItem {
-  level: number;
+  level: number | null;
   hierarchyName: string;
 }
 
@@ -1000,7 +1000,7 @@ export default function SalesCRM() {
 
         if (response.data.success) {
           const designationOptions = response.data.data.map((item: DesignationItem) => ({
-            value: item.level.toString(),
+            value: item.level === null ? "null" : item.level.toString(),
             label: item.hierarchyName
           }));
           setDesignations(designationOptions);

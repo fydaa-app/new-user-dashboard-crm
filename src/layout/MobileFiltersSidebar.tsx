@@ -10,7 +10,7 @@ import { apiClient } from "@/services/api-client";
 import { AdminEndpoints } from "@/config/api-endpoints";
 
 interface DesignationItem {
-  level: number;
+  level: number | null;
   hierarchyName: string;
 }
 
@@ -106,7 +106,7 @@ const MobileFiltersSidebar: React.FC = () => {
 
         if (response.ok && response.data.success) {
           const designationOptions = response.data.data.map((item: DesignationItem) => ({
-            value: item.level.toString(),
+            value: item.level === null ? "null" : item.level.toString(),
             label: item.hierarchyName,
           }));
           setDesignations(designationOptions);
