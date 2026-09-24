@@ -168,7 +168,12 @@ export default function LeadsTable({
   //   return userMap[userId] || `User ${userId}`;
   // };
 
-  const getUserDisplayName = (userId: number | null | undefined) => {
+  // Get display name for a lead field (generatedBy or assignedTo)
+  // Uses embedded names from backend when available, falls back to userMap
+  const getUserDisplayName = (lead: Lead, field: 'generatedBy' | 'assignedTo') => {
+    const userId = field === 'generatedBy' ? lead.generatedById : lead.assignedToId;
+    const embeddedName = field === 'generatedBy' ? lead.generatedByName : lead.assignedToName;
+    
     if (!userId) {
       return {
         name: "Unassigned",
@@ -176,10 +181,9 @@ export default function LeadsTable({
       };
     }
 
-    const userName = userMap[userId] || `User ${userId}`;
+    // Use embedded name from backend if available, otherwise fall back to userMap
+    const userName = embeddedName || userMap[userId] || `User ${userId}`;
     let className = "text-gray-700 dark:text-gray-300";
-
-    // Names are now consistently available via combinedUserMap
 
     // Special styling for current user
     if (userId === currentUserId) {
@@ -190,7 +194,7 @@ export default function LeadsTable({
       };
     }
 
-    // Special styling for users who might be above in hierarchy (heuristic based on name patterns)
+    // Special styling for users who might be above in hierarchy
     if (userName.toLowerCase().includes('admin') || userName.toLowerCase().includes('manager')) {
       className = "text-purple-600 dark:text-purple-400 font-medium";
     }
@@ -399,15 +403,15 @@ export default function LeadsTable({
 
                     {/* Created By */}
                     <TableCell className="px-4 py-3 text-start text-theme-sm">
-                      <span className={getUserDisplayName(lead.generatedById).className}>
-                        {getUserDisplayName(lead.generatedById).name}
+                      <span className={getUserDisplayName(lead, 'generatedBy').className}>
+                        {getUserDisplayName(lead, 'generatedBy').name}
                       </span>
                     </TableCell>
 
                     {/* Assigned To */}
                     <TableCell className="px-4 py-3 text-start text-theme-sm">
-                      <span className={getUserDisplayName(lead.assignedToId).className}>
-                        {getUserDisplayName(lead.assignedToId).name}
+                      <span className={getUserDisplayName(lead, 'assignedTo').className}>
+                        {getUserDisplayName(lead, 'assignedTo').name}
                       </span>
                     </TableCell>
 
