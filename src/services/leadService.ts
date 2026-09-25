@@ -12,6 +12,8 @@ export interface Lead {
   status: 'new' | 'in-progress' | 'converted' | 'lost';
   generatedById: number;
   assignedToId?: number;
+  generatedByName?: string;
+  assignedToName?: string;
   potentialInvestment?: number;
   notes?: string;
   lastContactedAt?: string;
