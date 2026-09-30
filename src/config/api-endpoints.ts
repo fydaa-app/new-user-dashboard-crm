@@ -18,6 +18,7 @@ export const AuthEndpoints = {
 export const UserEndpoints = {
   USER_LIST: "/referrals/user-list",
   USER_LIST_MF: "/referrals/user-list-mf", // Fydaa app type
+  USER_AUM_DOWNLOAD: "/referrals/user-aum-download",
   USER_DETAILS: "/referrals/view-user", // Matches .env NEXT_PUBLIC_USER_DETAILS_ENDPOINT
   LEAD_USER_LIST: "/referrals/lead-user-list",
   LEAD_USER_LIST_MF: "/referrals/lead-user-list-mf", // Fydaa app type
