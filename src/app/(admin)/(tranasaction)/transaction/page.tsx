@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionTable from "@/components/tables/TransactionTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/services/api-client";
@@ -30,7 +31,8 @@ async function fetchTransactions(
     searchQuery: string = "",
     appType: string = "",
     selectedType: string = "",
-    hierarchyViewMode: "team" | "individual" = "team"
+    hierarchyViewMode: "team" | "individual" = "team",
+    investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ):
     Promise<{ 
         transactions: Transaction[]; 
@@ -67,6 +69,10 @@ async function fetchTransactions(
             queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
+        if (appType === "Fydaa") {
+            queryParams += investmentModelQuery(investmentModelFilter);
+        }
+
         const url = `${endpoint}?${queryParams}`;
         const response = await apiClient.get<{ transactions: Transaction[]; totalTransactions?: number; limit?: number }>(url);
 
@@ -86,7 +92,7 @@ export default function TransactionTablesPage() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [error, setError] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { selectedOption,customDates ,selectedEmployee,selectedTeamMember,selectedType , hierarchyViewMode } = useGlobalContext();
+    const { selectedOption,customDates ,selectedEmployee,selectedTeamMember,selectedType , hierarchyViewMode, investmentModelFilter } = useGlobalContext();
     const { appType } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -97,6 +103,7 @@ export default function TransactionTablesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const inputRef = useRef<HTMLInputElement>(null);
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
         const query = searchParams.get('search') || "";
@@ -104,8 +111,10 @@ export default function TransactionTablesPage() {
       }, [searchParams]);
 
     const fetchData = useCallback(async () => {
+        const requestId = ++requestIdRef.current;
         try {
-            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
+            const { transactions, error, totalTransactions: apiTotalTransactions, limit } = await fetchTransactions(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode, investmentModelFilter);
+            if (requestId !== requestIdRef.current) return;
             
             // DEBUG: Log transactions page data received
             console.log("═══════════════════════════════════════════════════════════");
@@ -132,13 +141,16 @@ export default function TransactionTablesPage() {
                 setTotalTransactions(apiTotalTransactions);
             }
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }finally {
-            setIsSearching(false);
+            if (requestId === requestIdRef.current) {
+                setIsSearching(false);
+            }
         }
 
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, investmentModelFilter]);
     
         useEffect(() => {
             fetchData();
@@ -146,7 +158,7 @@ export default function TransactionTablesPage() {
     
         useEffect(() => {
             setPage(1);
-        }, [selectedOption, customDates, searchQuery, selectedType ]);
+        }, [selectedOption, customDates, searchQuery, selectedType, investmentModelFilter]);
 
         const handlePageChange = (newPage: number) => {
             setPage(newPage);

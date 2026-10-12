@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ActiveSipTable from "@/components/tables/ActiveSipTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from "js-cookie";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,7 @@ async function fetchActiveSips(
   searchQuery: string = "",
   selectedType: string = "",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<{
   sips: Sip[];
@@ -69,6 +71,8 @@ async function fetchActiveSips(
     if (selectedType) {
       url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
+
+    url += investmentModelQuery(investmentModelFilter);
 
     console.log("URL:", url);
 
@@ -126,6 +130,7 @@ export default function ActiveSipListPage() {
     selectedTeamMember,
     selectedType,
     hierarchyViewMode,
+    investmentModelFilter,
   } = useGlobalContext();
 
   const { page, setPage, searchQuery, setSearchQuery, skipNextPageResetRef } =
@@ -146,6 +151,7 @@ export default function ActiveSipListPage() {
     selectedOption,
     selectedType,
     customDates,
+    investmentModelFilter,
   });
 
   const fetchData = useCallback(async () => {
@@ -172,6 +178,7 @@ export default function ActiveSipListPage() {
         searchQuery,
         selectedType as unknown as string,
         hierarchyViewMode,
+        investmentModelFilter,
         controller.signal
       );
 
@@ -203,6 +210,7 @@ export default function ActiveSipListPage() {
     selectedTeamMember,
     selectedType,
     hierarchyViewMode,
+    investmentModelFilter,
   ]);
 
   useEffect(() => {
@@ -217,13 +225,15 @@ export default function ActiveSipListPage() {
       prev.selectedOption !== selectedOption ||
       prev.selectedType !== selectedType ||
       prev.customDates?.start !== customDates?.start ||
-      prev.customDates?.end !== customDates?.end;
+      prev.customDates?.end !== customDates?.end ||
+      prev.investmentModelFilter !== investmentModelFilter;
 
     previousFiltersRef.current = {
       searchQuery,
       selectedOption,
       selectedType,
       customDates,
+      investmentModelFilter,
     };
 
     if (!hasChanged) return;
@@ -239,6 +249,7 @@ export default function ActiveSipListPage() {
     selectedOption,
     selectedType,
     customDates,
+    investmentModelFilter,
     setPage,
     skipNextPageResetRef,
   ]);

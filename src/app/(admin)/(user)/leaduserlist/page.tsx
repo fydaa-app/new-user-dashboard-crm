@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import LeadUserListTable from "@/components/tables/LeadUserListTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from 'js-cookie';
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -28,7 +29,8 @@ async function fetchUsers(
     searchQuery: string = "",
     appType: string = "",
     selectedType: string = "team",
-    hierarchyViewMode: "team" | "individual" = "team"
+    hierarchyViewMode: "team" | "individual" = "team",
+    investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ): 
     Promise<{ 
         users: User[]; 
@@ -64,6 +66,10 @@ async function fetchUsers(
             url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
+        if (appType === "Fydaa") {
+            url += investmentModelQuery(investmentModelFilter, { sendAll: true });
+        }
+
         const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -92,7 +98,7 @@ export default function UserTablesPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [error, setError] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode, investmentModelFilter } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalUsers, setTotalUsers] = useState(0);
@@ -102,6 +108,7 @@ export default function UserTablesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const inputRef = useRef<HTMLInputElement>(null);
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
             const query = searchParams.get('search') || "";
@@ -109,8 +116,10 @@ export default function UserTablesPage() {
           }, [searchParams]);
 
     const fetchData = useCallback(async () => {
+        const requestId = ++requestIdRef.current;
         try {
-            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode);
+            const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, appType, selectedType as unknown as string, hierarchyViewMode, investmentModelFilter);
+            if (requestId !== requestIdRef.current) return;
             setUsers(users);
             setError(error);
             
@@ -120,10 +129,11 @@ export default function UserTablesPage() {
                 setTotalUsers(apiTotalUsers);
             }
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, investmentModelFilter]);
 
     useEffect(() => {
         fetchData();
@@ -131,7 +141,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery,selectedEmployee, selectedTeamMember, selectedType]);
+    }, [selectedOption, customDates, searchQuery,selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

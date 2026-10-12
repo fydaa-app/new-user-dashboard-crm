@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ActiveSipTable from "@/components/tables/ActiveSipTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from "js-cookie";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter } from "next/navigation";
@@ -40,6 +41,7 @@ async function fetchCompletedSips(
   searchQuery: string = "",
   selectedType: string = "",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<{
   sips: Sip[];
@@ -68,6 +70,8 @@ async function fetchCompletedSips(
     if (selectedType) {
       url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
+
+    url += investmentModelQuery(investmentModelFilter);
 
     console.log("URL:", url);
 
@@ -125,6 +129,7 @@ export default function CompletedSipListPage() {
     selectedTeamMember,
     selectedType,
     hierarchyViewMode,
+    investmentModelFilter,
   } = useGlobalContext();
 
   const { page, setPage, searchQuery, setSearchQuery, skipNextPageResetRef } =
@@ -145,6 +150,7 @@ export default function CompletedSipListPage() {
     selectedOption,
     selectedType,
     customDates,
+    investmentModelFilter,
   });
 
   const fetchData = useCallback(async () => {
@@ -171,6 +177,7 @@ export default function CompletedSipListPage() {
         searchQuery,
         selectedType as unknown as string,
         hierarchyViewMode,
+        investmentModelFilter,
         controller.signal
       );
 
@@ -189,7 +196,7 @@ export default function CompletedSipListPage() {
         setIsSearching(false);
       }
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -200,14 +207,15 @@ export default function CompletedSipListPage() {
       prev.selectedOption !== selectedOption ||
       prev.selectedType !== selectedType ||
       prev.customDates?.start !== customDates?.start ||
-      prev.customDates?.end !== customDates?.end;
+      prev.customDates?.end !== customDates?.end ||
+      prev.investmentModelFilter !== investmentModelFilter;
 
-    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates };
+    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates, investmentModelFilter };
 
     if (!hasChanged) return;
     if (skipNextPageResetRef.current) { skipNextPageResetRef.current = false; return; }
     setPage(1);
-  }, [searchQuery, selectedOption, selectedType, customDates, setPage, skipNextPageResetRef]);
+  }, [searchQuery, selectedOption, selectedType, customDates, investmentModelFilter, setPage, skipNextPageResetRef]);
 
   const handlePageChange = (newPage: number) => setPage(newPage);
 

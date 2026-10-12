@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import TransactionsTable from "@/components/tables/MfTransactionsTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 
 import Pagination from "@/components/tables/Pagination";
@@ -87,7 +88,8 @@ async function fetchTransactions(
   reportType: string = "",
   transactionType: string = "",
   selectedType: string = "",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ): Promise<{
   transactions: Transaction[];
   error: string | null;
@@ -126,6 +128,8 @@ async function fetchTransactions(
     if (selectedType) {
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
+
+    queryParams += investmentModelQuery(investmentModelFilter);
 
     const url = `${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
     const response = await apiClient.get<{
@@ -169,7 +173,7 @@ export default function TransactionsListPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType , hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType , hierarchyViewMode, investmentModelFilter } = useGlobalContext();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -182,6 +186,7 @@ export default function TransactionsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inputRef = useRef<HTMLInputElement>(null);
+  const requestIdRef = useRef(0);
 
   const [cards, setCards] = useState<Cards>({ 
     totalAmount: 0, 
@@ -216,6 +221,7 @@ export default function TransactionsListPage() {
   // Fetch only when readyToFetch true and dependencies changed
   const fetchData = useCallback(async () => {
     if (!readyToFetch) return;
+    const requestId = ++requestIdRef.current;
 
     console.log("[DEBUG] Fetching data with", {
       page,
@@ -247,9 +253,11 @@ export default function TransactionsListPage() {
         effectiveReportType,
         effectiveTransactionType,
         selectedType as unknown as string,
-        hierarchyViewMode
+        hierarchyViewMode,
+        investmentModelFilter
       );
 
+      if (requestId !== requestIdRef.current) return;
       setTransactions(transactions);
       setError(error);
 
@@ -257,11 +265,14 @@ export default function TransactionsListPage() {
       if (apiTotalItems) setTotalItems(apiTotalItems);
       if (apiCards) setCards(apiCards);
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       console.error("Error in fetchData:", err);
       setError("Failed to load data");
     }
-    setIsSearching(false);
-  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, selectedTeamMember, readyToFetch, selectedType, hierarchyViewMode]);
+    if (requestId === requestIdRef.current) {
+      setIsSearching(false);
+    }
+  }, [page, selectedOption, customDates, searchQuery, reportType, transactionType, selectedEmployee, selectedTeamMember, readyToFetch, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   useEffect(() => {
     fetchData();

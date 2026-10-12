@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Select from "@/components/form/Select";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
@@ -31,7 +32,7 @@ export default function MonthlySalesChart() {
   const [categories, setCategories] = useState<string[]>([]);  
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [selectedDataType, setSelectedDataType] = useState("revenue");
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: chartData } = useFilteredFetch<{ dataPoints: DataPoint[] }>(
@@ -53,6 +54,8 @@ export default function MonthlySalesChart() {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -81,6 +84,7 @@ export default function MonthlySalesChart() {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

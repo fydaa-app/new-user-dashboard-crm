@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { pickModelMetric } from "@/context/investmentModel";
 import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import {
   OrderIconBlue,
@@ -18,13 +19,29 @@ import {
 interface CardData {
   type: string;
   totalactivesip?: number;
+  totalactivesipRia?: number;
+  totalactivesipArn?: number;
   totalinactivesip?: number;
+  totalinactivesipRia?: number;
+  totalinactivesipArn?: number;
   totalcompletedsip?: number;
+  totalcompletedsipRia?: number;
+  totalcompletedsipArn?: number;
   totalinprogresssip?: number;
+  totalinprogresssipRia?: number;
+  totalinprogresssipArn?: number;
   totalpartiallyexitsip?: number;
+  totalpartiallyexitsipRia?: number;
+  totalpartiallyexitsipArn?: number;
   totalinvestedsip?: number;
+  totalinvestedsipRia?: number;
+  totalinvestedsipArn?: number;
   totalcancelledsip?: number;
+  totalcancelledsipRia?: number;
+  totalcancelledsipArn?: number;
   behindgoalscount?: number;
+  behindgoalscountRia?: number;
+  behindgoalscountArn?: number;
 }
 
 interface SipCounts {
@@ -42,19 +59,10 @@ const SipIndexPage = () => {
   useFydaaOnlyPage();
   const router = useRouter();
 
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } =
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter } =
     useGlobalContext();
 
-  const [sipCounts, setSipCounts] = useState<SipCounts>({
-    activeSips: 0,
-    inactiveSips: 0,
-    investedSips: 0,
-    cancelledSips: 0,
-    inProgressSips: 0,
-    completedSips: 0,
-    partiallyExitSips: 0,
-    behindGoalsSips: 0,
-  });
+  const [sipCards, setSipCards] = useState<CardData[]>([]);
 
   const sipRequestIdRef = useRef(0);
 
@@ -101,19 +109,8 @@ const SipIndexPage = () => {
 
         const data: CardData[] = await response.json();
 
-        const counts: SipCounts = {
-          activeSips: data.find((item) => item.type === "Total Active Sips")?.totalactivesip || 0,
-          inactiveSips: data.find((item) => item.type === "Total In Active Sips")?.totalinactivesip || 0,
-          investedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
-          cancelledSips: data.find((item) => item.type === "Cancelled Sips")?.totalcancelledsip || 0,
-          inProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
-          completedSips: data.find((item) => item.type === "Total Completed SIPs")?.totalcompletedsip || 0,
-          partiallyExitSips: data.find((item) => item.type === "Partially Exited SIPs")?.totalpartiallyexitsip || 0,
-          behindGoalsSips: data.find((item) => item.type === "Behind Goals")?.behindgoalscount || 0,
-        };
-
         if (currentRequestId === sipRequestIdRef.current && !controller.signal.aborted) {
-          setSipCounts(counts);
+          setSipCards(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         if (currentRequestId === sipRequestIdRef.current && !controller.signal.aborted) {
@@ -127,6 +124,27 @@ const SipIndexPage = () => {
     return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
 
+  const sipCount = (
+    type: string,
+    combined: keyof CardData,
+    ria: keyof CardData,
+    arn: keyof CardData,
+  ) => {
+    const item = sipCards.find((row) => row.type === type);
+    return pickModelMetric(investmentModelFilter, Number(item?.[combined] || 0), Number(item?.[ria] || 0), Number(item?.[arn] || 0));
+  };
+
+  const filteredCounts: SipCounts = {
+    activeSips: sipCount("Total Active Sips", "totalactivesip", "totalactivesipRia", "totalactivesipArn"),
+    inactiveSips: sipCount("Total In Active Sips", "totalinactivesip", "totalinactivesipRia", "totalinactivesipArn"),
+    investedSips: sipCount("Total Invested Sips", "totalinvestedsip", "totalinvestedsipRia", "totalinvestedsipArn"),
+    cancelledSips: sipCount("Cancelled Sips", "totalcancelledsip", "totalcancelledsipRia", "totalcancelledsipArn"),
+    inProgressSips: sipCount("Total In Progress Sips", "totalinprogresssip", "totalinprogresssipRia", "totalinprogresssipArn"),
+    completedSips: sipCount("Total Completed SIPs", "totalcompletedsip", "totalcompletedsipRia", "totalcompletedsipArn"),
+    partiallyExitSips: sipCount("Partially Exited SIPs", "totalpartiallyexitsip", "totalpartiallyexitsipRia", "totalpartiallyexitsipArn"),
+    behindGoalsSips: sipCount("Behind Goals", "behindgoalscount", "behindgoalscountRia", "behindgoalscountArn"),
+  };
+
   const sipCategories = [
     {
       title: "Active SIPs",
@@ -134,7 +152,7 @@ const SipIndexPage = () => {
       route: "/sip/activesip",
       icon: OrderIconGreen,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.activeSips,
+      count: filteredCounts.activeSips,
     },
     {
       title: "Invested SIPs",
@@ -142,7 +160,7 @@ const SipIndexPage = () => {
       route: "/sip/investedsip",
       icon: OrderIconBlue,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.investedSips,
+      count: filteredCounts.investedSips,
     },
     {
       title: "In Progress SIPs",
@@ -150,7 +168,7 @@ const SipIndexPage = () => {
       route: "/sip/inprogresssip",
       icon: OrderIconYellow,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.inProgressSips,
+      count: filteredCounts.inProgressSips,
     },
     {
       title: "Completed SIPs",
@@ -158,7 +176,7 @@ const SipIndexPage = () => {
       route: "/sip/completedsip",
       icon: OrderIconPurple,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.completedSips,
+      count: filteredCounts.completedSips,
     },
     {
       title: "Cancelled SIPs",
@@ -166,7 +184,7 @@ const SipIndexPage = () => {
       route: "/sip/cancelledsip",
       icon: OrderIconRed,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.cancelledSips,
+      count: filteredCounts.cancelledSips,
     },
     {
       title: "Failed SIPs",
@@ -174,7 +192,7 @@ const SipIndexPage = () => {
       route: "/sip/behindgoalssip",
       icon: OrderIconRed,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.behindGoalsSips,
+      count: filteredCounts.behindGoalsSips,
     },
     {
       title: "Partially Exit SIPs",
@@ -182,7 +200,7 @@ const SipIndexPage = () => {
       route: "/sip/partiallyexitsip",
       icon: OrderIconOrange,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.partiallyExitSips,
+      count: filteredCounts.partiallyExitSips,
     },
     {
       title: "Inactive SIPs",
@@ -190,7 +208,7 @@ const SipIndexPage = () => {
       route: "/sip/inactivesip",
       icon: OrderIconGray,
       color: "bg-white dark:dark:bg-white/[0.03]",
-      count: sipCounts.inactiveSips,
+      count: filteredCounts.inactiveSips,
     },
   ];
 

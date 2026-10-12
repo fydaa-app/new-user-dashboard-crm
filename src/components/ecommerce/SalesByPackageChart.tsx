@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { transformPackages } from "@/utils/packageTransform";
 import dynamic from "next/dynamic";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
@@ -30,7 +31,7 @@ const SalesByPackageChart = () => {
   const [packageData, setPackageData] = useState<PackageData[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: apiData, loading, error } = useFilteredFetch<TopPackagesResponse>(
@@ -55,6 +56,8 @@ const SalesByPackageChart = () => {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -83,6 +86,7 @@ const SalesByPackageChart = () => {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

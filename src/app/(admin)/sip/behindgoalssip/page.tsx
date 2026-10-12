@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import BehindGoalsSipTable from "@/components/tables/BehindGoalsSipTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from "js-cookie";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ async function fetchBehindGoalsSips(
   searchQuery: string = "",
   selectedType: string = "",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<{
   sips: Sip[];
@@ -64,6 +66,8 @@ async function fetchBehindGoalsSips(
     if (selectedType) {
       url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
+
+    url += investmentModelQuery(investmentModelFilter);
 
     const response = await fetch(url, {
       headers: {
@@ -106,7 +110,7 @@ async function fetchBehindGoalsSips(
 export default function BehindGoalsSipListPage() {
   const [sips, setSips] = useState<Sip[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } =
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter } =
     useGlobalContext();
   
   const { page, setPage, searchQuery, setSearchQuery, skipNextPageResetRef } = useListQueryState("sip_behindgoalssip");
@@ -126,6 +130,7 @@ export default function BehindGoalsSipListPage() {
     selectedOption,
     selectedType,
     customDates,
+    investmentModelFilter,
   });
 
   const fetchData = useCallback(async () => {
@@ -152,6 +157,7 @@ export default function BehindGoalsSipListPage() {
         searchQuery,
         selectedType as unknown as string,
         hierarchyViewMode,
+        investmentModelFilter,
         controller.signal
       );
 
@@ -174,7 +180,7 @@ export default function BehindGoalsSipListPage() {
         setIsSearching(false);
       }
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   useEffect(() => {
     fetchData();
@@ -182,12 +188,12 @@ export default function BehindGoalsSipListPage() {
 
   useEffect(() => {
     const prev = previousFiltersRef.current;
-    const hasChanged = prev.searchQuery !== searchQuery || prev.selectedOption !== selectedOption || prev.selectedType !== selectedType || prev.customDates?.start !== customDates?.start || prev.customDates?.end !== customDates?.end;
-    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates };
+    const hasChanged = prev.searchQuery !== searchQuery || prev.selectedOption !== selectedOption || prev.selectedType !== selectedType || prev.customDates?.start !== customDates?.start || prev.customDates?.end !== customDates?.end || prev.investmentModelFilter !== investmentModelFilter;
+    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates, investmentModelFilter };
     if (!hasChanged) return;
     if (skipNextPageResetRef.current) { skipNextPageResetRef.current = false; return; }
     setPage(1);
-  }, [searchQuery, selectedOption, selectedType, customDates, setPage, skipNextPageResetRef]);
+  }, [searchQuery, selectedOption, selectedType, customDates, investmentModelFilter, setPage, skipNextPageResetRef]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);

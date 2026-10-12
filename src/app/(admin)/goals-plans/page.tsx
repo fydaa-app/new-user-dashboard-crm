@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -68,9 +69,16 @@ async function fetchGoalCards(
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<GoalCardsData> {
-  if (signal?.aborted) throw new Error('Request aborted');
+  const emptyCards = {
+    totalActiveGoals: 0,
+    completedGoals: 0,
+    onTrackGoals: 0,
+    behindGoals: 0,
+  };
+  if (signal?.aborted) return emptyCards;
 
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
@@ -91,6 +99,8 @@ async function fetchGoalCards(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
+    queryParams += investmentModelQuery(investmentModelFilter);
+
     const cardsUrl = `/referrals/goal-cards?${queryParams}`;
     const cardsResponse = await apiClient.get<GoalCardsData>(cardsUrl, signal ? { signal } : undefined);
 
@@ -100,14 +110,11 @@ async function fetchGoalCards(
 
     return cardsResponse.data;
   } catch (err) {
+    if (signal?.aborted || (err instanceof Error && err.name === "AbortError")) {
+      return emptyCards;
+    }
     console.error("Error fetching goal cards:", err);
-    if (signal?.aborted) throw err;
-    return {
-      totalActiveGoals: 0,
-      completedGoals: 0,
-      onTrackGoals: 0,
-      behindGoals: 0,
-    };
+    return emptyCards;
   }
 }
 
@@ -118,9 +125,10 @@ async function fetchGoalsByCategory(
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<GoalsByCategoryData | null> {
-  if (signal?.aborted) throw new Error('Request aborted');
+  if (signal?.aborted) return null;
 
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
@@ -140,11 +148,15 @@ async function fetchGoalsByCategory(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
+    queryParams += investmentModelQuery(investmentModelFilter);
+
     const response = await apiClient.get<GoalsByCategoryData>(`/referrals/goals-by-category?${queryParams}`, signal ? { signal } : undefined);
     return response.data;
   } catch (err) {
+    if (signal?.aborted || (err instanceof Error && err.name === "AbortError")) {
+      return null;
+    }
     console.error("Error fetching goals by category:", err);
-    if (signal?.aborted) throw err;
     return null;
   }
 }
@@ -158,9 +170,19 @@ async function fetchBehindGoalsList(
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<BehindGoalsData> {
-  if (signal?.aborted) throw new Error('Request aborted');
+  const emptyList = {
+    data: [],
+    pagination: {
+      currentPage: page,
+      totalPages: 0,
+      totalItems: 0,
+      itemsPerPage: limit,
+    },
+  };
+  if (signal?.aborted) return emptyList;
 
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
@@ -180,20 +202,16 @@ async function fetchBehindGoalsList(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
+    queryParams += investmentModelQuery(investmentModelFilter);
+
     const response = await apiClient.get<BehindGoalsData>(`/referrals/behind-goals-list?${queryParams}`, signal ? { signal } : undefined);
     return response.data;
   } catch (err) {
+    if (signal?.aborted || (err instanceof Error && err.name === "AbortError")) {
+      return emptyList;
+    }
     console.error("Error fetching behind goals list:", err);
-    if (signal?.aborted) throw err;
-    return {
-      data: [],
-      pagination: {
-        currentPage: page,
-        totalPages: 0,
-        totalItems: 0,
-        itemsPerPage: limit,
-      },
-    };
+    return emptyList;
   }
 }
 
@@ -207,6 +225,7 @@ export default function GoalsPlansPage() {
     selectedTeamMember,
     hierarchyViewMode,
     selectedType,
+    investmentModelFilter,
   } = useGlobalContext();
 
   const [page, setPage] = useState(1);
@@ -230,6 +249,7 @@ export default function GoalsPlansPage() {
     selectedTeamMember,
     customDates,
     selectedType,
+    investmentModelFilter,
   });
 
   const goalsRequestIdRef = useRef(0);
@@ -263,6 +283,7 @@ export default function GoalsPlansPage() {
           customDates,
           effectiveSelectedType,
           hierarchyViewMode,
+          investmentModelFilter,
           controller.signal
         ),
         fetchGoalsByCategory(
@@ -272,6 +293,7 @@ export default function GoalsPlansPage() {
           customDates,
           effectiveSelectedType,
           hierarchyViewMode,
+          investmentModelFilter,
           controller.signal
         ),
         fetchBehindGoalsList(
@@ -283,6 +305,7 @@ export default function GoalsPlansPage() {
           customDates,
           effectiveSelectedType,
           hierarchyViewMode,
+          investmentModelFilter,
           controller.signal
         ),
       ]);
@@ -303,7 +326,7 @@ export default function GoalsPlansPage() {
         setIsLoadingList(false);
       }
     }
-  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, page]);
+  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, page, investmentModelFilter]);
 
   useEffect(() => {
     return () => {
@@ -325,7 +348,8 @@ export default function GoalsPlansPage() {
       prev.selectedTeamMember !== selectedTeamMember ||
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
-      prev.selectedType !== selectedType;
+      prev.selectedType !== selectedType ||
+      prev.investmentModelFilter !== investmentModelFilter;
 
     previousFiltersRef.current = {
       selectedOption,
@@ -333,12 +357,13 @@ export default function GoalsPlansPage() {
       selectedTeamMember,
       customDates,
       selectedType,
+      investmentModelFilter,
     };
 
     if (hasChanged) {
       setPage(1);
     }
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);

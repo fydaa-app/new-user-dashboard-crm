@@ -17,19 +17,42 @@ import { apiClient } from "@/services/api-client";
 import { AdminEndpoints } from "@/config/api-endpoints";
 
 interface DesignationItem {
-  level: number;
+  level: number | string;
   hierarchyName: string;
 }
 
 interface EmployeeItem {
-  id: number;
+  id: number | string;
   name: string;
-  role?: number;
+  role?: number | string;
+  roleLabel?: string;
 }
 
 interface HierarchyLevel {
   hierarchyName: string;
-  level: number;
+  level: number | string;
+}
+
+function employeeRoleLabel(
+  item: { role?: number | string; roleLabel?: string },
+  roleNameMap: Record<number, string>,
+) {
+  if (item.roleLabel) {
+    return item.roleLabel;
+  }
+  if (item.role === undefined || item.role === null || item.role === "") {
+    return undefined;
+  }
+  return roleNameMap[Number(item.role)] || "Unknown";
+}
+
+function compareHierarchyLevels(a: number | string, b: number | string) {
+  const aLevel = Number(a);
+  const bLevel = Number(b);
+  if (Number.isNaN(aLevel) && Number.isNaN(bLevel)) return 0;
+  if (Number.isNaN(aLevel)) return 1;
+  if (Number.isNaN(bLevel)) return -1;
+  return aLevel - bLevel;
 }
 
 const AppHeader: React.FC = () => {
@@ -50,7 +73,7 @@ const AppHeader: React.FC = () => {
       .map((item) => ({
         value: item.id.toString(),
         label: item.name,
-        secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
+        secondaryLabel: employeeRoleLabel(item, roleNameMap)
       }))
       .sort((a, b) => {
         const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
@@ -61,9 +84,9 @@ const AppHeader: React.FC = () => {
   
   // Team hierarchy states
   const [hierarchyLevels, setHierarchyLevels] = useState<HierarchyLevel[]>([]);
-  const [teamSelections, setTeamSelections] = useState<{[key: number]: string}>({});
-  const [teamEmployees, setTeamEmployees] = useState<{[key: number]: {value: string, label: string, secondaryLabel?: string}[]}>({});
-  const [loadingLevels, setLoadingLevels] = useState<{[key: number]: boolean}>({});
+  const [teamSelections, setTeamSelections] = useState<{[key: string]: string}>({});
+  const [teamEmployees, setTeamEmployees] = useState<{[key: string]: {value: string, label: string, secondaryLabel?: string}[]}>({});
+  const [loadingLevels, setLoadingLevels] = useState<{[key: string]: boolean}>({});
 
   const { 
     isMobileOpen, 
@@ -85,7 +108,9 @@ const AppHeader: React.FC = () => {
     selectedType,
     setSelectedType,
     appType,
-    setAppType
+    setAppType,
+    investmentModelFilter,
+    setInvestmentModelFilter,
   } = useGlobalContext();
   const displayAppType = userAppTypeLock || appType;
   console.log('[DEBUG AppHeader] userAppTypeLock:', userAppTypeLock, 'appType:', appType, 'displayAppType:', displayAppType, 'isLocked:', !!userAppTypeLock);
@@ -117,7 +142,7 @@ const AppHeader: React.FC = () => {
       setIsLoadingDesignations(true);
       try {
         const response = await apiClient.get<{ success: boolean; data: DesignationItem[] }>(
-          AdminEndpoints.DESIGNATION_LIST,
+          `${AdminEndpoints.DESIGNATION_LIST}?includeArnPartner=1`,
           { signal: controller.signal }
         );
 
@@ -196,7 +221,7 @@ const AppHeader: React.FC = () => {
           console.log('[DEBUG] useEffect TRIGGERED - selectedEmployee:', selectedEmployee, 'isTeamType:', isTeamType);
           console.log('[DEBUG] Fetching hierarchy levels for employee:', selectedEmployee);
           const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
-            `/referrals/get-employees-designation/${selectedEmployee}`,
+            `/referrals/get-employees-designation/${selectedEmployee}?includeArnPartner=1`,
             { signal: controller.signal }
           );
 
@@ -205,7 +230,7 @@ const AppHeader: React.FC = () => {
           console.log('[DEBUG] get-employees-designation response:', response.data);
 
             if (response.ok && response.data.success) {
-            const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
+            const sortedLevels = response.data.data.sort((a, b) => compareHierarchyLevels(a.level, b.level));
             console.log('[DEBUG] Sorted hierarchy levels:', sortedLevels);
             
             console.log('[DEBUG] Setting hierarchyLevels to:', sortedLevels);
@@ -245,10 +270,10 @@ const AppHeader: React.FC = () => {
    }, [selectedEmployee, isTeamType]);
 
   // Self-cancelling controllers for per-level team employee fetches
-  const teamEmployeeControllersRef = useRef<{ [key: number]: AbortController }>({});
+  const teamEmployeeControllersRef = useRef<{ [key: string]: AbortController }>({});
 
   // Fetch employees for a specific hierarchy level
-  const fetchTeamEmployeesForLevel = useCallback(async (level: number, employeeId: string) => {
+  const fetchTeamEmployeesForLevel = useCallback(async (level: number | string, employeeId: string) => {
     if (teamEmployeeControllersRef.current[level]) {
       teamEmployeeControllersRef.current[level].abort();
     }
@@ -273,7 +298,7 @@ const AppHeader: React.FC = () => {
           .map((item: EmployeeItem) => ({
             value: item.id.toString(),
             label: item.name,
-            secondaryLabel: item.role !== undefined ? (roleNameMap[item.role] || "Unknown") : undefined
+            secondaryLabel: employeeRoleLabel(item, roleNameMap)
           }))
           .sort((a, b) => {
             const roleCompare = (a.secondaryLabel || "").localeCompare(b.secondaryLabel || "");
@@ -317,7 +342,7 @@ const AppHeader: React.FC = () => {
     try {
       console.log(`[DEBUG] fetchHierarchyLevelsForEmployee - employeeId: ${employeeId}`);
       const response = await apiClient.get<{ success: boolean; data: HierarchyLevel[] }>(
-        `/referrals/get-employees-designation/${employeeId}`,
+        `/referrals/get-employees-designation/${employeeId}?includeArnPartner=1`,
         { signal: controller.signal }
       );
 
@@ -326,7 +351,7 @@ const AppHeader: React.FC = () => {
       console.log(`[DEBUG] get-employees-designation/${employeeId} response:`, response.data);
 
       if (response.ok && response.data.success) {
-        const sortedLevels = response.data.data.sort((a, b) => a.level - b.level);
+        const sortedLevels = response.data.data.sort((a, b) => compareHierarchyLevels(a.level, b.level));
         console.log(`[DEBUG] New hierarchy levels for employee ${employeeId}:`, sortedLevels);
         return sortedLevels;
       }
@@ -338,7 +363,7 @@ const AppHeader: React.FC = () => {
   }, []);
 
   // Handle team employee selection at a specific level
-  const handleTeamEmployeeChange = useCallback((level: number, option: { value: string; label: string } | null) => {
+  const handleTeamEmployeeChange = useCallback((level: number | string, option: { value: string; label: string } | null) => {
     const newValue = option?.value || "";
     console.log(`[DEBUG] ═══════════════════════════════════════════════════════════`);
     console.log(`[DEBUG] handleTeamEmployeeChange START - level: ${level}, selected value: '${newValue}'`);
@@ -359,7 +384,7 @@ const AppHeader: React.FC = () => {
     setTeamSelections(prev => {
       const updated = { ...prev };
       hierarchyLevels.forEach((hl) => {
-        if (hl.level > level) {
+        if (compareHierarchyLevels(hl.level, level) > 0) {
           console.log(`[DEBUG] STEP 2: Deleting level ${hl.level} from teamSelections`);
           delete updated[hl.level];
         }
@@ -373,7 +398,7 @@ const AppHeader: React.FC = () => {
     setTeamEmployees(prev => {
       const updated = { ...prev };
       hierarchyLevels.forEach((hl) => {
-        if (hl.level > level) {
+        if (compareHierarchyLevels(hl.level, level) > 0) {
           console.log(`[DEBUG] STEP 3: Deleting level ${hl.level} from teamEmployees`);
           delete updated[hl.level];
         }
@@ -386,7 +411,7 @@ const AppHeader: React.FC = () => {
     setLoadingLevels(prev => {
       const updated = { ...prev };
       hierarchyLevels.forEach((hl) => {
-        if (hl.level > level) {
+        if (compareHierarchyLevels(hl.level, level) > 0) {
           console.log(`[DEBUG] STEP 4: Deleting level ${hl.level} from loadingLevels`);
           delete updated[hl.level];
         }
@@ -500,6 +525,12 @@ const AppHeader: React.FC = () => {
     { value: "Savestment", label: "Savestment" },
   ];
 
+  const investmentModelOptions = [
+    { value: "ALL", label: "All" },
+    { value: "RIA", label: "RIA - Direct" },
+    { value: "ARN", label: "ARN - Regular" },
+  ];
+
   const typeOptions = [
     { value: "team", label: "Team" },
     { value: "member", label: "Member" },
@@ -571,6 +602,12 @@ const AppHeader: React.FC = () => {
     }
   }, [setAppType]);
 
+  const handleInvestmentModelChange = useCallback((option: { value: string; label: string } | null) => {
+    if (option?.value === "RIA" || option?.value === "ARN" || option?.value === "ALL") {
+      setInvestmentModelFilter(option.value);
+    }
+  }, [setInvestmentModelFilter]);
+
   // const handleSaveDates = () => {
   //   if (validateDates(startDate, endDate)) {      
   //     setCustomDates({ start: startDate, end: endDate });
@@ -639,6 +676,23 @@ const AppHeader: React.FC = () => {
                     menuAlign="left"
                     className="dark:bg-dark-900"
                     key={`apptype-${appType}`}
+                  />
+                  <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                    <ChevronDownIcon/>
+                  </span>
+                </div>
+              )}
+
+              {displayAppType === "Fydaa" && (
+                <div className="relative w-40 flex-shrink-0">
+                  <Select
+                    options={investmentModelOptions}
+                    placeholder="Investment Model"
+                    onChange={handleInvestmentModelChange}
+                    value={investmentModelFilter}
+                    menuAlign="left"
+                    className="dark:bg-dark-900"
+                    key={`investment-model-${investmentModelFilter}`}
                   />
                   <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
                     <ChevronDownIcon/>

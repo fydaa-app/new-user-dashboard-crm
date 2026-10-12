@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import DueSips from "@/components/ecommerce/DueSips";
 import { DueSipItem } from "@/components/tables/DueSipsTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from "js-cookie";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
@@ -24,7 +25,7 @@ const DueSipsWrapper = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalItems, setTotalItems] = useState<number>(0);
 
-  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedDesignation, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   // Resets page when filters change
@@ -61,6 +62,8 @@ const DueSipsWrapper = () => {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
 
+      url += investmentModelQuery(investmentModelFilter);
+
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${AUTH_TOKEN}` },
         signal,
@@ -86,6 +89,7 @@ const DueSipsWrapper = () => {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

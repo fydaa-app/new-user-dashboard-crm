@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { transformPackages } from "@/utils/packageTransform";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
@@ -26,7 +27,7 @@ export default function TopPackagesMf() {
   const [topPackages, setTopPackages] = useState<PackageData[]>([]);
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: apiData, loading, error } = useFilteredFetch<TopPackagesResponse>(
@@ -51,6 +52,8 @@ export default function TopPackagesMf() {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -79,6 +82,7 @@ export default function TopPackagesMf() {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 
