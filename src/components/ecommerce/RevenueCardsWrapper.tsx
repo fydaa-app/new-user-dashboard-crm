@@ -3,6 +3,7 @@ import React from "react";
 import Cookies from "js-cookie";
 import RevenueCards from "@/components/ecommerce/RevenueCards";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { DashboardEndpoints } from "@/config/api-endpoints";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
@@ -16,7 +17,7 @@ interface RevenueData {
 }
 
 const RevenueCardsWrapper = () => {
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: revenueData, loading } = useFilteredFetch<RevenueData>(
@@ -42,6 +43,8 @@ const RevenueCardsWrapper = () => {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -70,6 +73,7 @@ const RevenueCardsWrapper = () => {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

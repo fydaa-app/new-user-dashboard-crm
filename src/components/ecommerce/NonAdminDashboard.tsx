@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { pickModelMetric } from "@/context/investmentModel";
 import { SalesIcon, OrderIcon, DiscIcon, SalesIconOrange, SalesIconViolet, NewCustomerRedIcon, SalesIconGreen, OrderIconGreen, OrderIconPurple } from "@/icons";
 import { useRouter } from "next/navigation";
 import InvestmentTrendsChart from "./InvestmentTrendsChart";
@@ -91,7 +92,7 @@ interface SipCardData {
 
 const NonAdminDashboard = () => {
   const router = useRouter();
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, appType } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, appType, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
   
   React.useEffect(() => {
@@ -137,7 +138,11 @@ const NonAdminDashboard = () => {
   const [totalRevenueRia, setTotalRevenueRia] = useState<number>(0);
   const [totalRevenueArn, setTotalRevenueArn] = useState<number>(0);
   const [invested, setInvested] = useState<number>(0);
+  const [investedRia, setInvestedRia] = useState<number>(0);
+  const [investedArn, setInvestedArn] = useState<number>(0);
   const [returns, setReturns] = useState<number>(0);
+  const [returnsRia, setReturnsRia] = useState<number>(0);
+  const [returnsArn, setReturnsArn] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
   const [totalUsersTillDateRia, setTotalUsersTillDateRia] = useState<number>(0);
@@ -246,9 +251,13 @@ const NonAdminDashboard = () => {
 
         const investedData = data.find((item) => item.type === "Invested");
         setInvested(investedData?.invested ?? 0);
+        setInvestedRia(investedData?.investedRia ?? 0);
+        setInvestedArn(investedData?.investedArn ?? 0);
 
         const returnsData = data.find((item) => item.type === "Returns (%)");
         setReturns(returnsData?.returns ?? 0);
+        setReturnsRia(returnsData?.returnsRia ?? 0);
+        setReturnsArn(returnsData?.returnsArn ?? 0);
       } catch (error) {
         if (controller.signal.aborted) {
           endLoading();
@@ -468,11 +477,33 @@ const NonAdminDashboard = () => {
     return `${value.toFixed(2)}%`;
   };
 
+  const metric = (
+    combined: number,
+    ria: number,
+    arn: number,
+    kind: "amount" | "rate" = "amount",
+  ) => pickModelMetric(investmentModelFilter, combined, ria, arn, kind);
+
+  const displayRevenue = metric(totalRevenue, totalRevenueRia, totalRevenueArn);
+  const displayAum = metric(aum, aumRia, aumArn);
+  const displayInvested = metric(invested, investedRia, investedArn);
+  const displayReturns = metric(returns, returnsRia, returnsArn, "rate");
+  const displayNetInflow = metric(netInflow, netInflowRia, netInflowArn);
+  const displayRedemptions = metric(redemptions, redemptionsRia, redemptionsArn);
+  const displayNewInvestors = metric(newInvestors, newInvestorsRia, newInvestorsArn);
+  const displayNewSips = metric(newSipsCount, newSipsCountRia, newSipsCountArn);
+  const displayCancelledSips = metric(cancelledSipsCount, cancelledSipsCountRia, cancelledSipsCountArn);
+  const displayFailedSips = metric(failedSipsCount, failedSipsCountRia, failedSipsCountArn);
+  const displayUsers = metric(totalUsersTillDate, totalUsersTillDateRia, totalUsersTillDateArn);
+  const displayActiveSips = metric(activeSipsTillDate, activeSipsTillDateRia, activeSipsTillDateArn);
+  const displayAvgTicket = metric(avgTicketSizeTillDate, avgTicketSizeTillDateRia, avgTicketSizeTillDateArn, "rate");
+  const displayRedemptionRate = metric(redemptionRateTillDate, redemptionRateTillDateRia, redemptionRateTillDateArn, "rate");
+
   const renderMetricBreakdown = (
     arn: number,
     ria: number,
     formatValue: (value: number) => string
-  ) => (
+  ) => investmentModelFilter !== "ALL" ? null : (
     <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-white/70 p-2 dark:bg-white/10">
       <div className="min-w-0 text-center">
         <p className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">ARN</p>
@@ -511,7 +542,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(totalRevenue)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayRevenue)}</h2>
                   <p className="total-sale-text">Total Revenue</p>
                   {renderMetricBreakdown(
                     totalRevenueArn,
@@ -526,16 +557,16 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconOrange />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(aum)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayAum)}</h2>
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
                     <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
                       <span style={{ color: "#000000" }}>Invested: </span>
-                      <span className="text-green-600">{formatCurrency(invested)}</span>
+                      <span className="text-green-600">{formatCurrency(displayInvested)}</span>
                       {" | "}
                       <span style={{ color: "#000000" }}>Returns: </span>
-                      <span className={returns >= 0 ? "text-green-600" : "text-red-600"}>
-                        {returns?.toFixed(2)}%
+                      <span className={displayReturns >= 0 ? "text-green-600" : "text-red-600"}>
+                        {displayReturns?.toFixed(2)}%
                       </span>
                     </p>
                   </div>
@@ -552,7 +583,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconGreen />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(netInflow)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayNetInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
                   {renderMetricBreakdown(
                     netInflowArn,
@@ -573,7 +604,7 @@ const NonAdminDashboard = () => {
                     </g>
                   </svg> */}
                   <SalesIconViolet/>
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(redemptions)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayRedemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
                   {renderMetricBreakdown(
                     redemptionsArn,
@@ -608,7 +639,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <NewCustomerRedIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(newInvestors)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayNewInvestors)}</h2>
                   <p className="total-sale-text">New Investors</p>
                   {renderMetricBreakdown(
                     newInvestorsArn,
@@ -633,7 +664,7 @@ const NonAdminDashboard = () => {
                   className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
                 >
                   <OrderIcon />
-                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(newSipsCount)}</h2>
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(displayNewSips)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">New SIPs</p>
                   {renderMetricBreakdown(
                     newSipsCountArn,
@@ -658,7 +689,7 @@ const NonAdminDashboard = () => {
                   className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
                 >
                   <OrderIconGreen />
-                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(cancelledSipsCount)}</h2>
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(displayCancelledSips)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Cancelled SIPs</p>
                   {renderMetricBreakdown(
                     cancelledSipsCountArn,
@@ -683,7 +714,7 @@ const NonAdminDashboard = () => {
                   className="group box-total-sales h-full cursor-pointer transform-gpu transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-md"
                 >
                   <OrderIconPurple />
-                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(failedSipsCount)}</h2>
+                  <h2 className="numbers-sale text-gray-900 transition-all duration-300 group-hover:font-bold">{formatNumber(displayFailedSips)}</h2>
                   <p className="total-sale-text transition-all duration-300 group-hover:font-semibold">Failed SIPs</p>
                   {renderMetricBreakdown(
                     failedSipsCountArn,
@@ -717,7 +748,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4 shrink-0 w-[260px] xl:w-auto xl:flex-1">
                 <div className="box-total-sales h-full">
                   <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(totalUsersTillDate)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayUsers)}</h2>
                   <p className="total-sale-text">Existing Clients</p>
                   {renderMetricBreakdown(
                     totalUsersTillDateArn,
@@ -731,7 +762,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <OrderIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(activeSipsTillDate)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayActiveSips)}</h2>
                   <p className="total-sale-text">Active Invested SIPs</p>
                   {renderMetricBreakdown(
                     activeSipsTillDateArn,
@@ -744,7 +775,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <DiscIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(avgTicketSizeTillDate)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayAvgTicket)}</h2>
                   <p className="total-sale-text">Avg Ticket Size</p>
                   {renderMetricBreakdown(
                     avgTicketSizeTillDateArn,
@@ -757,7 +788,7 @@ const NonAdminDashboard = () => {
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{formatPercentage(redemptionRateTillDate)}</h2>
+                  <h2 className="numbers-sale text-gray-900">{formatPercentage(displayRedemptionRate)}</h2>
                   <p className="total-sale-text">Redemption Rate</p>
                   {renderMetricBreakdown(
                     redemptionRateTillDateArn,

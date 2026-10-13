@@ -12,6 +12,7 @@ import Select from "@/components/form/Select";
 import Pagination from "@/components/tables/Pagination";
 import { ChevronDownIcon } from "@/icons";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 import { TransactionEndpoints } from "@/config/api-endpoints";
 import Cookies from "js-cookie";
@@ -98,7 +99,7 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
   const [totalItems, setTotalItems] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter } = useGlobalContext();
 
   // Build fetch dependencies
   const effectiveSelectedType = selectedType && selectedType.length > 0 ? selectedType[0] : "team";
@@ -135,6 +136,8 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
         queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveSelectedType}`;
       }
 
+      queryParams += investmentModelQuery(investmentModelFilter);
+
       const url = `${process.env.NEXT_PUBLIC_API_URL}${TransactionEndpoints.TRANSACTIONS_LIST_SIP_MF}?${queryParams}`;
 
       const response = await fetch(url, {
@@ -167,6 +170,7 @@ export default function RedemptionsList({ reportType, onReportTypeChange }: Rede
       searchQuery,
       reportType,
       effectiveSelectedType,
+      investmentModelFilter,
     ]
   );
 

@@ -1,6 +1,11 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getCookie } from "cookies-next";
+import {
+  INVESTMENT_MODEL_STORAGE_KEY,
+  InvestmentModelFilter,
+  readInvestmentModelFilter,
+} from "@/context/investmentModel";
 
 interface GlobalContextProps {
   selectedOption: string;
@@ -22,6 +27,8 @@ interface GlobalContextProps {
   setAppType: (value: string) => void;
   userAppTypeLock: string | null;
   setUserAppTypeLock: (value: string | null) => void;
+  investmentModelFilter: InvestmentModelFilter;
+  setInvestmentModelFilter: (value: InvestmentModelFilter) => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
@@ -102,6 +109,10 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     }
     return null;
   });
+
+  const [investmentModelFilter, setInvestmentModelFilterState] = useState<InvestmentModelFilter>(
+    () => readInvestmentModelFilter(),
+  );
 
   // Auto-sync hierarchyViewMode based on selectedType
   useEffect(() => {
@@ -350,6 +361,16 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     });
   }, []);
 
+  const setInvestmentModelFilter = useCallback((value: InvestmentModelFilter) => {
+    setInvestmentModelFilterState(prev => {
+      if (value !== prev) {
+        localStorage.setItem(INVESTMENT_MODEL_STORAGE_KEY, value);
+        return value;
+      }
+      return prev;
+    });
+  }, []);
+
   const setUserAppTypeLock = useCallback((value: string | null) => {
     setUserAppTypeLockState(prev => {
       if (value !== prev) {
@@ -435,6 +456,12 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       if (e.key === "userAppTypeLock") {
         setUserAppTypeLockState(e.newValue);
       }
+      if (e.key === INVESTMENT_MODEL_STORAGE_KEY) {
+        const next = e.newValue;
+        setInvestmentModelFilterState(
+          next === "RIA" || next === "ARN" || next === "ALL" ? next : "ALL",
+        );
+      }
     };
 
     const handleAuthSync = () => {
@@ -478,7 +505,8 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setAppType,
         userAppTypeLock,
         setUserAppTypeLock,
-        
+        investmentModelFilter,
+        setInvestmentModelFilter,
       }}
     >
       {children}

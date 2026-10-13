@@ -10,6 +10,7 @@ import {
 import Badge from "../ui/badge/Badge";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface Order {
@@ -27,7 +28,7 @@ interface OrdersResponse {
 
 export default function RecentOrdersMf() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: apiData } = useFilteredFetch<OrdersResponse>(
@@ -52,6 +53,8 @@ export default function RecentOrdersMf() {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -80,6 +83,7 @@ export default function RecentOrdersMf() {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

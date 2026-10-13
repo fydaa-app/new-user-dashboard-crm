@@ -38,6 +38,10 @@ interface EmployeeItem {
   name: string;
 }
 
+function salesScopeId(id: string): number | string {
+  return id.startsWith("euin-") ? id : parseInt(id, 10);
+}
+
 export default function SalesCRM() {
   const { user, token, isAuthenticated } = useAuth();
   const { 
@@ -277,17 +281,17 @@ export default function SalesCRM() {
         // When a specific employee is selected from header dropdown
         if (viewMode === 'all') {
           // Show all leads under that employee (hierarchy + assigned)
-          enhancedFilters.employeeId = parseInt(employeeId);
+          enhancedFilters.employeeId = salesScopeId(employeeId);
           console.log('👤 Show All mode - Employee hierarchy filter applied:', {
             employeeId: employeeId,
-            parsedId: parseInt(employeeId)
+            parsedId: salesScopeId(employeeId)
           });
         } else {
           // Show only leads assigned to that employee
-          enhancedFilters.assignedToId = parseInt(employeeId);
+          enhancedFilters.assignedToId = salesScopeId(employeeId);
           console.log('👤 Assigned mode - Employee assignedTo filter applied:', {
             employeeId: employeeId,
-            parsedId: parseInt(employeeId)
+            parsedId: salesScopeId(employeeId)
           });
         }
       } else if (employeeId === 'all') {
@@ -490,21 +494,21 @@ export default function SalesCRM() {
           // Show stats for all leads under that employee (hierarchy + assigned)
           statsFilters = {
             ...statsFilters,
-            employeeId: parseInt(employeeId)
+            employeeId: salesScopeId(employeeId)
           };
           console.log('📊 Show All mode - Stats employee hierarchy filter applied:', {
             employeeId: employeeId,
-            parsedId: parseInt(employeeId)
+            parsedId: salesScopeId(employeeId)
           });
         } else {
           // Show stats for only leads assigned to that employee
           statsFilters = {
             ...statsFilters,
-            assignedToId: parseInt(employeeId)
+            assignedToId: salesScopeId(employeeId)
           };
           console.log('📊 Assigned mode - Stats employee assignedTo filter applied:', {
             employeeId: employeeId,
-            parsedId: parseInt(employeeId)
+            parsedId: salesScopeId(employeeId)
           });
         }
       } else if (employeeId === 'all') {
@@ -690,9 +694,9 @@ export default function SalesCRM() {
       const employeeId = selectedTeamMember || selectedEmployee;
       if (employeeId && employeeId !== 'all') {
         if (viewMode === 'all') {
-          enhancedFilters.employeeId = parseInt(employeeId);
+          enhancedFilters.employeeId = salesScopeId(employeeId);
         } else {
-          enhancedFilters.assignedToId = parseInt(employeeId);
+          enhancedFilters.assignedToId = salesScopeId(employeeId);
         }
       } else if (employeeId !== 'all' && user?.id) {
         if (viewMode === 'all') {

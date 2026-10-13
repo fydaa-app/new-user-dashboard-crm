@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import dynamic from "next/dynamic";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
@@ -29,7 +30,7 @@ const SalesByGoalChart = () => {
   const [goalData, setGoalData] = useState<GoalData[]>([]);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: apiData, loading, error } = useFilteredFetch<GoalResponse>(
@@ -54,6 +55,8 @@ const SalesByGoalChart = () => {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
 
+      url += investmentModelQuery(investmentModelFilter);
+
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${AUTH_TOKEN}`,
@@ -77,6 +80,7 @@ const SalesByGoalChart = () => {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

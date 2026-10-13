@@ -5,13 +5,12 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import UserListTable from "@/components/tables/UserListTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 
 import Pagination from "@/components/tables/Pagination";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/services/api-client";
 import { UserEndpoints } from "@/config/api-endpoints";
-import Select from "@/components/form/Select";
-import { ChevronDownIcon } from "@/icons";
 
 interface User {
   userId:number;
@@ -73,8 +72,8 @@ async function fetchUsers(
             queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
         }
 
-        if (investmentModelFilter !== "ALL") {
-            queryParams += `&investmentModel=${investmentModelFilter}`;
+        if (appType === "Fydaa") {
+            queryParams += investmentModelQuery(investmentModelFilter);
         }
 
         const url = `${endpoint}?${queryParams}`;
@@ -113,13 +112,13 @@ export default function UserTablesPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType , hierarchyViewMode, investmentModelFilter } = useGlobalContext();
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [isLoading, setIsLoading] = useState(false);
-  const [investmentModelFilter, setInvestmentModelFilter] = useState<"ALL" | "RIA" | "ARN">("ALL");
+  const requestIdRef = useRef(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const skipNextPageResetRef = useRef(false);
@@ -143,21 +142,8 @@ export default function UserTablesPage() {
     }
   }, []);
 
-  const investmentModelOptions = [
-    { value: "ALL", label: "All" },
-    { value: "RIA", label: "RIA - Direct" },
-    { value: "ARN", label: "ARN - Regular" },
-  ];
-
-  const handleInvestmentModelChange = useCallback((option: { value: string; label: string } | null) => {
-    if (option) {
-      setInvestmentModelFilter(option.value as "ALL" | "RIA" | "ARN");
-    } else {
-      setInvestmentModelFilter("ALL");
-    }
-  }, [setInvestmentModelFilter]);
-
   const fetchData = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     setIsLoading(true);
     try {
       const { users, error, totalUsers: apiTotalUsers, limit } = await fetchUsers(
@@ -187,6 +173,10 @@ export default function UserTablesPage() {
       console.log("Limit per page:", limit);
       console.log("Total Pages:", apiTotalUsers && limit ? Math.ceil(apiTotalUsers / limit) : 0);
       console.log("═══════════════════════════════════════════════════════════");
+
+      if (requestId !== requestIdRef.current) {
+        return;
+      }
       
       setUsers(users);
       setError(error);
@@ -200,7 +190,9 @@ export default function UserTablesPage() {
       console.error("Error in fetchData:", err);
       setError("Failed to load data");
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, investmentModelFilter]);
 
@@ -310,23 +302,6 @@ export default function UserTablesPage() {
                 className="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
               />
             </div>
-
-            {appType === "Fydaa" && (
-              <div className="relative w-40 flex-shrink-0">
-                <Select
-                  options={investmentModelOptions}
-                  placeholder="Investment Model"
-                  onChange={handleInvestmentModelChange}
-                  value={investmentModelFilter}
-                  menuAlign="left"
-                  className="dark:bg-dark-900"
-                  key={`invmodel-${investmentModelFilter}`}
-                />
-                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-                  <ChevronDownIcon />
-                </span>
-              </div>
-            )}
           </form>
 
           {!isLoading && totalUsers > 0 && (

@@ -3,6 +3,7 @@ import React from "react";
 import Cookies from "js-cookie";
 import TransactionSummary from "@/components/ecommerce/TransactionSummary";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface SummaryData {
@@ -90,7 +91,7 @@ interface ApiResponse {
 }
 
 const TransactionSummaryWrapper = () => {
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: summaryData, loading } = useFilteredFetch<SummaryData>(
@@ -116,6 +117,8 @@ const TransactionSummaryWrapper = () => {
       if (selectedType && selectedType.length > 0) {
         url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
       }
+
+      url += investmentModelQuery(investmentModelFilter);
 
       const response = await fetch(url, {
         headers: {
@@ -149,6 +152,7 @@ const TransactionSummaryWrapper = () => {
       selectedType,
       hierarchyViewMode,
       userAppTypeLock,
+      investmentModelFilter,
     ]
   );
 

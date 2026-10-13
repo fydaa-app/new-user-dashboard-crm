@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import SaleReportTable from "@/components/tables/SaleReport";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminEndpoints } from "@/config/api-endpoints";
@@ -32,7 +33,8 @@ async function fetchPayments(
     selectedType: string = "",
     hierarchyViewMode: "team" | "individual" = "team",
     sortBy: string = "date",
-    sortOrder: "ASC" | "DESC" = "DESC"
+    sortOrder: "ASC" | "DESC" = "DESC",
+    investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ):
      Promise<{ 
         payments: SaleList[]; 
@@ -72,6 +74,10 @@ async function fetchPayments(
         // Add sorting parameters
         url += `&sortBy=${sortBy}&sortOrder=${sortOrder}`;
 
+        if (appType === "Fydaa") {
+            url += investmentModelQuery(investmentModelFilter);
+        }
+
         const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${document.cookie.split("; ").find(row => row.startsWith("authToken="))?.split("=")[1] || ""}`,
@@ -94,7 +100,7 @@ async function fetchPayments(
 export default function UserTablesPage() {
     const [payments, setPayments] = useState<SaleList[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode } = useGlobalContext();
+    const { selectedOption, customDates, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, investmentModelFilter } = useGlobalContext();
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -106,6 +112,7 @@ export default function UserTablesPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const inputRef = useRef<HTMLInputElement>(null);
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
         const query = searchParams.get('search') || "";
@@ -119,6 +126,7 @@ export default function UserTablesPage() {
     };
 
     const fetchData = useCallback(async () => {
+        const requestId = ++requestIdRef.current;
         try {
             const { payments, error, totalCount: apiTotalCount, limit } = await fetchPayments(
                 page, 
@@ -131,8 +139,10 @@ export default function UserTablesPage() {
                 selectedType as unknown as string, 
                 hierarchyViewMode,
                 sortBy,
-                sortOrder
+                sortOrder,
+                investmentModelFilter
             );
+            if (requestId !== requestIdRef.current) return;
             
             console.log("═══════════════════════════════════════════════════════════");
             console.log("FRONTEND DEBUG [salereport/page.tsx] - SALES REPORT PAGE");
@@ -159,11 +169,12 @@ export default function UserTablesPage() {
                 setTotalCount(apiTotalCount);
             }
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             console.error("Error in fetchData:", err);
             setError("Failed to load data");
         }
                
-    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, sortBy, sortOrder]);
+    }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, appType, selectedType, hierarchyViewMode, sortBy, sortOrder, investmentModelFilter]);
         
     useEffect(() => {
         fetchData();
@@ -171,7 +182,7 @@ export default function UserTablesPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [selectedOption, customDates, searchQuery, selectedType, appType, sortBy, sortOrder]);
+    }, [selectedOption, customDates, searchQuery, selectedType, appType, sortBy, sortOrder, investmentModelFilter]);
 
     const handlePageChange = (newPage: number) => {
         setPage(newPage);

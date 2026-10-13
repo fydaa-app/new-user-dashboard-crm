@@ -6,6 +6,7 @@ import Select from "@/components/form/Select";
 import { ChevronDownIcon } from "@/icons";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -19,7 +20,7 @@ const InvestmentTrendsChart: React.FC = () => {
     throw new Error("GlobalStateContext must be used within GlobalStateProvider");
   }
 
-  const { selectedEmployee, selectedTeamMember, selectedType, userAppTypeLock } = context;
+  const { selectedEmployee, selectedTeamMember, selectedType, userAppTypeLock, investmentModelFilter } = context;
   const effectiveType = userAppTypeLock || selectedType || "team";
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,8 @@ const InvestmentTrendsChart: React.FC = () => {
           url += `&type=${effectiveType}`;
         }
 
+        url += investmentModelQuery(investmentModelFilter);
+
         const response = await fetch(url, {
           headers: {
             "Content-Type": "application/json",
@@ -100,7 +103,7 @@ const InvestmentTrendsChart: React.FC = () => {
     fetchData();
 
     return () => controller.abort();
-  }, [timeframe, currentPeriod, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [timeframe, currentPeriod, selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter]);
 
 
   // Static data (fallback) - will be replaced with API calls later

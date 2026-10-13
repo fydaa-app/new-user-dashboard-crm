@@ -12,6 +12,7 @@ interface AssetAllocationData {
   FixedIncomeBonds: AssetData;
   RealEstate: AssetData;
   Gold: AssetData;
+  Unallocated: AssetData;
 }
 
 interface AssetAllocationCardProps {
@@ -25,6 +26,7 @@ const assetMapping: Record<string, { name: string; color: string }> = {
   FixedIncomeBonds: { name: "Debt", color: "bg-green-500" },
   Gold: { name: "Gold", color: "bg-yellow-500" },
   RealEstate: { name: "Real Estate", color: "bg-orange-500" },
+  Unallocated: { name: "Other", color: "bg-gray-500" },
 };
 
 export default function AssetAllocationCard({

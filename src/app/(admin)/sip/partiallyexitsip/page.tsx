@@ -5,6 +5,7 @@ import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ActiveSipTable from "@/components/tables/ActiveSipTable";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import Cookies from "js-cookie";
 import Pagination from "@/components/tables/Pagination";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ async function fetchPartiallyExitSips(
   selectedTeamMember: string = "", customDates: { start: string; end: string },
   searchQuery: string = "", selectedType: string = "",
   hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
   signal?: AbortSignal
 ): Promise<{ sips: Sip[]; error: string | null; totalItems?: number; itemsPerPage?: number; totalPages?: number }> {
   try {
@@ -49,6 +51,7 @@ async function fetchPartiallyExitSips(
     const employeeId = selectedTeamMember || selectedEmployee;
     if (employeeId) url += `&employeeId=${employeeId}`;
     if (selectedType) url += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
+    url += investmentModelQuery(investmentModelFilter);
     console.log("URL:", url);
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${document.cookie.split("; ").find((row) => row.startsWith("authToken="))?.split("=")[1] || ""}` },
@@ -74,7 +77,7 @@ export default function PartiallyExitSipListPage() {
   const [sips, setSips] = useState<Sip[]>([]);
   const [error, setError] = useState<string | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter } = useGlobalContext();
   const { page, setPage, searchQuery, setSearchQuery, skipNextPageResetRef } = useListQueryState("sip_partiallyexitsip");
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -85,7 +88,7 @@ export default function PartiallyExitSipListPage() {
 
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
-  const previousFiltersRef = useRef({ searchQuery, selectedOption, selectedType, customDates });
+  const previousFiltersRef = useRef({ searchQuery, selectedOption, selectedType, customDates, investmentModelFilter });
 
   const fetchData = useCallback(async () => {
     const currentRequestId = ++requestIdRef.current;
@@ -98,7 +101,7 @@ export default function PartiallyExitSipListPage() {
 
     try {
       const { sips, error, totalItems: apiTotalItems, totalPages: apiTotalPages } = await fetchPartiallyExitSips(
-        page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, selectedType as unknown as string, hierarchyViewMode, controller.signal
+        page, selectedOption, selectedEmployee, selectedTeamMember, customDates, searchQuery, selectedType as unknown as string, hierarchyViewMode, investmentModelFilter, controller.signal
       );
 
       if (!controller.signal.aborted && currentRequestId === requestIdRef.current) {
@@ -112,18 +115,18 @@ export default function PartiallyExitSipListPage() {
         console.error("Error in fetchData:", err); setError("Failed to load data"); setIsSearching(false);
       }
     }
-  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [page, selectedOption, customDates, searchQuery, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     const prev = previousFiltersRef.current;
-    const hasChanged = prev.searchQuery !== searchQuery || prev.selectedOption !== selectedOption || prev.selectedType !== selectedType || prev.customDates?.start !== customDates?.start || prev.customDates?.end !== customDates?.end;
-    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates };
+    const hasChanged = prev.searchQuery !== searchQuery || prev.selectedOption !== selectedOption || prev.selectedType !== selectedType || prev.customDates?.start !== customDates?.start || prev.customDates?.end !== customDates?.end || prev.investmentModelFilter !== investmentModelFilter;
+    previousFiltersRef.current = { searchQuery, selectedOption, selectedType, customDates, investmentModelFilter };
     if (!hasChanged) return;
     if (skipNextPageResetRef.current) { skipNextPageResetRef.current = false; return; }
     setPage(1);
-  }, [searchQuery, selectedOption, selectedType, customDates, setPage, skipNextPageResetRef]);
+  }, [searchQuery, selectedOption, selectedType, customDates, investmentModelFilter, setPage, skipNextPageResetRef]);
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if ((event.metaKey || event.ctrlKey) && event.key === "k") { event.preventDefault(); inputRef.current?.focus(); }

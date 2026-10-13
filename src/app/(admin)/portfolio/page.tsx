@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import { useFydaaOnlyPage } from "@/hooks/useFydaaOnlyPage";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -35,6 +36,7 @@ interface AssetAllocationData {
   FixedIncomeBonds: { investedValue: number; currentValue: number; percentage: number };
   RealEstate: { investedValue: number; currentValue: number; percentage: number };
   Gold: { investedValue: number; currentValue: number; percentage: number };
+  Unallocated: { investedValue: number; currentValue: number; percentage: number };
 }
 
 // interface FetchResult {
@@ -74,8 +76,11 @@ async function fetchPortfolioCards(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
+  signal?: AbortSignal
 ): Promise<PortfolioCardsData> {
+  if (signal?.aborted) throw new DOMException("Request aborted", "AbortError");
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -95,9 +100,11 @@ async function fetchPortfolioCards(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
+    queryParams += investmentModelQuery(investmentModelFilter);
+
     const cardsUrl = `/referrals/portfolio-cards-mf?${queryParams}`;
     
-    const cardsResponse = await apiClient.get<PortfolioCardsData>(cardsUrl);
+    const cardsResponse = await apiClient.get<PortfolioCardsData>(cardsUrl, signal ? { signal } : undefined);
 
     if (!cardsResponse.ok) {
       throw new Error("Failed to fetch portfolio cards");
@@ -105,6 +112,7 @@ async function fetchPortfolioCards(
 
     return cardsResponse.data;
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
     console.error("Error fetching portfolio cards:", err);
     return {
       totalUsers: 0,
@@ -127,8 +135,11 @@ async function fetchAssetAllocation(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
+  signal?: AbortSignal
 ): Promise<AssetAllocationData | null> {
+  if (signal?.aborted) throw new DOMException("Request aborted", "AbortError");
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -147,7 +158,9 @@ async function fetchAssetAllocation(
       assetAllocParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
-    const assetResponse = await apiClient.get<{ assetAllocation: AssetAllocationData }>(`/referrals/asset-allocation-mf?${assetAllocParams}`);
+    assetAllocParams += investmentModelQuery(investmentModelFilter);
+
+    const assetResponse = await apiClient.get<{ assetAllocation: AssetAllocationData }>(`/referrals/asset-allocation-mf?${assetAllocParams}`, signal ? { signal } : undefined);
     
     if (assetResponse.ok && assetResponse.data) {
       return assetResponse.data.assetAllocation || null;
@@ -155,6 +168,7 @@ async function fetchAssetAllocation(
     
     return null;
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
     console.error("Error fetching asset allocation:", err);
     return null;
   }
@@ -170,8 +184,11 @@ async function fetchPortfolioList(
   selectedType: string = "team",
   hierarchyViewMode: "team" | "individual" = "team",
   sortBy: string = "netWorth",
-  sortOrder: string = "desc"
+  sortOrder: string = "desc",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
+  signal?: AbortSignal
 ): Promise<{ users: User[]; error: string | null; totalUsers?: number }> {
+  if (signal?.aborted) throw new DOMException("Request aborted", "AbortError");
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -195,6 +212,8 @@ async function fetchPortfolioList(
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
 
+    queryParams += investmentModelQuery(investmentModelFilter);
+
     const portfolioUrl = `/referrals/portfolio-list-mf?${queryParams}`;
     console.log('Fetching portfolio with URL:', portfolioUrl);
     
@@ -203,7 +222,7 @@ async function fetchPortfolioList(
       page: number;
       limit: number;
       totalUsers: number;
-    }>(portfolioUrl);
+    }>(portfolioUrl, signal ? { signal } : undefined);
 
     if (!portfolioResponse.ok) {
       throw new Error("Failed to fetch portfolio list");
@@ -217,6 +236,7 @@ async function fetchPortfolioList(
       totalUsers: portfolioData.totalUsers,
     };
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
     console.error("Error fetching portfolio list:", err);
     return {
       users: [],
@@ -231,8 +251,11 @@ async function fetchTopPerformers(
   selectedTeamMember: string = "",
   customDates: { start: string; end: string } = { start: "", end: "" },
   selectedType: string = "team",
-  hierarchyViewMode: "team" | "individual" = "team"
+  hierarchyViewMode: "team" | "individual" = "team",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL",
+  signal?: AbortSignal
 ): Promise<{ users: User[]; error: string | null }> {
+  if (signal?.aborted) throw new DOMException("Request aborted", "AbortError");
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
     
@@ -248,8 +271,10 @@ async function fetchTopPerformers(
     if (selectedType) {
       queryParams += `&type=${selectedTeamMember ? hierarchyViewMode : selectedType}`;
     }
+
+    queryParams += investmentModelQuery(investmentModelFilter);
     const url = `/referrals/top-performers?${queryParams}`;
-    const response = await apiClient.get<TopPerformerResponse[]>(url);
+    const response = await apiClient.get<TopPerformerResponse[]>(url, signal ? { signal } : undefined);
     if (!response.ok) {
       throw new Error("Failed to fetch top performers");
     }
@@ -276,6 +301,7 @@ async function fetchTopPerformers(
       error: null,
     };
   } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
     console.error("Error fetching top performers:", err);
     return {
       users: [],
@@ -294,6 +320,7 @@ export default function PortfolioPage() {
     selectedTeamMember,
     hierarchyViewMode,
     selectedType,
+    investmentModelFilter,
   } = useGlobalContext();
 
   const [page, setPage] = useState(1);
@@ -320,9 +347,19 @@ export default function PortfolioPage() {
     selectedTeamMember,
     customDates,
     selectedType,
+    investmentModelFilter,
   });
+  const cardsRequestIdRef = useRef(0);
+  const cardsControllerRef = useRef<AbortController | null>(null);
+  const listRequestIdRef = useRef(0);
+  const listControllerRef = useRef<AbortController | null>(null);
 
   const fetchCardsData = useCallback(async () => {
+    const currentRequestId = ++cardsRequestIdRef.current;
+    cardsControllerRef.current?.abort();
+    const controller = new AbortController();
+    cardsControllerRef.current = controller;
+
     if (!appType || appType !== "Fydaa") {
       setIsLoading(false);
       return;
@@ -339,7 +376,9 @@ export default function PortfolioPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          investmentModelFilter,
+          controller.signal
         ),
         fetchAssetAllocation(
           selectedOption,
@@ -347,7 +386,9 @@ export default function PortfolioPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          investmentModelFilter,
+          controller.signal
         ),
         fetchTopPerformers(
           selectedOption,
@@ -355,9 +396,13 @@ export default function PortfolioPage() {
           selectedTeamMember,
           customDates,
           effectiveSelectedType,
-          hierarchyViewMode
+          hierarchyViewMode,
+          investmentModelFilter,
+          controller.signal
         )
       ]);
+
+      if (controller.signal.aborted || currentRequestId !== cardsRequestIdRef.current) return;
 
       setTotalNetWorth(cardsResult.totalNetWorth);
       setTotalReturnRate(cardsResult.totalReturnRate);
@@ -367,13 +412,21 @@ export default function PortfolioPage() {
       setAssetAllocation(assetAllocationResult);
       setTopPerformers(topResult.users);
     } catch (err) {
+      if (controller.signal.aborted || currentRequestId !== cardsRequestIdRef.current) return;
       console.error("Error fetching cards data:", err);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted && currentRequestId === cardsRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   const fetchListData = useCallback(async () => {
+    const currentRequestId = ++listRequestIdRef.current;
+    listControllerRef.current?.abort();
+    const controller = new AbortController();
+    listControllerRef.current = controller;
+
     console.log('fetchListData called, sortBy:', sortBy, 'sortOrder:', sortOrder, 'page:', page);
     if (!appType || appType !== "Fydaa") {
       setIsLoadingTable(false);
@@ -394,8 +447,12 @@ export default function PortfolioPage() {
         effectiveSelectedType,
         hierarchyViewMode,
         sortBy,
-        sortOrder
+        sortOrder,
+        investmentModelFilter,
+        controller.signal
       );
+
+      if (controller.signal.aborted || currentRequestId !== listRequestIdRef.current) return;
 
       setUsers(listResult.users);
       if (listResult.totalUsers !== undefined) {
@@ -403,22 +460,32 @@ export default function PortfolioPage() {
       }
       //setError(listResult.error);
     } catch (err) {
+      if (controller.signal.aborted || currentRequestId !== listRequestIdRef.current) return;
       console.error("Error fetching list data:", err);
       //setError("Failed to load data");
     } finally {
-      setIsLoadingTable(false);
+      if (!controller.signal.aborted && currentRequestId === listRequestIdRef.current) {
+        setIsLoadingTable(false);
+      }
     }
-  }, [appType, page, selectedOption, customDates, searchSubmitted, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, sortBy, sortOrder]);
+  }, [appType, page, selectedOption, customDates, searchSubmitted, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, sortBy, sortOrder, investmentModelFilter]);
+
+  useEffect(() => {
+    return () => {
+      cardsControllerRef.current?.abort();
+      listControllerRef.current?.abort();
+    };
+  }, []);
 
   // Fetch cards data when filters change (not on page change or search)
   useEffect(() => {
     fetchCardsData();
-  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode]);
+  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, investmentModelFilter]);
 
   // Initial fetch on mount and when filters/page/search changes
   useEffect(() => {
     fetchListData();
-}, [page, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, searchSubmitted, sortBy, sortOrder]);
+}, [page, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, searchSubmitted, sortBy, sortOrder, investmentModelFilter]);
   // Reset to page 1 when filters change
   useEffect(() => {
     const prev = previousFiltersRef.current;
@@ -428,7 +495,8 @@ export default function PortfolioPage() {
       prev.selectedTeamMember !== selectedTeamMember ||
       (prev.customDates?.start !== customDates?.start) ||
       (prev.customDates?.end !== customDates?.end) ||
-      prev.selectedType !== selectedType;
+      prev.selectedType !== selectedType ||
+      prev.investmentModelFilter !== investmentModelFilter;
 
     previousFiltersRef.current = {
       selectedOption,
@@ -436,12 +504,13 @@ export default function PortfolioPage() {
       selectedTeamMember,
       customDates,
       selectedType,
+      investmentModelFilter,
     };
 
     if (hasChanged) {
       setPage(1);
     }
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);

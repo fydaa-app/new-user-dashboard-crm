@@ -3,41 +3,108 @@ import React from "react";
 import Cookies from "js-cookie";
 import Sip from "@/components/ecommerce/Sip";
 import { useGlobalContext } from "@/context/GlobalState";
+import { pickModelMetric } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 
 interface CardData {
   type: string;
   totalactivesip?: number;
+  totalactivesipRia?: number;
+  totalactivesipArn?: number;
   totalinactivesip?: number;
+  totalinactivesipRia?: number;
+  totalinactivesipArn?: number;
   totalcompletedsip?: number;
+  totalcompletedsipRia?: number;
+  totalcompletedsipArn?: number;
   totalinprogresssip?: number;
+  totalinprogresssipRia?: number;
+  totalinprogresssipArn?: number;
   totalpartiallyexitsip?: number;
+  totalpartiallyexitsipRia?: number;
+  totalpartiallyexitsipArn?: number;
   totalinvestedsip?: number;
+  totalinvestedsipRia?: number;
+  totalinvestedsipArn?: number;
   totalcancelledsip?: number;
+  totalcancelledsipRia?: number;
+  totalcancelledsipArn?: number;
 }
 
 interface SipData {
   totalActiveSips: number;
+  totalActiveSipsRia: number;
+  totalActiveSipsArn: number;
   totalInActiveSips: number;
+  totalInActiveSipsRia: number;
+  totalInActiveSipsArn: number;
   totalCompletedSips: number;
+  totalCompletedSipsRia: number;
+  totalCompletedSipsArn: number;
   totalInProgressSips: number;
+  totalInProgressSipsRia: number;
+  totalInProgressSipsArn: number;
   totalPartiallyExitedSips: number;
+  totalPartiallyExitedSipsRia: number;
+  totalPartiallyExitedSipsArn: number;
   totalInvestedSips: number;
+  totalInvestedSipsRia: number;
+  totalInvestedSipsArn: number;
   totalCancelledSips: number;
+  totalCancelledSipsRia: number;
+  totalCancelledSipsArn: number;
 }
 
-const transformSipData = (data: CardData[]): SipData => ({
-  totalActiveSips: data.find((item) => item.type === "Total Active Sips")?.totalactivesip || 0,
-  totalInActiveSips: data.find((item) => item.type === "Total Inactive Sips")?.totalinactivesip || 0,
-  totalCompletedSips: data.find((item) => item.type === "Total Completed Sips")?.totalcompletedsip || 0,
-  totalInProgressSips: data.find((item) => item.type === "Total In Progress Sips")?.totalinprogresssip || 0,
-  totalPartiallyExitedSips: data.find((item) => item.type === "Partially Exited Sips")?.totalpartiallyexitsip || 0,
-  totalInvestedSips: data.find((item) => item.type === "Total Invested Sips")?.totalinvestedsip || 0,
-  totalCancelledSips: data.find((item) => item.type === "Cancelled Sips")?.totalcancelledsip || 0,
-});
+const readSip = (
+  data: CardData[],
+  type: string,
+  combined: keyof CardData,
+  ria: keyof CardData,
+  arn: keyof CardData,
+) => {
+  const item = data.find((row) => row.type === type);
+  return {
+    combined: Number(item?.[combined] || 0),
+    ria: Number(item?.[ria] || 0),
+    arn: Number(item?.[arn] || 0),
+  };
+};
+
+const transformSipData = (data: CardData[]): SipData => {
+  const active = readSip(data, "Total Active Sips", "totalactivesip", "totalactivesipRia", "totalactivesipArn");
+  const inactive = readSip(data, "Total Inactive Sips", "totalinactivesip", "totalinactivesipRia", "totalinactivesipArn");
+  const completed = readSip(data, "Total Completed Sips", "totalcompletedsip", "totalcompletedsipRia", "totalcompletedsipArn");
+  const inProgress = readSip(data, "Total In Progress Sips", "totalinprogresssip", "totalinprogresssipRia", "totalinprogresssipArn");
+  const partial = readSip(data, "Partially Exited Sips", "totalpartiallyexitsip", "totalpartiallyexitsipRia", "totalpartiallyexitsipArn");
+  const invested = readSip(data, "Total Invested Sips", "totalinvestedsip", "totalinvestedsipRia", "totalinvestedsipArn");
+  const cancelled = readSip(data, "Cancelled Sips", "totalcancelledsip", "totalcancelledsipRia", "totalcancelledsipArn");
+  return {
+    totalActiveSips: active.combined,
+    totalActiveSipsRia: active.ria,
+    totalActiveSipsArn: active.arn,
+    totalInActiveSips: inactive.combined,
+    totalInActiveSipsRia: inactive.ria,
+    totalInActiveSipsArn: inactive.arn,
+    totalCompletedSips: completed.combined,
+    totalCompletedSipsRia: completed.ria,
+    totalCompletedSipsArn: completed.arn,
+    totalInProgressSips: inProgress.combined,
+    totalInProgressSipsRia: inProgress.ria,
+    totalInProgressSipsArn: inProgress.arn,
+    totalPartiallyExitedSips: partial.combined,
+    totalPartiallyExitedSipsRia: partial.ria,
+    totalPartiallyExitedSipsArn: partial.arn,
+    totalInvestedSips: invested.combined,
+    totalInvestedSipsRia: invested.ria,
+    totalInvestedSipsArn: invested.arn,
+    totalCancelledSips: cancelled.combined,
+    totalCancelledSipsRia: cancelled.ria,
+    totalCancelledSipsArn: cancelled.arn,
+  };
+};
 
 const SipWrapper = () => {
-  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
+  const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
   const { data: sipData, loading } = useFilteredFetch(
@@ -94,14 +161,17 @@ const SipWrapper = () => {
     ]
   );
 
-  return <Sip data={sipData || {
-    totalActiveSips: 0,
-    totalInActiveSips: 0,
-    totalCompletedSips: 0,
-    totalInProgressSips: 0,
-    totalPartiallyExitedSips: 0,
-    totalInvestedSips: 0,
-    totalCancelledSips: 0,
+  const pick = (combined?: number, ria?: number, arn?: number) =>
+    pickModelMetric(investmentModelFilter, combined, ria, arn);
+
+  return <Sip data={{
+    totalActiveSips: pick(sipData?.totalActiveSips, sipData?.totalActiveSipsRia, sipData?.totalActiveSipsArn),
+    totalInActiveSips: pick(sipData?.totalInActiveSips, sipData?.totalInActiveSipsRia, sipData?.totalInActiveSipsArn),
+    totalCompletedSips: pick(sipData?.totalCompletedSips, sipData?.totalCompletedSipsRia, sipData?.totalCompletedSipsArn),
+    totalInProgressSips: pick(sipData?.totalInProgressSips, sipData?.totalInProgressSipsRia, sipData?.totalInProgressSipsArn),
+    totalPartiallyExitedSips: pick(sipData?.totalPartiallyExitedSips, sipData?.totalPartiallyExitedSipsRia, sipData?.totalPartiallyExitedSipsArn),
+    totalInvestedSips: pick(sipData?.totalInvestedSips, sipData?.totalInvestedSipsRia, sipData?.totalInvestedSipsArn),
+    totalCancelledSips: pick(sipData?.totalCancelledSips, sipData?.totalCancelledSipsRia, sipData?.totalCancelledSipsArn),
   }} loading={loading} />;
 };
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useGlobalContext } from "@/context/GlobalState";
+import { investmentModelQuery } from "@/context/investmentModel";
 import ComponentCard from "@/components/common/ComponentCard";
 import RedemptionCards from "@/components/ecommerce/RedemptionCards";
 import RedemptionsList from "@/components/ecommerce/RecentRedemptions";
@@ -25,7 +26,8 @@ async function fetchRedemptionCards(
   customDates: { start: string; end: string },
   selectedType: string,
   hierarchyViewMode: "team" | "individual",
-  reportType: string = ""
+  reportType: string = "",
+  investmentModelFilter: "ALL" | "RIA" | "ARN" = "ALL"
 ): Promise<RedemptionCardsData> {
   try {
     const employeeId = selectedTeamMember || selectedEmployee;
@@ -50,6 +52,8 @@ async function fetchRedemptionCards(
     if (reportType) {
       queryParams += `&reportType=${reportType}`;
     }
+
+    queryParams += investmentModelQuery(investmentModelFilter);
 
     const cardsUrl = `${process.env.NEXT_PUBLIC_API_URL}/referrals/redemption-cards-mf?${queryParams}`;
     
@@ -89,6 +93,7 @@ export default function RedemptionPage() {
     selectedTeamMember,
     hierarchyViewMode,
     selectedType,
+    investmentModelFilter,
   } = useGlobalContext();
 
   const [reportType, setReportType] = useState("");
@@ -104,6 +109,7 @@ export default function RedemptionPage() {
     redemptionRate: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const requestIdRef = useRef(0);
 
   const previousFiltersRef = useRef({
     selectedOption,
@@ -115,6 +121,7 @@ export default function RedemptionPage() {
   });
 
   const fetchCardsData = useCallback(async () => {
+    const requestId = ++requestIdRef.current;
     if (!appType || appType !== "Fydaa") {
       setIsLoading(false);
       return;
@@ -131,21 +138,26 @@ export default function RedemptionPage() {
         customDates,
         effectiveSelectedType,
         hierarchyViewMode,
-        reportType
+        reportType,
+        investmentModelFilter
       );
 
+      if (requestId !== requestIdRef.current) return;
       setCardsData(result);
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       console.error("Error fetching cards data:", err);
     } finally {
-      setIsLoading(false);
+      if (requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, reportType]);
+  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, reportType, investmentModelFilter]);
 
   // Fetch cards data when filters change
   useEffect(() => {
     fetchCardsData();
-  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, reportType]);
+  }, [appType, selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, reportType, investmentModelFilter]);
 
   // Reset to page 1 when filters change
   useEffect(() => {

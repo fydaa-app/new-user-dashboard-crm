@@ -57,14 +57,14 @@ export interface LeadFilters {
   search?: string;
   source?: string;
   status?: string;
-  assignedToId?: number;
+  assignedToId?: number | string;
   generatedById?: number;
   priority?: number;
   fromDate?: string;
   toDate?: string;
   createdAfter?: string;
   createdBefore?: string;
-  employeeId?: number; // Filter by either createdBy or assignedTo
+  employeeId?: number | string; // Filter by either createdBy or assignedTo
   designationLevel?: number; // Filter by designation
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
