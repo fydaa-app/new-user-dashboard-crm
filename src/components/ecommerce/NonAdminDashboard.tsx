@@ -143,6 +143,22 @@ const NonAdminDashboard = () => {
   const [returns, setReturns] = useState<number>(0);
   const [returnsRia, setReturnsRia] = useState<number>(0);
   const [returnsArn, setReturnsArn] = useState<number>(0);
+  // Holdings-based AUM (transaction cohort / MfEverydayAum)
+  const [holdingsAum, setHoldingsAum] = useState<number>(0);
+  const [holdingsAumRia, setHoldingsAumRia] = useState<number>(0);
+  const [holdingsAumArn, setHoldingsAumArn] = useState<number>(0);
+  const [holdingsInvested, setHoldingsInvested] = useState<number>(0);
+  const [holdingsInvestedRia, setHoldingsInvestedRia] = useState<number>(0);
+  const [holdingsInvestedArn, setHoldingsInvestedArn] = useState<number>(0);
+  const [holdingsNetInflow, setHoldingsNetInflow] = useState<number>(0);
+  const [holdingsNetInflowRia, setHoldingsNetInflowRia] = useState<number>(0);
+  const [holdingsNetInflowArn, setHoldingsNetInflowArn] = useState<number>(0);
+  const [holdingsRedemptions, setHoldingsRedemptions] = useState<number>(0);
+  const [holdingsRedemptionsRia, setHoldingsRedemptionsRia] = useState<number>(0);
+  const [holdingsRedemptionsArn, setHoldingsRedemptionsArn] = useState<number>(0);
+  const [holdingsReturns, setHoldingsReturns] = useState<number>(0);
+  const [holdingsReturnsRia, setHoldingsReturnsRia] = useState<number>(0);
+  const [holdingsReturnsArn, setHoldingsReturnsArn] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
   const [totalUsersTillDateRia, setTotalUsersTillDateRia] = useState<number>(0);
@@ -274,6 +290,95 @@ const NonAdminDashboard = () => {
     return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
+  // Holdings-based AUM cards (CRM → transaction aum/cohort)
+  useEffect(() => {
+    const controller = new AbortController();
+    startLoading();
+
+    const fetchHoldingsCardsData = async () => {
+      const AUTH_TOKEN = Cookies.get("authToken");
+
+      if (!AUTH_TOKEN) {
+        console.error("Auth token not found in cookies");
+        endLoading();
+        return;
+      }
+
+      try {
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/cards-data-mf-holdings?`;
+
+        if (selectedOption === "custom") {
+          url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
+        } else {
+          url += `timeframe=${selectedOption || "monthly"}`;
+        }
+
+        const employeeId = selectedTeamMember || selectedEmployee;
+        if (employeeId) {
+          url += `&employeeId=${employeeId}`;
+        }
+        if (selectedType && selectedType.length > 0) {
+          url += `&type=${selectedTeamMember ? hierarchyViewMode : effectiveType}`;
+        }
+
+        const response = await fetch(url, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${AUTH_TOKEN}`,
+          },
+          signal: controller.signal,
+        });
+
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch holdings cards data");
+        }
+
+        const data: CardData[] = await response.json();
+
+        const aumData = data.find((item) => item.type === "Assets under Management");
+        setHoldingsAum(aumData?.assetsUnderManagement ?? 0);
+        setHoldingsAumRia(aumData?.assetsUnderManagementRia ?? 0);
+        setHoldingsAumArn(aumData?.assetsUnderManagementArn ?? 0);
+
+        const investedData = data.find((item) => item.type === "Invested");
+        setHoldingsInvested(investedData?.invested ?? 0);
+        setHoldingsInvestedRia(investedData?.investedRia ?? 0);
+        setHoldingsInvestedArn(investedData?.investedArn ?? 0);
+
+        const netInflowData = data.find((item) => item.type === "Net Inflow");
+        setHoldingsNetInflow(netInflowData?.netInflow ?? 0);
+        setHoldingsNetInflowRia(netInflowData?.netInflowRia ?? 0);
+        setHoldingsNetInflowArn(netInflowData?.netInflowArn ?? 0);
+
+        const redemptionsData = data.find((item) => item.type === "Redemptions");
+        setHoldingsRedemptions(redemptionsData?.redemptions ?? 0);
+        setHoldingsRedemptionsRia(redemptionsData?.redemptionsRia ?? 0);
+        setHoldingsRedemptionsArn(redemptionsData?.redemptionsArn ?? 0);
+
+        const returnsData = data.find((item) => item.type === "Returns (%)");
+        setHoldingsReturns(returnsData?.returns ?? 0);
+        setHoldingsReturnsRia(returnsData?.returnsRia ?? 0);
+        setHoldingsReturnsArn(returnsData?.returnsArn ?? 0);
+      } catch (error) {
+        if (controller.signal.aborted) {
+          endLoading();
+          return;
+        }
+        console.error("Error fetching holdings cards data:", error);
+      } finally {
+        endLoading();
+      }
+    };
+
+    fetchHoldingsCardsData();
+
+    return () => controller.abort();
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock]);
 
   // Fetch till-date data for Client & SIP Metrics (Row 2) - Not affected by date filter
   useEffect(() => {
@@ -498,6 +603,11 @@ const NonAdminDashboard = () => {
   const displayActiveSips = metric(activeSipsTillDate, activeSipsTillDateRia, activeSipsTillDateArn);
   const displayAvgTicket = metric(avgTicketSizeTillDate, avgTicketSizeTillDateRia, avgTicketSizeTillDateArn, "rate");
   const displayRedemptionRate = metric(redemptionRateTillDate, redemptionRateTillDateRia, redemptionRateTillDateArn, "rate");
+  const displayHoldingsAum = metric(holdingsAum, holdingsAumRia, holdingsAumArn);
+  const displayHoldingsInvested = metric(holdingsInvested, holdingsInvestedRia, holdingsInvestedArn);
+  const displayHoldingsReturns = metric(holdingsReturns, holdingsReturnsRia, holdingsReturnsArn, "rate");
+  const displayHoldingsNetInflow = metric(holdingsNetInflow, holdingsNetInflowRia, holdingsNetInflowArn);
+  const displayHoldingsRedemptions = metric(holdingsRedemptions, holdingsRedemptionsRia, holdingsRedemptionsArn);
 
   const renderMetricBreakdown = (
     arn: number,
@@ -616,6 +726,93 @@ const NonAdminDashboard = () => {
               </div>
             </div>
 
+          </div>
+        </div>
+      </div>
+
+      {/* Holdings AUM Overview (snapshot / cost-basis cohort) */}
+      <div className="col-span-12">
+        <div className="grid">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                  Holdings AUM Overview
+                </h3>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Holdings-based AUM, invested cost basis, net inflow, and redemptions as of the selected period
+                </span>
+              </div>
+            </div>
+
+            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <SalesIconOrange />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsAum)}</h2>
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
+                    <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
+                      <span style={{ color: "#000000" }}>Invested: </span>
+                      <span className="text-green-600">{formatCurrency(displayHoldingsInvested)}</span>
+                      {" | "}
+                      <span style={{ color: "#000000" }}>Returns: </span>
+                      <span className={displayHoldingsReturns >= 0 ? "text-green-600" : "text-red-600"}>
+                        {displayHoldingsReturns?.toFixed(2)}%
+                      </span>
+                    </p>
+                  </div>
+                  {renderMetricBreakdown(
+                    holdingsAumArn,
+                    holdingsAumRia,
+                    formatCurrency
+                  )}
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <SalesIcon />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsInvested)}</h2>
+                  <p className="total-sale-text">Invested</p>
+                  {renderMetricBreakdown(
+                    holdingsInvestedArn,
+                    holdingsInvestedRia,
+                    formatCurrency
+                  )}
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <SalesIconGreen />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsNetInflow)}</h2>
+                  <p className="total-sale-text">Net Inflow</p>
+                  {renderMetricBreakdown(
+                    holdingsNetInflowArn,
+                    holdingsNetInflowRia,
+                    formatCurrency
+                  )}
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+
+              <div className="col-span-4">
+                <div className="box-total-sales h-full">
+                  <SalesIconViolet />
+                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayHoldingsRedemptions)}</h2>
+                  <p className="total-sale-text">Redemptions</p>
+                  {renderMetricBreakdown(
+                    holdingsRedemptionsArn,
+                    holdingsRedemptionsRia,
+                    formatNumber
+                  )}
+                  <span className="total-yes"></span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
