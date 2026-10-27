@@ -11,6 +11,7 @@ import MonthlySalesChartMf from "@/components/ecommerce/MonthlySalesChartMf";
 import TopPackagesMf from "@/components/ecommerce/TopPackagesMf";
 import TopGoalsMf from "@/components/ecommerce/TopGoalsMf";
 import NonAdminDashboard from "@/components/ecommerce/NonAdminDashboard";
+import HoldingsAumOverview from "@/components/ecommerce/HoldingsAumOverview";
 import { useGlobalContext } from "@/context/GlobalState";
 import { useAuth } from "@/context/AuthContext";
 import RecentOrdersMf from "@/components/ecommerce/RecentOrdersMf";
@@ -62,6 +63,10 @@ export default function Ecommerce() {
   if (effectiveAppType === "Fydaa") {
     return (
       <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
+        <div className="col-span-12">
+          <HoldingsAumOverview />
+        </div>
+
         <div className="col-span-12">
           <TodaySaleWrapperMf />
         </div>
