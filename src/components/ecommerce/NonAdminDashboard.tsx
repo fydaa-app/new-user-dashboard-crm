@@ -55,6 +55,9 @@ interface CardData {
   invested?: number;
   investedRia?: number;
   investedArn?: number;
+  grossInvestments?: number;
+  grossInvestmentsRia?: number;
+  grossInvestmentsArn?: number;
   returns?: number;
   returnsRia?: number;
   returnsArn?: number;
@@ -122,34 +125,19 @@ const NonAdminDashboard = () => {
       setLoading(false);
     }
   };
-  const [aum, setAum] = useState<number>(0);
-  const [aumRia, setAumRia] = useState<number>(0);
-  const [aumArn, setAumArn] = useState<number>(0);
-  const [netInflow, setNetInflow] = useState<number>(0);
-  const [netInflowRia, setNetInflowRia] = useState<number>(0);
-  const [netInflowArn, setNetInflowArn] = useState<number>(0);
-  const [redemptions, setRedemptions] = useState<number>(0);
-  const [redemptionsRia, setRedemptionsRia] = useState<number>(0);
-  const [redemptionsArn, setRedemptionsArn] = useState<number>(0);
   const [newInvestors, setNewInvestors] = useState<number>(0);
   const [newInvestorsRia, setNewInvestorsRia] = useState<number>(0);
   const [newInvestorsArn, setNewInvestorsArn] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [totalRevenueRia, setTotalRevenueRia] = useState<number>(0);
   const [totalRevenueArn, setTotalRevenueArn] = useState<number>(0);
-  const [invested, setInvested] = useState<number>(0);
-  const [investedRia, setInvestedRia] = useState<number>(0);
-  const [investedArn, setInvestedArn] = useState<number>(0);
-  const [returns, setReturns] = useState<number>(0);
-  const [returnsRia, setReturnsRia] = useState<number>(0);
-  const [returnsArn, setReturnsArn] = useState<number>(0);
-  // Holdings-based AUM (transaction cohort / MfEverydayAum)
+  // Holdings-based AUM (transaction cohort / MfEverydayAum) — shown in Growth Overview
   const [holdingsAum, setHoldingsAum] = useState<number>(0);
   const [holdingsAumRia, setHoldingsAumRia] = useState<number>(0);
   const [holdingsAumArn, setHoldingsAumArn] = useState<number>(0);
-  const [holdingsInvested, setHoldingsInvested] = useState<number>(0);
-  const [holdingsInvestedRia, setHoldingsInvestedRia] = useState<number>(0);
-  const [holdingsInvestedArn, setHoldingsInvestedArn] = useState<number>(0);
+  const [holdingsGrossInvestments, setHoldingsGrossInvestments] = useState<number>(0);
+  const [holdingsGrossInvestmentsRia, setHoldingsGrossInvestmentsRia] = useState<number>(0);
+  const [holdingsGrossInvestmentsArn, setHoldingsGrossInvestmentsArn] = useState<number>(0);
   const [holdingsNetInflow, setHoldingsNetInflow] = useState<number>(0);
   const [holdingsNetInflowRia, setHoldingsNetInflowRia] = useState<number>(0);
   const [holdingsNetInflowArn, setHoldingsNetInflowArn] = useState<number>(0);
@@ -237,43 +225,15 @@ const NonAdminDashboard = () => {
 
         const data: CardData[] = await response.json();
 
-        // Extract AUM and User data
-        const aumData = data.find((item) => item.type === "Assets under Management");
-        //const totalUsersData = data.find((item) => item.type === "Total Users");
         const newInvestorsData = data.find((item) => item.type === "New Investors");
-        //const activeUsersData = data.find((item) => item.type === "Active Users");
-        //const avgTicketSizeData = data.find((item) => item.type === "Average Ticket Size");
         const revenueData = data.find((item) => item.type === "Total Revenue");
 
         setTotalRevenue(revenueData?.totalRevenue ?? 0);
         setTotalRevenueRia(revenueData?.totalRevenueRia ?? 0);
         setTotalRevenueArn(revenueData?.totalRevenueArn ?? 0);
-        setAum(aumData?.assetsUnderManagement ?? 0);
-        setAumRia(aumData?.assetsUnderManagementRia ?? 0);
-        setAumArn(aumData?.assetsUnderManagementArn ?? 0);
         setNewInvestors(newInvestorsData?.newInvestors ?? 0);
         setNewInvestorsRia(newInvestorsData?.newInvestorsRia ?? 0);
         setNewInvestorsArn(newInvestorsData?.newInvestorsArn ?? 0);
-
-        const netInflowData = data.find((item) => item.type === "Net Inflow");
-        setNetInflow(netInflowData?.netInflow ?? 0);
-        setNetInflowRia(netInflowData?.netInflowRia ?? 0);
-        setNetInflowArn(netInflowData?.netInflowArn ?? 0);
-
-        const redemptionsData = data.find((item) => item.type === "Redemptions");
-        setRedemptions(redemptionsData?.redemptions ?? 0);
-        setRedemptionsRia(redemptionsData?.redemptionsRia ?? 0);
-        setRedemptionsArn(redemptionsData?.redemptionsArn ?? 0);
-
-        const investedData = data.find((item) => item.type === "Invested");
-        setInvested(investedData?.invested ?? 0);
-        setInvestedRia(investedData?.investedRia ?? 0);
-        setInvestedArn(investedData?.investedArn ?? 0);
-
-        const returnsData = data.find((item) => item.type === "Returns (%)");
-        setReturns(returnsData?.returns ?? 0);
-        setReturnsRia(returnsData?.returnsRia ?? 0);
-        setReturnsArn(returnsData?.returnsArn ?? 0);
       } catch (error) {
         if (controller.signal.aborted) {
           endLoading();
@@ -345,10 +305,10 @@ const NonAdminDashboard = () => {
         setHoldingsAumRia(aumData?.assetsUnderManagementRia ?? 0);
         setHoldingsAumArn(aumData?.assetsUnderManagementArn ?? 0);
 
-        const investedData = data.find((item) => item.type === "Invested");
-        setHoldingsInvested(investedData?.invested ?? 0);
-        setHoldingsInvestedRia(investedData?.investedRia ?? 0);
-        setHoldingsInvestedArn(investedData?.investedArn ?? 0);
+        const grossData = data.find((item) => item.type === "Gross Investments");
+        setHoldingsGrossInvestments(grossData?.grossInvestments ?? 0);
+        setHoldingsGrossInvestmentsRia(grossData?.grossInvestmentsRia ?? 0);
+        setHoldingsGrossInvestmentsArn(grossData?.grossInvestmentsArn ?? 0);
 
         const netInflowData = data.find((item) => item.type === "Net Inflow");
         setHoldingsNetInflow(netInflowData?.netInflow ?? 0);
@@ -590,11 +550,6 @@ const NonAdminDashboard = () => {
   ) => pickModelMetric(investmentModelFilter, combined, ria, arn, kind);
 
   const displayRevenue = metric(totalRevenue, totalRevenueRia, totalRevenueArn);
-  const displayAum = metric(aum, aumRia, aumArn);
-  const displayInvested = metric(invested, investedRia, investedArn);
-  const displayReturns = metric(returns, returnsRia, returnsArn, "rate");
-  const displayNetInflow = metric(netInflow, netInflowRia, netInflowArn);
-  const displayRedemptions = metric(redemptions, redemptionsRia, redemptionsArn);
   const displayNewInvestors = metric(newInvestors, newInvestorsRia, newInvestorsArn);
   const displayNewSips = metric(newSipsCount, newSipsCountRia, newSipsCountArn);
   const displayCancelledSips = metric(cancelledSipsCount, cancelledSipsCountRia, cancelledSipsCountArn);
@@ -604,7 +559,11 @@ const NonAdminDashboard = () => {
   const displayAvgTicket = metric(avgTicketSizeTillDate, avgTicketSizeTillDateRia, avgTicketSizeTillDateArn, "rate");
   const displayRedemptionRate = metric(redemptionRateTillDate, redemptionRateTillDateRia, redemptionRateTillDateArn, "rate");
   const displayHoldingsAum = metric(holdingsAum, holdingsAumRia, holdingsAumArn);
-  const displayHoldingsInvested = metric(holdingsInvested, holdingsInvestedRia, holdingsInvestedArn);
+  const displayHoldingsGrossInvestments = metric(
+    holdingsGrossInvestments,
+    holdingsGrossInvestmentsRia,
+    holdingsGrossInvestmentsArn,
+  );
   const displayHoldingsReturns = metric(holdingsReturns, holdingsReturnsRia, holdingsReturnsArn, "rate");
   const displayHoldingsNetInflow = metric(holdingsNetInflow, holdingsNetInflowRia, holdingsNetInflowArn);
   const displayHoldingsRedemptions = metric(holdingsRedemptions, holdingsRedemptionsRia, holdingsRedemptionsArn);
@@ -632,7 +591,7 @@ const NonAdminDashboard = () => {
 
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
-      {/* Row 1: Total Revenue, Total AUM, Net Inflow, Redemptions */}
+      {/* Growth Overview: Revenue + holdings AUM / Gross / Net / Redeem */}
       <div className="col-span-12">
         <div className="grid">
           <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
@@ -642,7 +601,7 @@ const NonAdminDashboard = () => {
                   Growth Overview
                 </h3>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Insights into asset growth and investor onboarding
+                  Revenue, closing AUM, gross investments, net inflow, and redemptions for the selected period
                 </span>
               </div>
             </div>
@@ -662,90 +621,8 @@ const NonAdminDashboard = () => {
                   <span className="total-yes"></span>
                 </div>
               </div>
-              
-              {/* Total AUM */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIconOrange />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayAum)}</h2>
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
-                    <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
-                      <span style={{ color: "#000000" }}>Invested: </span>
-                      <span className="text-green-600">{formatCurrency(displayInvested)}</span>
-                      {" | "}
-                      <span style={{ color: "#000000" }}>Returns: </span>
-                      <span className={displayReturns >= 0 ? "text-green-600" : "text-red-600"}>
-                        {displayReturns?.toFixed(2)}%
-                      </span>
-                    </p>
-                  </div>
-                  {renderMetricBreakdown(
-                    aumArn,
-                    aumRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
 
-              {/* Net Inflow */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIconGreen />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayNetInflow)}</h2>
-                  <p className="total-sale-text">Net Inflow</p>
-                  {renderMetricBreakdown(
-                    netInflowArn,
-                    netInflowRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-              
-              {/* Redemptions */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  {/* <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g transform="translate(40,0) scale(-1,1)">
-                      <circle cx="20" cy="20" r="20" fill="#FA5A7D"/>
-                      <path fillRule="evenodd" clipRule="evenodd" d="M13 11C11.8954 11 11 11.8954 11 13V27C11 28.1046 11.8954 29 13 29H27C28.1046 29 28.1046 29 27V13C29 11.8954 28.1046 11 27 11H13ZM16 21C16 20.4477 15.5523 20 15 20C14.4477 20 14 20.4477 14 21V25C14 25.5523 14.4477 26 15 26C15.5523 26 16 25.5523 16 25V21ZM20 17C20.5523 17 21 17.4477 21 18V25C21 25.5523 20 26 19.4477 26C18.8954 26 18.4477 25.5523 18.4477 25V18C18.4477 17.4477 18.8954 17 19.4477 17H20ZM26 15C26 14.4477 25.5523 14 25 14C24.4477 14 24 14.4477 24 15V25C24 25.5523 24.4477 26 25 26C25.5523 26 26 25.5523 26 25V15Z" fill="white"/>
-                    </g>
-                  </svg> */}
-                  <SalesIconViolet/>
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayRedemptions)}</h2>
-                  <p className="total-sale-text">Redemptions</p>
-                  {renderMetricBreakdown(
-                    redemptionsArn,
-                    redemptionsRia,
-                    formatNumber
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Holdings AUM Overview (snapshot / cost-basis cohort) */}
-      <div className="col-span-12">
-        <div className="grid">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                  Holdings AUM Overview
-                </h3>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Holdings-based AUM, invested cost basis, net inflow, and redemptions as of the selected period
-                </span>
-              </div>
-            </div>
-
-            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+              {/* Total AUM (holdings) */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
                   <SalesIconOrange />
@@ -753,9 +630,6 @@ const NonAdminDashboard = () => {
                   <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                     <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
                     <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
-                      <span style={{ color: "#000000" }}>Invested: </span>
-                      <span className="text-green-600">{formatCurrency(displayHoldingsInvested)}</span>
-                      {" | "}
                       <span style={{ color: "#000000" }}>Returns: </span>
                       <span className={displayHoldingsReturns >= 0 ? "text-green-600" : "text-red-600"}>
                         {displayHoldingsReturns?.toFixed(2)}%
@@ -771,23 +645,25 @@ const NonAdminDashboard = () => {
                 </div>
               </div>
 
+              {/* Gross Investments (holdings) */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsInvested)}</h2>
-                  <p className="total-sale-text">Invested</p>
+                  <SalesIconGreen />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsGrossInvestments)}</h2>
+                  <p className="total-sale-text">Gross Investments</p>
                   {renderMetricBreakdown(
-                    holdingsInvestedArn,
-                    holdingsInvestedRia,
+                    holdingsGrossInvestmentsArn,
+                    holdingsGrossInvestmentsRia,
                     formatCurrency
                   )}
                   <span className="total-yes"></span>
                 </div>
               </div>
 
+              {/* Net Inflow (holdings) */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconGreen />
+                  <SalesIconViolet />
                   <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsNetInflow)}</h2>
                   <p className="total-sale-text">Net Inflow</p>
                   {renderMetricBreakdown(
@@ -799,20 +675,22 @@ const NonAdminDashboard = () => {
                 </div>
               </div>
 
+              {/* Redemptions (holdings) */}
               <div className="col-span-4">
                 <div className="box-total-sales h-full">
-                  <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{formatNumber(displayHoldingsRedemptions)}</h2>
+                  <SalesIcon />
+                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsRedemptions)}</h2>
                   <p className="total-sale-text">Redemptions</p>
                   {renderMetricBreakdown(
                     holdingsRedemptionsArn,
                     holdingsRedemptionsRia,
-                    formatNumber
+                    formatCurrency
                   )}
                   <span className="total-yes"></span>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

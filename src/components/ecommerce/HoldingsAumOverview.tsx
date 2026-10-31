@@ -17,9 +17,9 @@ interface CardData {
   assetsUnderManagement?: number;
   assetsUnderManagementRia?: number;
   assetsUnderManagementArn?: number;
-  invested?: number;
-  investedRia?: number;
-  investedArn?: number;
+  grossInvestments?: number;
+  grossInvestmentsRia?: number;
+  grossInvestmentsArn?: number;
   netInflow?: number;
   netInflowRia?: number;
   netInflowArn?: number;
@@ -35,9 +35,9 @@ interface HoldingsMetrics {
   aum: number;
   aumRia: number;
   aumArn: number;
-  invested: number;
-  investedRia: number;
-  investedArn: number;
+  grossInvestments: number;
+  grossInvestmentsRia: number;
+  grossInvestmentsArn: number;
   netInflow: number;
   netInflowRia: number;
   netInflowArn: number;
@@ -53,9 +53,9 @@ const emptyMetrics = (): HoldingsMetrics => ({
   aum: 0,
   aumRia: 0,
   aumArn: 0,
-  invested: 0,
-  investedRia: 0,
-  investedArn: 0,
+  grossInvestments: 0,
+  grossInvestmentsRia: 0,
+  grossInvestmentsArn: 0,
   netInflow: 0,
   netInflowRia: 0,
   netInflowArn: 0,
@@ -69,7 +69,7 @@ const emptyMetrics = (): HoldingsMetrics => ({
 
 const transformHoldingsCards = (data: CardData[]): HoldingsMetrics => {
   const aum = data.find((item) => item.type === "Assets under Management");
-  const invested = data.find((item) => item.type === "Invested");
+  const gross = data.find((item) => item.type === "Gross Investments");
   const netInflow = data.find((item) => item.type === "Net Inflow");
   const redemptions = data.find((item) => item.type === "Redemptions");
   const returns = data.find((item) => item.type === "Returns (%)");
@@ -78,9 +78,9 @@ const transformHoldingsCards = (data: CardData[]): HoldingsMetrics => {
     aum: aum?.assetsUnderManagement ?? 0,
     aumRia: aum?.assetsUnderManagementRia ?? 0,
     aumArn: aum?.assetsUnderManagementArn ?? 0,
-    invested: invested?.invested ?? 0,
-    investedRia: invested?.investedRia ?? 0,
-    investedArn: invested?.investedArn ?? 0,
+    grossInvestments: gross?.grossInvestments ?? 0,
+    grossInvestmentsRia: gross?.grossInvestmentsRia ?? 0,
+    grossInvestmentsArn: gross?.grossInvestmentsArn ?? 0,
     netInflow: netInflow?.netInflow ?? 0,
     netInflowRia: netInflow?.netInflowRia ?? 0,
     netInflowArn: netInflow?.netInflowArn ?? 0,
@@ -170,9 +170,6 @@ const HoldingsAumOverview = () => {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const formatNumber = (value: number) =>
-    new Intl.NumberFormat("en-IN").format(value);
-
   const metric = (
     combined: number,
     ria: number,
@@ -181,10 +178,10 @@ const HoldingsAumOverview = () => {
   ) => pickModelMetric(investmentModelFilter, combined, ria, arn, kind);
 
   const displayAum = metric(metrics.aum, metrics.aumRia, metrics.aumArn);
-  const displayInvested = metric(
-    metrics.invested,
-    metrics.investedRia,
-    metrics.investedArn
+  const displayGrossInvestments = metric(
+    metrics.grossInvestments,
+    metrics.grossInvestmentsRia,
+    metrics.grossInvestmentsArn
   );
   const displayReturns = metric(
     metrics.returns,
@@ -242,8 +239,8 @@ const HoldingsAumOverview = () => {
               Holdings AUM Overview
             </h3>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Holdings-based AUM, invested cost basis, net inflow, and redemptions
-              as of the selected period
+              Closing AUM, gross investments, net inflow, and redemptions for the
+              selected period
             </span>
           </div>
         </div>
@@ -263,11 +260,6 @@ const HoldingsAumOverview = () => {
                   className="text-xs font-medium"
                   style={{ color: "#000000", margin: 0, lineHeight: "24px" }}
                 >
-                  <span style={{ color: "#000000" }}>Invested: </span>
-                  <span className="text-green-600">
-                    {formatCurrency(displayInvested)}
-                  </span>
-                  {" | "}
                   <span style={{ color: "#000000" }}>Returns: </span>
                   <span
                     className={
@@ -291,12 +283,12 @@ const HoldingsAumOverview = () => {
             <div className="box-total-sales h-full">
               <SalesIcon />
               <h2 className="numbers-sale text-gray-900">
-                {formatCurrency(displayInvested)}
+                {formatCurrency(displayGrossInvestments)}
               </h2>
-              <p className="total-sale-text">Invested</p>
+              <p className="total-sale-text">Gross Investments</p>
               {renderMetricBreakdown(
-                metrics.investedArn,
-                metrics.investedRia,
+                metrics.grossInvestmentsArn,
+                metrics.grossInvestmentsRia,
                 formatCurrency
               )}
               <span className="total-yes"></span>
@@ -323,13 +315,13 @@ const HoldingsAumOverview = () => {
             <div className="box-total-sales h-full">
               <SalesIconViolet />
               <h2 className="numbers-sale text-gray-900">
-                {formatNumber(displayRedemptions)}
+                {formatCurrency(displayRedemptions)}
               </h2>
               <p className="total-sale-text">Redemptions</p>
               {renderMetricBreakdown(
                 metrics.redemptionsArn,
                 metrics.redemptionsRia,
-                formatNumber
+                formatCurrency
               )}
               <span className="total-yes"></span>
             </div>
