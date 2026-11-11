@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { pickModelMetric } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 import {
   SalesIcon,
   SalesIconOrange,
@@ -167,7 +169,7 @@ const HoldingsAumOverview = () => {
   } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data, loading } = useFilteredFetch(
+  const { data, loading, error, refetch } = useFilteredFetch(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -294,7 +296,16 @@ const HoldingsAumOverview = () => {
     );
 
   if (loading) {
-    return <p>Loading holdings AUM data...</p>;
+    return <DashboardSkeleton variant="cards" count={6} />;
+  }
+
+  if (error) {
+    return (
+      <DashboardLoadError
+        message={error.message || "Failed to load holdings AUM data"}
+        onRetry={refetch}
+      />
+    );
   }
 
   return (

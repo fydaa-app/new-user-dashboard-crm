@@ -96,7 +96,7 @@ const TodaySaleWrapper = () => {
     : selectedType === "team";
 
   // Fetch team data (always)
-  const { data: teamData, loading: teamLoading } = useFilteredFetch(
+  const { data: teamData, loading: teamLoading, error: teamError, refetch: refetchTeam } = useFilteredFetch(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
@@ -151,7 +151,7 @@ const TodaySaleWrapper = () => {
   );
 
   // Fetch member data only when in team view and a specific member is selected
-  const { data: memberData, loading: memberLoading } = useFilteredFetch(
+  const { data: memberData, loading: memberLoading, error: memberError, refetch: refetchMember } = useFilteredFetch(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
@@ -238,20 +238,21 @@ const TodaySaleWrapper = () => {
     memberAssetsUnderManagement: pick(memberData?.assetsUnderManagement, memberData?.assetsUnderManagementRia, memberData?.assetsUnderManagementArn),
   };
 
-  return <TodaySale data={combinedData || {
-    totalRevenue: 0,
-    totalNoOfTransactions: 0,
-    noOfPayments: 0,
-    activeUsers: 0,
-    inactiveUsers: 0,
-    totalUsers: 0,
-    assetsUnderManagement: 0,
-    memberTotalRevenue: 0,
-    memberTotalNoOfTransactions: 0,
-    memberNoOfPayments: 0,
-    memberTotalUsers: 0,
-    memberAssetsUnderManagement: 0,
-  }} loading={teamLoading || memberLoading} />;
+  const loading = teamLoading || memberLoading;
+  const error = teamError || memberError;
+  const refetch = () => {
+    refetchTeam();
+    refetchMember();
+  };
+
+  return (
+    <TodaySale
+      data={combinedData}
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+    />
+  );
 };
 
 export default TodaySaleWrapper;

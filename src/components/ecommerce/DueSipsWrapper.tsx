@@ -19,7 +19,6 @@ interface DueSipsApiResponse {
 
 const DueSipsWrapper = () => {
   const [dueSips, setDueSips] = useState<DueSipItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<DuePeriod>('today');
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
@@ -93,19 +92,27 @@ const DueSipsWrapper = () => {
     ]
   );
 
-  // Update dueSips, pagination from fetch result
+  // Update dueSips, pagination from fetch result; clear while loading to avoid stale rows
   useEffect(() => {
+    if (fetchDueSips.loading) {
+      setDueSips([]);
+      return;
+    }
     if (fetchDueSips.data?.data) {
       setDueSips(fetchDueSips.data.data);
       if (fetchDueSips.data.pagination) {
         setTotalPages(fetchDueSips.data.pagination.totalPages || 1);
         setTotalItems(fetchDueSips.data.pagination.totalItems || 0);
+      } else {
+        setTotalPages(1);
+        setTotalItems(fetchDueSips.data.data.length);
       }
+    } else if (!fetchDueSips.error) {
+      setDueSips([]);
+      setTotalPages(1);
+      setTotalItems(0);
     }
-    if (fetchDueSips.error) {
-      setError(fetchDueSips.error.message);
-    }
-  }, [fetchDueSips.data, fetchDueSips.error]);
+  }, [fetchDueSips.data, fetchDueSips.loading, fetchDueSips.error]);
 
   const handlePeriodChange = (period: DuePeriod) => {
     setSelectedPeriod(period);
@@ -119,8 +126,9 @@ const DueSipsWrapper = () => {
   return (
     <DueSips
       sips={dueSips}
-      error={error}
+      error={fetchDueSips.error?.message || null}
       loading={fetchDueSips.loading}
+      onRetry={fetchDueSips.refetch}
       selectedPeriod={selectedPeriod}
       onPeriodChange={handlePeriodChange}
       page={page}

@@ -7,6 +7,8 @@ import { ChevronDownIcon } from "@/icons";
 import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { investmentModelQuery } from "@/context/investmentModel";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -22,8 +24,9 @@ const InvestmentTrendsChart: React.FC = () => {
 
   const { selectedEmployee, selectedTeamMember, selectedType, userAppTypeLock, investmentModelFilter } = context;
   const effectiveType = userAppTypeLock || selectedType || "team";
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [chartData, setChartData] = useState<{
     categories: string[];
     newInvestments: number[];
@@ -52,8 +55,12 @@ const InvestmentTrendsChart: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
+        setChartData(null);
 
         const AUTH_TOKEN = Cookies.get("authToken");
+        if (!AUTH_TOKEN) {
+          throw new Error("Auth token not found");
+        }
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
         let url = `${API_URL}/referrals/investment-trends-mf?timeframe=${timeframe}&period=${currentPeriod}`;
@@ -91,7 +98,6 @@ const InvestmentTrendsChart: React.FC = () => {
       } catch (err: unknown) {
         if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
           setError(err instanceof Error ? err.message : "Failed to load data");
-          console.error("Investment Trends Chart Error:", err);
         }
       } finally {
         if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
@@ -103,7 +109,7 @@ const InvestmentTrendsChart: React.FC = () => {
     fetchData();
 
     return () => controller.abort();
-  }, [timeframe, currentPeriod, selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter]);
+  }, [timeframe, currentPeriod, selectedEmployee, selectedTeamMember, selectedType, investmentModelFilter, effectiveType, retryCount]);
 
 
   // Static data (fallback) - will be replaced with API calls later
@@ -291,13 +297,13 @@ const InvestmentTrendsChart: React.FC = () => {
       {/* Chart */}
       <div>
         {loading ? (
-          <div className="flex h-[350px] items-center justify-center">
-            <p className="text-gray-500 dark:text-gray-400">Loading chart data...</p>
-          </div>
+          <DashboardSkeleton variant="chart" className="border-0 p-0" />
         ) : error ? (
-          <div className="flex h-[350px] items-center justify-center">
-            <p className="text-red-500">Error: {error}</p>
-          </div>
+          <DashboardLoadError
+            message={error}
+            onRetry={() => setRetryCount((c) => c + 1)}
+            className="border-0"
+          />
         ) : (
           <ReactApexChart
           options={options}

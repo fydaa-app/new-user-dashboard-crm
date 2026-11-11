@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "../ui/table";
 import Badge from "../ui/badge/Badge";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 export interface DueSipItem {
   sipId: number;
@@ -38,6 +40,7 @@ export interface DueSipsTableProps {
   sips: DueSipItem[];
   error: string | null;
   loading?: boolean;
+  onRetry?: () => void;
 }
 
 const formatCurrency = (value: number): string =>
@@ -74,17 +77,20 @@ const getBadgeStatus = (dueDate: Date) => {
   }
 };
 
-export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps) {
+export default function DueSipsTable({ sips, error, loading, onRetry }: DueSipsTableProps) {
   const { navigateToUser } = useUserNavigation();
 
   if (loading) {
+    return <DashboardSkeleton variant="table" count={5} className="border-0 rounded-none" />;
+  }
+
+  if (error) {
     return (
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-        <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-500 dark:text-gray-400">Loading due SIPs...</p>
-        </div>
-      </div>
+      <DashboardLoadError
+        message={error}
+        onRetry={onRetry || (() => {})}
+        className="border-0 rounded-none m-4"
+      />
     );
   }
 
@@ -92,8 +98,7 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
       <div className="max-w-full overflow-x-auto overflow-y-auto max-h-[500px]">
         <div className="min-w-[1600px]">
-          {error && <div className="m-4"><p style={{ color: "red" }}>{error}</p></div>}
-          {!error && sips.length > 0 ? (
+          {sips.length > 0 ? (
             <Table>
               {/* Table Header */}
               <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
@@ -207,11 +212,9 @@ export default function DueSipsTable({ sips, error, loading }: DueSipsTableProps
               </TableBody>
             </Table>
           ) : (
-            !error && (
-              <div className="m-4 p-8 text-center">
-                <p className="text-gray-500 dark:text-gray-400">No due SIPs found for the selected period.</p>
-              </div>
-            )
+            <div className="m-4 p-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">No due SIPs found for the selected period.</p>
+            </div>
           )}
         </div>
       </div>

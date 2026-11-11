@@ -4,7 +4,6 @@ import { getCookie } from "cookies-next";
 import {
   INVESTMENT_MODEL_STORAGE_KEY,
   InvestmentModelFilter,
-  readInvestmentModelFilter,
 } from "@/context/investmentModel";
 
 interface GlobalContextProps {
@@ -33,76 +32,26 @@ interface GlobalContextProps {
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
 
+const HEADER_FILTER_DEFAULTS = {
+  selectedOption: "till_date",
+  customDates: { start: "", end: "" } as { start: string; end: string },
+  selectedType: ["team"] as string[],
+  appType: "Fydaa",
+  investmentModelFilter: "ALL" as InvestmentModelFilter,
+};
+
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
-  // Selected option with localStorage persistence
-  const [selectedOption, setSelectedOptionState] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("selectedOption") || "monthly";
-    }
-    return "monthly";
-  });
-
-  // Custom dates with localStorage persistence
-  const [customDates, setCustomDatesState] = useState<{ start: string; end: string }>(() => {
-    if (typeof window !== "undefined") {
-      const storedDates = localStorage.getItem("customDates");
-      try {
-        return storedDates ? JSON.parse(storedDates) : { start: "", end: "" };
-      } catch {
-        return { start: "", end: "" };
-      }
-    }
-    return { start: "", end: "" };
-  });
-
-  // Designation and employee states
-  const [selectedDesignation, setSelectedDesignationState] = useState<string | undefined>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("selectedDesignation");      
-      return stored ? stored : undefined;
-    }
-    return undefined;
-  });
-
-  const [selectedEmployee, setSelectedEmployeeState] = useState<string | undefined>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("selectedEmployee");
-      return stored ? stored : undefined;
-    }
-    return undefined;
-  });
-
-  const [selectedTeamMember, setSelectedTeamMemberState] = useState<string | undefined>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("selectedTeamMember");
-      return stored ? stored : undefined;
-    }
-    return undefined;
-  });
-
-  const [selectedType, setSelectedTypeState] = useState<string[] | undefined>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("selectedType");
-      try {
-        return stored ? JSON.parse(stored) : undefined;
-      } catch {
-        return undefined;
-      }
-    }
-    return undefined;
-  });
-  
-  // App type with localStorage persistence
-  const [appType, setAppTypeState] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("appType") || "Fydaa";
-    }
-    return "Fydaa";
-  });
-
+  // AppHeader filters always start at defaults on full page refresh (do not hydrate from localStorage).
+  const [selectedOption, setSelectedOptionState] = useState<string>(HEADER_FILTER_DEFAULTS.selectedOption);
+  const [customDates, setCustomDatesState] = useState<{ start: string; end: string }>(HEADER_FILTER_DEFAULTS.customDates);
+  const [selectedDesignation, setSelectedDesignationState] = useState<string | undefined>(undefined);
+  const [selectedEmployee, setSelectedEmployeeState] = useState<string | undefined>(undefined);
+  const [selectedTeamMember, setSelectedTeamMemberState] = useState<string | undefined>(undefined);
+  const [selectedType, setSelectedTypeState] = useState<string[] | undefined>(HEADER_FILTER_DEFAULTS.selectedType);
+  const [appType, setAppTypeState] = useState<string>(HEADER_FILTER_DEFAULTS.appType);
   const [hierarchyViewMode, setHierarchyViewModeState] = useState<"team" | "individual">("team");
 
-  // App type lock with localStorage persistence
+  // App type lock with localStorage persistence (not an AppHeader filter — keep cached)
   const [userAppTypeLock, setUserAppTypeLockState] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("userAppTypeLock");
@@ -111,8 +60,27 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   const [investmentModelFilter, setInvestmentModelFilterState] = useState<InvestmentModelFilter>(
-    () => readInvestmentModelFilter(),
+    HEADER_FILTER_DEFAULTS.investmentModelFilter,
   );
+
+  // Overwrite stale header-filter cache on every full page load
+  useEffect(() => {
+    localStorage.setItem("selectedOption", HEADER_FILTER_DEFAULTS.selectedOption);
+    localStorage.setItem("customDates", JSON.stringify(HEADER_FILTER_DEFAULTS.customDates));
+    localStorage.setItem("selectedType", JSON.stringify(HEADER_FILTER_DEFAULTS.selectedType));
+    localStorage.removeItem("selectedDesignation");
+    localStorage.removeItem("selectedEmployee");
+    localStorage.removeItem("selectedTeamMember");
+    localStorage.setItem(INVESTMENT_MODEL_STORAGE_KEY, HEADER_FILTER_DEFAULTS.investmentModelFilter);
+    // Respect lock for appType if present; otherwise force Fydaa default
+    const lock = localStorage.getItem("userAppTypeLock");
+    if (lock === "Fydaa" || lock === "Savestment") {
+      localStorage.setItem("appType", lock);
+      setAppTypeState(lock);
+    } else {
+      localStorage.setItem("appType", HEADER_FILTER_DEFAULTS.appType);
+    }
+  }, []);
 
   // Auto-sync hierarchyViewMode based on selectedType
   useEffect(() => {
@@ -386,21 +354,21 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
           setAppTypeState(value);
           localStorage.setItem("appType", value);
           
-          // Clear conflicting runtime filters
-          setSelectedTypeState(undefined);
-          setSelectedOptionState("monthly");
+          // Clear conflicting runtime filters back to refresh defaults
+          setSelectedTypeState(HEADER_FILTER_DEFAULTS.selectedType);
+          setSelectedOptionState(HEADER_FILTER_DEFAULTS.selectedOption);
           setSelectedDesignationState(undefined);
           setSelectedEmployeeState(undefined);
           setSelectedTeamMemberState(undefined);
-          setCustomDatesState({ start: "", end: "" });
+          setCustomDatesState(HEADER_FILTER_DEFAULTS.customDates);
           
-          // Also clear localStorage versions
-          localStorage.removeItem("selectedType");
-          localStorage.removeItem("selectedOption");
+          // Also clear localStorage versions / write defaults
+          localStorage.setItem("selectedType", JSON.stringify(HEADER_FILTER_DEFAULTS.selectedType));
+          localStorage.setItem("selectedOption", HEADER_FILTER_DEFAULTS.selectedOption);
           localStorage.removeItem("selectedDesignation");
           localStorage.removeItem("selectedEmployee");
           localStorage.removeItem("selectedTeamMember");
-          localStorage.removeItem("customDates");
+          localStorage.setItem("customDates", JSON.stringify(HEADER_FILTER_DEFAULTS.customDates));
           
         } else {
           // Lock is being REMOVED (set to null)
@@ -425,7 +393,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
       if (e.key === "selectedOption") {
-        setSelectedOptionState(e.newValue || "monthly");
+        setSelectedOptionState(e.newValue || HEADER_FILTER_DEFAULTS.selectedOption);
       }
       if (e.key === "customDates") {
         try {
