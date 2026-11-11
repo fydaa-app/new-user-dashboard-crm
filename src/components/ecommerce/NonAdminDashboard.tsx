@@ -61,6 +61,9 @@ interface CardData {
   returns?: number;
   returnsRia?: number;
   returnsArn?: number;
+  externalAum?: number;
+  externalAumRia?: number;
+  externalAumArn?: number;
 }
 
 interface SipCardData {
@@ -147,6 +150,10 @@ const NonAdminDashboard = () => {
   const [holdingsReturns, setHoldingsReturns] = useState<number>(0);
   const [holdingsReturnsRia, setHoldingsReturnsRia] = useState<number>(0);
   const [holdingsReturnsArn, setHoldingsReturnsArn] = useState<number>(0);
+  // External Holdings
+  const [externalAum, setExternalAum] = useState<number>(0);
+  const [externalAumRia, setExternalAumRia] = useState<number>(0);
+  const [externalAumArn, setExternalAumArn] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
   const [totalUsersTillDateRia, setTotalUsersTillDateRia] = useState<number>(0);
@@ -324,6 +331,11 @@ const NonAdminDashboard = () => {
         setHoldingsReturns(returnsData?.returns ?? 0);
         setHoldingsReturnsRia(returnsData?.returnsRia ?? 0);
         setHoldingsReturnsArn(returnsData?.returnsArn ?? 0);
+
+        const externalData = data.find((item) => item.type === "External Holdings");
+        setExternalAum(externalData?.externalAum ?? 0);
+        setExternalAumRia(externalData?.externalAumRia ?? 0);
+        setExternalAumArn(externalData?.externalAumArn ?? 0);
       } catch (error) {
         if (controller.signal.aborted) {
           endLoading();
@@ -567,6 +579,7 @@ const NonAdminDashboard = () => {
   const displayHoldingsReturns = metric(holdingsReturns, holdingsReturnsRia, holdingsReturnsArn, "rate");
   const displayHoldingsNetInflow = metric(holdingsNetInflow, holdingsNetInflowRia, holdingsNetInflowArn);
   const displayHoldingsRedemptions = metric(holdingsRedemptions, holdingsRedemptionsRia, holdingsRedemptionsArn);
+  const displayExternalAum = metric(externalAum, externalAumRia, externalAumArn);
 
   const renderMetricBreakdown = (
     arn: number,
@@ -689,6 +702,23 @@ const NonAdminDashboard = () => {
                   <span className="total-yes"></span>
                 </div>
               </div>
+
+              {/* External Holdings (holdings) */}
+              {displayExternalAum > 0 && (
+                <div className="col-span-4">
+                  <div className="box-total-sales h-full">
+                    <SalesIconOrange />
+                    <h2 className="numbers-sale text-gray-900">{formatCurrency(displayExternalAum)}</h2>
+                    <p className="total-sale-text">External Holdings</p>
+                    {renderMetricBreakdown(
+                      externalAumArn,
+                      externalAumRia,
+                      formatCurrency
+                    )}
+                    <span className="total-yes"></span>
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>

@@ -2,22 +2,38 @@
 
 import React, { useMemo } from "react";
 import { getTabDisplayName } from "./utils";
-import { UserDetails } from "./types";
+import { UserDetails, MutualFundDetails } from "./types";
 
 interface TabNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userDetails: UserDetails;
+  mutualFundDetails?: MutualFundDetails[];
 }
 
-export default function TabNavigation({ activeTab, onTabChange, userDetails }: TabNavigationProps) {
+export default function TabNavigation({ 
+  activeTab, 
+  onTabChange, 
+  userDetails, 
+  mutualFundDetails 
+}: TabNavigationProps) {
+  const hasExternalHoldings = useMemo(() => {
+    if (!mutualFundDetails?.length) return false;
+    return mutualFundDetails.some((mf) => 
+      mf.mutualFunds?.some((fund) => fund.origin === "manual")
+    );
+  }, [mutualFundDetails]);
+
   const allowedTabs = useMemo(() => {
     const tabs = ["Portfolio", "Transaction", "Subscription", "Stock", "Profile", "PlanData"];
     if (userDetails.fromApp?.toLowerCase() === "savestment") {
       tabs.splice(4, 0, "Account Ledger");
     }
+    if (hasExternalHoldings) {
+      tabs.splice(3, 0, "External Holdings");
+    }
     return tabs;
-  }, [userDetails.fromApp]);
+  }, [userDetails.fromApp, hasExternalHoldings]);
 
   return (
     <div className="flex gap-2 overflow-x-auto">
