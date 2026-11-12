@@ -98,7 +98,6 @@ export interface PortfolioDetails {
 export interface MutualFund {
   portfolioName: string;
   portfolioId: number | null;
-  sipId: number;
   stockName: string;
   capType: string;
   stockType: string;
@@ -114,6 +113,17 @@ export interface MutualFund {
   investedValue: number;
   currentValue: number;
   stockId: number;
+  origin?: "finprim" | "manual";
+  transactable?: boolean;
+  source?: "sip" | "lumpsum" | "outsideApp";
+  sipId?: number | null;
+  lumpsumId?: number | null;
+  goalId?: number | null;
+  goalName?: string | null;
+  folioNumber?: string;
+  asOn?: string | null;
+  nav?: number;
+  arnCode?: string;
 }
 
 export interface Goal {

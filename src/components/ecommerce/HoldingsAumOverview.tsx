@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { pickModelMetric } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 import {
   SalesIcon,
   SalesIconOrange,
@@ -29,6 +31,21 @@ interface CardData {
   returns?: number;
   returnsRia?: number;
   returnsArn?: number;
+  externalAum?: number;
+  externalAumRia?: number;
+  externalAumArn?: number;
+  externalInvested?: number;
+  externalInvestedRia?: number;
+  externalInvestedArn?: number;
+  externalGrossInvestments?: number;
+  externalGrossInvestmentsRia?: number;
+  externalGrossInvestmentsArn?: number;
+  externalNetInflow?: number;
+  externalNetInflowRia?: number;
+  externalNetInflowArn?: number;
+  externalReturns?: number;
+  externalReturnsRia?: number;
+  externalReturnsArn?: number;
 }
 
 interface HoldingsMetrics {
@@ -47,6 +64,21 @@ interface HoldingsMetrics {
   returns: number;
   returnsRia: number;
   returnsArn: number;
+  externalAum: number;
+  externalAumRia: number;
+  externalAumArn: number;
+  externalInvested: number;
+  externalInvestedRia: number;
+  externalInvestedArn: number;
+  externalGrossInvestments: number;
+  externalGrossInvestmentsRia: number;
+  externalGrossInvestmentsArn: number;
+  externalNetInflow: number;
+  externalNetInflowRia: number;
+  externalNetInflowArn: number;
+  externalReturns: number;
+  externalReturnsRia: number;
+  externalReturnsArn: number;
 }
 
 const emptyMetrics = (): HoldingsMetrics => ({
@@ -65,6 +97,21 @@ const emptyMetrics = (): HoldingsMetrics => ({
   returns: 0,
   returnsRia: 0,
   returnsArn: 0,
+  externalAum: 0,
+  externalAumRia: 0,
+  externalAumArn: 0,
+  externalInvested: 0,
+  externalInvestedRia: 0,
+  externalInvestedArn: 0,
+  externalGrossInvestments: 0,
+  externalGrossInvestmentsRia: 0,
+  externalGrossInvestmentsArn: 0,
+  externalNetInflow: 0,
+  externalNetInflowRia: 0,
+  externalNetInflowArn: 0,
+  externalReturns: 0,
+  externalReturnsRia: 0,
+  externalReturnsArn: 0,
 });
 
 const transformHoldingsCards = (data: CardData[]): HoldingsMetrics => {
@@ -73,6 +120,7 @@ const transformHoldingsCards = (data: CardData[]): HoldingsMetrics => {
   const netInflow = data.find((item) => item.type === "Net Inflow");
   const redemptions = data.find((item) => item.type === "Redemptions");
   const returns = data.find((item) => item.type === "Returns (%)");
+  const external = data.find((item) => item.type === "External Holdings");
 
   return {
     aum: aum?.assetsUnderManagement ?? 0,
@@ -90,6 +138,21 @@ const transformHoldingsCards = (data: CardData[]): HoldingsMetrics => {
     returns: returns?.returns ?? 0,
     returnsRia: returns?.returnsRia ?? 0,
     returnsArn: returns?.returnsArn ?? 0,
+    externalAum: external?.externalAum ?? 0,
+    externalAumRia: external?.externalAumRia ?? 0,
+    externalAumArn: external?.externalAumArn ?? 0,
+    externalInvested: external?.externalInvested ?? 0,
+    externalInvestedRia: external?.externalInvestedRia ?? 0,
+    externalInvestedArn: external?.externalInvestedArn ?? 0,
+    externalGrossInvestments: external?.externalGrossInvestments ?? 0,
+    externalGrossInvestmentsRia: external?.externalGrossInvestmentsRia ?? 0,
+    externalGrossInvestmentsArn: external?.externalGrossInvestmentsArn ?? 0,
+    externalNetInflow: external?.externalNetInflow ?? 0,
+    externalNetInflowRia: external?.externalNetInflowRia ?? 0,
+    externalNetInflowArn: external?.externalNetInflowArn ?? 0,
+    externalReturns: external?.externalReturns ?? 0,
+    externalReturnsRia: external?.externalReturnsRia ?? 0,
+    externalReturnsArn: external?.externalReturnsArn ?? 0,
   };
 };
 
@@ -106,7 +169,7 @@ const HoldingsAumOverview = () => {
   } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data, loading } = useFilteredFetch(
+  const { data, loading, error, refetch } = useFilteredFetch(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -200,6 +263,12 @@ const HoldingsAumOverview = () => {
     metrics.redemptionsArn
   );
 
+  const displayExternalAum = metric(
+    metrics.externalAum,
+    metrics.externalAumRia,
+    metrics.externalAumArn
+  );
+
   const renderMetricBreakdown = (
     arn: number,
     ria: number,
@@ -227,7 +296,16 @@ const HoldingsAumOverview = () => {
     );
 
   if (loading) {
-    return <p>Loading holdings AUM data...</p>;
+    return <DashboardSkeleton variant="cards" count={6} />;
+  }
+
+  if (error) {
+    return (
+      <DashboardLoadError
+        message={error.message || "Failed to load holdings AUM data"}
+        onRetry={refetch}
+      />
+    );
   }
 
   return (
@@ -326,6 +404,24 @@ const HoldingsAumOverview = () => {
               <span className="total-yes"></span>
             </div>
           </div>
+
+          {displayExternalAum > 0 && (
+            <div className="col-span-4">
+              <div className="box-total-sales h-full">
+                <SalesIcon />
+                <h2 className="numbers-sale text-gray-900">
+                  {formatCurrency(displayExternalAum)}
+                </h2>
+                <p className="total-sale-text">External Holdings</p>
+                {renderMetricBreakdown(
+                  metrics.externalAumArn,
+                  metrics.externalAumRia,
+                  formatCurrency
+                )}
+                <span className="total-yes"></span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

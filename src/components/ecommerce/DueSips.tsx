@@ -10,6 +10,7 @@ interface DueSipsProps {
   sips: DueSipItem[];
   error: string | null;
   loading: boolean;
+  onRetry?: () => void;
   selectedPeriod: DuePeriod;
   onPeriodChange: (period: DuePeriod) => void;
   page: number;
@@ -21,7 +22,8 @@ interface DueSipsProps {
 export default function DueSips({ 
   sips, 
   error, 
-  loading, 
+  loading,
+  onRetry,
   selectedPeriod, 
   onPeriodChange,
   page,
@@ -102,6 +104,7 @@ export default function DueSips({
           sips={sips} 
           error={error} 
           loading={loading}
+          onRetry={onRetry}
         />
       </div>
     </div>

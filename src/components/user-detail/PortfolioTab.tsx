@@ -74,7 +74,7 @@ export default function PortfolioTab({
               <h3 className="text-lg font-semibold mb-4 dark:text-gray-400">
                 {mfPortfolio.portfolioName || (mfPortfolio.goal?.[0]?.name) || `Mutual Fund Portfolio ${index + 1}`}
               </h3>
-              {mfPortfolio.portfolioName && mfPortfolio.goal && mfPortfolio.goal.length > 0 && (
+              {mfPortfolio.portfolioName && mfPortfolio.goal && mfPortfolio.goal.length > 0 && mfPortfolio.goal[0] && (
                 <div className="mb-4">
                   <Badge color="info">{mfPortfolio.goal[0].name}</Badge>
                 </div>

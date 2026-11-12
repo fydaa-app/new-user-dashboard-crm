@@ -5,6 +5,8 @@ import { useGlobalContext } from "@/context/GlobalState";
 import { investmentModelQuery } from "@/context/investmentModel";
 import { transformPackages } from "@/utils/packageTransform";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 interface PackageData {
   packageName: string;
@@ -30,7 +32,7 @@ export default function TopPackagesMf() {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: apiData, loading, error } = useFilteredFetch<TopPackagesResponse>(
+  const { data: apiData, loading, error, refetch } = useFilteredFetch<TopPackagesResponse>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -87,13 +89,17 @@ export default function TopPackagesMf() {
   );
 
   useEffect(() => {
-    if (apiData) {
-      const transformedPackages = transformPackages(apiData.packageWiseData);
-      setTopPackages(transformedPackages);
-      setTotalAmount(apiData.totalAmount);
-      setTotalUsersCount(apiData.totalUsers);
+    if (loading || !apiData) {
+      setTopPackages([]);
+      setTotalAmount(0);
+      setTotalUsersCount(0);
+      return;
     }
-  }, [apiData]);
+    const transformedPackages = transformPackages(apiData.packageWiseData || []);
+    setTopPackages(transformedPackages);
+    setTotalAmount(apiData.totalAmount || 0);
+    setTotalUsersCount(apiData.totalUsers || 0);
+  }, [apiData, loading]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
@@ -116,9 +122,13 @@ export default function TopPackagesMf() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <DashboardSkeleton variant="list" count={5} className="border-0 p-0" />
       ) : error ? (
-        <p className="text-red-500">{error.message}</p>
+        <DashboardLoadError
+          message={error.message || "Failed to load top packages"}
+          onRetry={refetch}
+          className="border-0"
+        />
       ) : topPackages.length === 0 ? (
         <p className="text-gray-500">No package data found</p>
       ) : (

@@ -4,6 +4,8 @@ import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { investmentModelQuery } from "@/context/investmentModel";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 interface TopGoal {
   goalId: number;
@@ -30,7 +32,7 @@ export default function TopGoalsMf() {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: apiData, loading, error } = useFilteredFetch<TopGoalsResponse>(
+  const { data: apiData, loading, error, refetch } = useFilteredFetch<TopGoalsResponse>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -87,12 +89,16 @@ export default function TopGoalsMf() {
   );
 
   useEffect(() => {
-    if (apiData) {
-      setTopGoals(apiData.goalInvestmentData);
-      setTotalAmount(apiData.totalRevenue);
-      setTotalUsersCount(apiData.totalUsers);
+    if (loading || !apiData) {
+      setTopGoals([]);
+      setTotalAmount(0);
+      setTotalUsersCount(0);
+      return;
     }
-  }, [apiData]);
+    setTopGoals(apiData.goalInvestmentData || []);
+    setTotalAmount(apiData.totalRevenue || 0);
+    setTotalUsersCount(apiData.totalUsers || 0);
+  }, [apiData, loading]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
@@ -115,9 +121,13 @@ export default function TopGoalsMf() {
       </div>
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <DashboardSkeleton variant="list" count={5} className="border-0 p-0" />
       ) : error ? (
-        <p className="text-red-500">{error.message}</p>
+        <DashboardLoadError
+          message={error.message || "Failed to load top goals"}
+          onRetry={refetch}
+          className="border-0"
+        />
       ) : topGoals.length === 0 ? (
         <p className="text-gray-500">No goal investment data found</p>
       ) : (

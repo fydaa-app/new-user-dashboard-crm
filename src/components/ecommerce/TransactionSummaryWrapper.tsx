@@ -94,7 +94,7 @@ const TransactionSummaryWrapper = () => {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: summaryData, loading } = useFilteredFetch<SummaryData>(
+  const { data: summaryData, loading, error, refetch } = useFilteredFetch<SummaryData>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
@@ -156,7 +156,14 @@ const TransactionSummaryWrapper = () => {
     ]
   );
 
-  return <TransactionSummary data={summaryData} loading={loading} />;
+  return (
+    <TransactionSummary
+      data={summaryData}
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+    />
+  );
 };
 
 export default TransactionSummaryWrapper;

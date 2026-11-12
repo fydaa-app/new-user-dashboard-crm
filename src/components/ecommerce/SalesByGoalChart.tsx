@@ -6,6 +6,8 @@ import { useGlobalContext } from "@/context/GlobalState";
 import { investmentModelQuery } from "@/context/investmentModel";
 import dynamic from "next/dynamic";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 const ApexCharts = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -33,7 +35,7 @@ const SalesByGoalChart = () => {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: apiData, loading, error } = useFilteredFetch<GoalResponse>(
+  const { data: apiData, loading, error, refetch } = useFilteredFetch<GoalResponse>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -85,10 +87,12 @@ const SalesByGoalChart = () => {
   );
 
   useEffect(() => {
-    if (apiData?.goalInvestmentData) {
-      setGoalData(apiData.goalInvestmentData);
+    if (loading || !apiData) {
+      setGoalData([]);
+      return;
     }
-  }, [apiData]);
+    setGoalData(apiData.goalInvestmentData || []);
+  }, [apiData, loading]);
 
   const chartLabels = useMemo(() => goalData.map((goal) => `${goal.goalName} (${goal.userCount} users)`), [goalData]);
   const chartSeries = useMemo(() => goalData.map((goal) => goal.totalRevenue), [goalData]);
@@ -194,13 +198,13 @@ const SalesByGoalChart = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-80 items-center justify-center">
-          <p className="text-gray-500">Loading chart data...</p>
-        </div>
+        <DashboardSkeleton variant="chart" className="border-0 p-0" />
       ) : error ? (
-        <div className="flex h-80 items-center justify-center">
-          <p className="text-red-500">{error.message}</p>
-        </div>
+        <DashboardLoadError
+          message={error.message || "Failed to load goal chart"}
+          onRetry={refetch}
+          className="border-0"
+        />
       ) : goalData.length === 0 ? (
         <div className="flex h-80 items-center justify-center">
           <p className="text-gray-500">No goal data available</p>

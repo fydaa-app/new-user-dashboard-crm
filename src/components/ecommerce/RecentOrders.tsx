@@ -12,6 +12,8 @@ import Cookies from "js-cookie";
 import { useGlobalContext } from "@/context/GlobalState";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
 import { DashboardEndpoints } from "@/config/api-endpoints";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 interface Order {
   date: string;
@@ -31,7 +33,7 @@ export default function RecentOrders() {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: apiData } = useFilteredFetch<OrdersResponse>(
+  const { data: apiData, loading, error, refetch } = useFilteredFetch<OrdersResponse>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -85,16 +87,31 @@ export default function RecentOrders() {
   );
 
   useEffect(() => {
-    if (apiData?.transactions) {
-      setOrders(apiData.transactions);
+    if (loading || !apiData) {
+      setOrders([]);
+      return;
     }
-  }, [apiData]);
+    setOrders(apiData.transactions || []);
+  }, [apiData, loading]);
 
   const formatCurrency = (value: number): string =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
     }).format(value);
+
+  if (loading) {
+    return <DashboardSkeleton variant="table" count={5} />;
+  }
+
+  if (error) {
+    return (
+      <DashboardLoadError
+        message={error.message || "Failed to load recent orders"}
+        onRetry={refetch}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03] h-full max-h-96">

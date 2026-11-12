@@ -20,6 +20,7 @@ import ProfileTab from "./ProfileTab";
 import PlanDataTab from "./PlanDataTab";
 import XIRRTableSection from "./XIRRTableSection";
 import AccountsTab from "./AccountsTab";
+import ExternalHoldingsTab from "./ExternalHoldingsTab";
 import { apiClient } from "@/services/api-client";
 import { UserEndpoints, StockEndpoints, TransactionEndpoints, FinancialPlanEndpoints } from "@/config/api-endpoints";
 
@@ -186,6 +187,7 @@ export default function UserTab({
             activeTab={activeTab}
             onTabChange={setActiveTab}
             userDetails={userDetails}
+            mutualFundDetails={mutualFundDetails}
           />
 
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -222,6 +224,13 @@ export default function UserTab({
                 stockOrders={stockOrders}
                 portfolioDetails={portfolioDetails}
                 mutualFundDetails={mutualFundDetails}
+              />
+            )}
+
+            {activeTab === "External Holdings" && (
+              <ExternalHoldingsTab 
+                userDetails={userDetails} 
+                mutualFundDetails={mutualFundDetails} 
               />
             )}
 

@@ -7,6 +7,8 @@ import { useGlobalContext } from "@/context/GlobalState";
 import Select from "@/components/form/Select";
 import { DashboardEndpoints } from "@/config/api-endpoints";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -34,7 +36,7 @@ export default function MonthlySalesChart() {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: chartData } = useFilteredFetch<{ dataPoints: DataPoint[] }>(
+  const { data: chartData, loading, error, refetch } = useFilteredFetch<{ dataPoints: DataPoint[] }>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -85,12 +87,16 @@ export default function MonthlySalesChart() {
     ]
   );
 
-  // Update dataPoints when chartData changes
+  // Update dataPoints when chartData changes; clear while loading
   useEffect(() => {
-    if (chartData?.dataPoints) {
-      setDataPoints(chartData.dataPoints);
+    if (loading || !chartData) {
+      setDataPoints([]);
+      setSeries([]);
+      setCategories([]);
+      return;
     }
-  }, [chartData]);
+    setDataPoints(chartData.dataPoints || []);
+  }, [chartData, loading]);
 
   useEffect(() => {
     if (dataPoints.length === 0) return;
@@ -169,6 +175,19 @@ export default function MonthlySalesChart() {
       y: { formatter: (val: number) => `${val}` },
     },
   };
+
+  if (loading) {
+    return <DashboardSkeleton variant="chart" />;
+  }
+
+  if (error) {
+    return (
+      <DashboardLoadError
+        message={error.message || "Failed to load sales report"}
+        onRetry={refetch}
+      />
+    );
+  }
 
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">

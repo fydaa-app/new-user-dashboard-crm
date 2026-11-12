@@ -107,7 +107,7 @@ const SipWrapper = () => {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: sipData, loading } = useFilteredFetch(
+  const { data: sipData, loading, error, refetch } = useFilteredFetch(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
@@ -164,15 +164,22 @@ const SipWrapper = () => {
   const pick = (combined?: number, ria?: number, arn?: number) =>
     pickModelMetric(investmentModelFilter, combined, ria, arn);
 
-  return <Sip data={{
-    totalActiveSips: pick(sipData?.totalActiveSips, sipData?.totalActiveSipsRia, sipData?.totalActiveSipsArn),
-    totalInActiveSips: pick(sipData?.totalInActiveSips, sipData?.totalInActiveSipsRia, sipData?.totalInActiveSipsArn),
-    totalCompletedSips: pick(sipData?.totalCompletedSips, sipData?.totalCompletedSipsRia, sipData?.totalCompletedSipsArn),
-    totalInProgressSips: pick(sipData?.totalInProgressSips, sipData?.totalInProgressSipsRia, sipData?.totalInProgressSipsArn),
-    totalPartiallyExitedSips: pick(sipData?.totalPartiallyExitedSips, sipData?.totalPartiallyExitedSipsRia, sipData?.totalPartiallyExitedSipsArn),
-    totalInvestedSips: pick(sipData?.totalInvestedSips, sipData?.totalInvestedSipsRia, sipData?.totalInvestedSipsArn),
-    totalCancelledSips: pick(sipData?.totalCancelledSips, sipData?.totalCancelledSipsRia, sipData?.totalCancelledSipsArn),
-  }} loading={loading} />;
+  return (
+    <Sip
+      data={{
+        totalActiveSips: pick(sipData?.totalActiveSips, sipData?.totalActiveSipsRia, sipData?.totalActiveSipsArn),
+        totalInActiveSips: pick(sipData?.totalInActiveSips, sipData?.totalInActiveSipsRia, sipData?.totalInActiveSipsArn),
+        totalCompletedSips: pick(sipData?.totalCompletedSips, sipData?.totalCompletedSipsRia, sipData?.totalCompletedSipsArn),
+        totalInProgressSips: pick(sipData?.totalInProgressSips, sipData?.totalInProgressSipsRia, sipData?.totalInProgressSipsArn),
+        totalPartiallyExitedSips: pick(sipData?.totalPartiallyExitedSips, sipData?.totalPartiallyExitedSipsRia, sipData?.totalPartiallyExitedSipsArn),
+        totalInvestedSips: pick(sipData?.totalInvestedSips, sipData?.totalInvestedSipsRia, sipData?.totalInvestedSipsArn),
+        totalCancelledSips: pick(sipData?.totalCancelledSips, sipData?.totalCancelledSipsRia, sipData?.totalCancelledSipsArn),
+      }}
+      loading={loading}
+      error={error}
+      onRetry={refetch}
+    />
+  );
 };
 
 export default SipWrapper;

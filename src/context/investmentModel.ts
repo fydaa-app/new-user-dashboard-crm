@@ -2,14 +2,8 @@ export type InvestmentModelFilter = "ALL" | "RIA" | "ARN";
 
 export const INVESTMENT_MODEL_STORAGE_KEY = "investmentModelFilter";
 
+/** Always returns ALL on read — refresh must not restore a prior RIA/ARN selection. */
 export function readInvestmentModelFilter(): InvestmentModelFilter {
-  if (typeof window === "undefined") {
-    return "ALL";
-  }
-  const stored = localStorage.getItem(INVESTMENT_MODEL_STORAGE_KEY);
-  if (stored === "RIA" || stored === "ARN" || stored === "ALL") {
-    return stored;
-  }
   return "ALL";
 }
 

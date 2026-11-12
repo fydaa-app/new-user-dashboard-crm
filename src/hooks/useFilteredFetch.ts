@@ -1,10 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseFilteredFetchResult<T> {
   data: T | null;
   loading: boolean;
   error: Error | null;
+  refetch: () => void;
 }
 
 export function useFilteredFetch<T>(
@@ -14,30 +15,42 @@ export function useFilteredFetch<T>(
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const requestIdRef = useRef(0);
   const controllerRef = useRef<AbortController | null>(null);
+  const fetchFnRef = useRef(fetchFn);
+  fetchFnRef.current = fetchFn;
 
-   useEffect(() => {
+  const refetch = useCallback(() => {
+    setRetryCount((c) => c + 1);
+  }, []);
+
+  useEffect(() => {
     const currentRequestId = ++requestIdRef.current;
     const controller = new AbortController();
     controllerRef.current = controller;
 
-    // Mark loading at start of each fetch
+    // Clear stale data/error so consumers never show previous filter results while loading
     setLoading(true);
+    setData(null);
+    setError(null);
 
     const execute = async () => {
       try {
-        const result = await fetchFn(controller.signal);
+        const result = await fetchFnRef.current(controller.signal);
 
-        // Only update state if this is still the latest request and not aborted
         if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
           setData(result);
           setError(null);
         }
       } catch (err) {
         if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
-          setError(err as Error);
+          // Ignore abort errors from superseded requests
+          if (err instanceof DOMException && err.name === "AbortError") {
+            return;
+          }
+          setError(err instanceof Error ? err : new Error(String(err)));
         }
       } finally {
         if (currentRequestId === requestIdRef.current && !controller.signal.aborted) {
@@ -52,7 +65,7 @@ export function useFilteredFetch<T>(
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, retryCount]);
 
-  return { data, loading, error };
+  return { data, loading, error, refetch };
 }

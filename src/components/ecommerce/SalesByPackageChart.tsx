@@ -7,6 +7,8 @@ import { investmentModelQuery } from "@/context/investmentModel";
 import { transformPackages } from "@/utils/packageTransform";
 import dynamic from "next/dynamic";
 import { useFilteredFetch } from "@/hooks/useFilteredFetch";
+import DashboardSkeleton from "@/components/common/DashboardSkeleton";
+import DashboardLoadError from "@/components/common/DashboardLoadError";
 
 const ApexCharts = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -34,7 +36,7 @@ const SalesByPackageChart = () => {
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, investmentModelFilter } = useGlobalContext();
   const effectiveType = userAppTypeLock || selectedType || "team";
 
-  const { data: apiData, loading, error } = useFilteredFetch<TopPackagesResponse>(
+  const { data: apiData, loading, error, refetch } = useFilteredFetch<TopPackagesResponse>(
     async (signal) => {
       const AUTH_TOKEN = Cookies.get("authToken");
       if (!AUTH_TOKEN) {
@@ -91,11 +93,13 @@ const SalesByPackageChart = () => {
   );
 
   useEffect(() => {
-    if (apiData?.packageWiseData) {
-      const transformedPackages = transformPackages(apiData.packageWiseData);
-      setPackageData(transformedPackages);
+    if (loading || !apiData) {
+      setPackageData([]);
+      return;
     }
-  }, [apiData]);
+    const transformedPackages = transformPackages(apiData.packageWiseData || []);
+    setPackageData(transformedPackages);
+  }, [apiData, loading]);
 
   const chartLabels = useMemo(() => packageData.map((pkg) => `${pkg.packageName} (${pkg.userCount} users)`), [packageData]);
   const chartSeries = useMemo(() => packageData.map((pkg) => pkg.totalAmount), [packageData]);
@@ -201,13 +205,13 @@ const SalesByPackageChart = () => {
       </div>
 
       {loading ? (
-        <div className="flex h-80 items-center justify-center">
-          <p className="text-gray-500">Loading chart data...</p>
-        </div>
+        <DashboardSkeleton variant="chart" className="border-0 p-0" />
       ) : error ? (
-        <div className="flex h-80 items-center justify-center">
-          <p className="text-red-500">{error.message}</p>
-        </div>
+        <DashboardLoadError
+          message={error.message || "Failed to load package chart"}
+          onRetry={refetch}
+          className="border-0"
+        />
       ) : packageData.length === 0 ? (
         <div className="flex h-80 items-center justify-center">
           <p className="text-gray-500">No package data available</p>
