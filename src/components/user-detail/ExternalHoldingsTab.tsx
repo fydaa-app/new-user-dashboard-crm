@@ -130,7 +130,7 @@ export default function ExternalHoldingsTab({
         </table>
       </div>
 
-      <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+      {/* <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
         <h4 className="font-medium text-amber-900 dark:text-amber-300 mb-2">
           Important Notes
         </h4>
@@ -148,7 +148,7 @@ export default function ExternalHoldingsTab({
             Users must redeem directly through the AMC or their distributor.
           </li>
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 }
