@@ -111,6 +111,7 @@ const AppHeader: React.FC = () => {
     setAppType,
     investmentModelFilter,
     setInvestmentModelFilter,
+    resetHeaderFilters,
   } = useGlobalContext();
   const displayAppType = userAppTypeLock || appType;
   console.log('[DEBUG AppHeader] userAppTypeLock:', userAppTypeLock, 'appType:', appType, 'displayAppType:', displayAppType, 'isLocked:', !!userAppTypeLock);
@@ -174,7 +175,11 @@ const AppHeader: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (selectedDesignation) {
+    if (
+      selectedDesignation &&
+      selectedDesignation !== 'all' &&
+      selectedDesignation !== 'assign_to_yourself'
+    ) {
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
         setSelectedEmployee(""); // Reset employee selection
@@ -608,6 +613,25 @@ const AppHeader: React.FC = () => {
     }
   }, [setInvestmentModelFilter]);
 
+  const handleHeaderRefresh = useCallback(() => {
+    Object.values(teamEmployeeControllersRef.current).forEach((controller) => {
+      controller.abort();
+    });
+    teamEmployeeControllersRef.current = {};
+
+    if (hierarchyLevelAbortRef.current) {
+      hierarchyLevelAbortRef.current.abort();
+      hierarchyLevelAbortRef.current = null;
+    }
+
+    setTeamSelections({});
+    setTeamEmployees({});
+    setLoadingLevels({});
+    setHierarchyLevels([]);
+    setRawEmployees([]);
+    resetHeaderFilters();
+  }, [resetHeaderFilters]);
+
   // const handleSaveDates = () => {
   //   if (validateDates(startDate, endDate)) {      
   //     setCustomDates({ start: startDate, end: endDate });
@@ -796,6 +820,37 @@ const AppHeader: React.FC = () => {
                   </div>
                 );
               })}
+
+              <button
+                type="button"
+                onClick={handleHeaderRefresh}
+                aria-label="Refresh filters"
+                title="Refresh filters"
+                className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M20 12a8 8 0 1 1-2.343-5.657"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M20 4v5h-5"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
             </div>
 
             {/* Right side: Theme Toggle, Notification, User Dropdown */}

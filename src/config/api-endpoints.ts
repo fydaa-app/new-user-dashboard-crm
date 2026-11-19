@@ -62,6 +62,7 @@ export const DashboardEndpoints = {
   REVENUE_CARDS: "/referrals/revenue-cards",
   CARD_DATA_MF: "/referrals/cards-data-mf",
   CARD_DATA_MF_HOLDINGS: "/referrals/cards-data-mf-holdings",
+  AUM_SUMMARY_MF: "/referrals/aum-summary-mf",
   SIP_CARDS_DATA_MF: "/referrals/sip-cards-data-mf",
   TRANSACTIONS_SUMMARY_MF: "/referrals/transactions-summary-mf",
   

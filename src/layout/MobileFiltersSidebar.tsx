@@ -155,7 +155,11 @@ const MobileFiltersSidebar: React.FC = () => {
   useEffect(() => {
     const controller = new AbortController();
 
-    if (selectedDesignation) {
+    if (
+      selectedDesignation &&
+      selectedDesignation !== 'all' &&
+      selectedDesignation !== 'assign_to_yourself'
+    ) {
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
         setSelectedEmployee(""); // Reset employee selection

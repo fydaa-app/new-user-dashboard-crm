@@ -98,6 +98,32 @@ interface SipCardData {
   totalcancelledsipArn?: number;
 }
 
+interface AumSummaryBucket {
+  grossInvestment: number;
+  netInflow: number;
+  redemptions: number;
+}
+
+interface AumSummaryData {
+  totalAum: AumSummaryBucket;
+  inAppAum: AumSummaryBucket;
+  migratedAum: AumSummaryBucket;
+  externalAum: AumSummaryBucket;
+}
+
+const emptyAumBucket = (): AumSummaryBucket => ({
+  grossInvestment: 0,
+  netInflow: 0,
+  redemptions: 0,
+});
+
+const emptyAumSummary = (): AumSummaryData => ({
+  totalAum: emptyAumBucket(),
+  inAppAum: emptyAumBucket(),
+  migratedAum: emptyAumBucket(),
+  externalAum: emptyAumBucket(),
+});
+
 const NonAdminDashboard = () => {
   const router = useRouter();
   const { selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, appType, investmentModelFilter } = useGlobalContext();
@@ -116,9 +142,10 @@ const NonAdminDashboard = () => {
   const [cardsLoading, setCardsLoading] = useState(true);
   const [cardsError, setCardsError] = useState<Error | null>(null);
   const [cardsRetry, setCardsRetry] = useState(0);
-  const [holdingsLoading, setHoldingsLoading] = useState(true);
-  const [holdingsError, setHoldingsError] = useState<Error | null>(null);
-  const [holdingsRetry, setHoldingsRetry] = useState(0);
+  const [aumSummaryLoading, setAumSummaryLoading] = useState(true);
+  const [aumSummaryError, setAumSummaryError] = useState<Error | null>(null);
+  const [aumSummaryRetry, setAumSummaryRetry] = useState(0);
+  const [aumSummary, setAumSummary] = useState<AumSummaryData>(emptyAumSummary);
   const [tillDateLoading, setTillDateLoading] = useState(true);
   const [tillDateError, setTillDateError] = useState<Error | null>(null);
   const [tillDateRetry, setTillDateRetry] = useState(0);
@@ -129,29 +156,6 @@ const NonAdminDashboard = () => {
   const [newInvestors, setNewInvestors] = useState<number>(0);
   const [newInvestorsRia, setNewInvestorsRia] = useState<number>(0);
   const [newInvestorsArn, setNewInvestorsArn] = useState<number>(0);
-  const [totalRevenue, setTotalRevenue] = useState<number>(0);
-  const [totalRevenueRia, setTotalRevenueRia] = useState<number>(0);
-  const [totalRevenueArn, setTotalRevenueArn] = useState<number>(0);
-  // Holdings-based AUM (transaction cohort / MfEverydayAum) — shown in Growth Overview
-  const [holdingsAum, setHoldingsAum] = useState<number>(0);
-  const [holdingsAumRia, setHoldingsAumRia] = useState<number>(0);
-  const [holdingsAumArn, setHoldingsAumArn] = useState<number>(0);
-  const [holdingsGrossInvestments, setHoldingsGrossInvestments] = useState<number>(0);
-  const [holdingsGrossInvestmentsRia, setHoldingsGrossInvestmentsRia] = useState<number>(0);
-  const [holdingsGrossInvestmentsArn, setHoldingsGrossInvestmentsArn] = useState<number>(0);
-  const [holdingsNetInflow, setHoldingsNetInflow] = useState<number>(0);
-  const [holdingsNetInflowRia, setHoldingsNetInflowRia] = useState<number>(0);
-  const [holdingsNetInflowArn, setHoldingsNetInflowArn] = useState<number>(0);
-  const [holdingsRedemptions, setHoldingsRedemptions] = useState<number>(0);
-  const [holdingsRedemptionsRia, setHoldingsRedemptionsRia] = useState<number>(0);
-  const [holdingsRedemptionsArn, setHoldingsRedemptionsArn] = useState<number>(0);
-  const [holdingsReturns, setHoldingsReturns] = useState<number>(0);
-  const [holdingsReturnsRia, setHoldingsReturnsRia] = useState<number>(0);
-  const [holdingsReturnsArn, setHoldingsReturnsArn] = useState<number>(0);
-  // External Holdings
-  const [externalAum, setExternalAum] = useState<number>(0);
-  const [externalAumRia, setExternalAumRia] = useState<number>(0);
-  const [externalAumArn, setExternalAumArn] = useState<number>(0);
   // Till-date metrics (not affected by date filter)
   const [totalUsersTillDate, setTotalUsersTillDate] = useState<number>(0);
   const [totalUsersTillDateRia, setTotalUsersTillDateRia] = useState<number>(0);
@@ -180,14 +184,11 @@ const NonAdminDashboard = () => {
 
 
 
-  // Fetch cards data (revenue + new investors)
+  // Fetch cards data (new investors for SIP Activity)
   useEffect(() => {
     const controller = new AbortController();
     setCardsLoading(true);
     setCardsError(null);
-    setTotalRevenue(0);
-    setTotalRevenueRia(0);
-    setTotalRevenueArn(0);
     setNewInvestors(0);
     setNewInvestorsRia(0);
     setNewInvestorsArn(0);
@@ -237,11 +238,7 @@ const NonAdminDashboard = () => {
         const data: CardData[] = await response.json();
 
         const newInvestorsData = data.find((item) => item.type === "New Investors");
-        const revenueData = data.find((item) => item.type === "Total Revenue");
 
-        setTotalRevenue(revenueData?.totalRevenue ?? 0);
-        setTotalRevenueRia(revenueData?.totalRevenueRia ?? 0);
-        setTotalRevenueArn(revenueData?.totalRevenueArn ?? 0);
         setNewInvestors(newInvestorsData?.newInvestors ?? 0);
         setNewInvestorsRia(newInvestorsData?.newInvestorsRia ?? 0);
         setNewInvestorsArn(newInvestorsData?.newInvestorsArn ?? 0);
@@ -263,41 +260,24 @@ const NonAdminDashboard = () => {
     return () => controller.abort();
   }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, cardsRetry]);
 
-  // Holdings-based AUM cards (CRM → transaction aum/cohort)
+  // Investment Overview (aum-summary-mf): total / in-app / migrated / external flows
   useEffect(() => {
     const controller = new AbortController();
-    setHoldingsLoading(true);
-    setHoldingsError(null);
-    setHoldingsAum(0);
-    setHoldingsAumRia(0);
-    setHoldingsAumArn(0);
-    setHoldingsGrossInvestments(0);
-    setHoldingsGrossInvestmentsRia(0);
-    setHoldingsGrossInvestmentsArn(0);
-    setHoldingsNetInflow(0);
-    setHoldingsNetInflowRia(0);
-    setHoldingsNetInflowArn(0);
-    setHoldingsRedemptions(0);
-    setHoldingsRedemptionsRia(0);
-    setHoldingsRedemptionsArn(0);
-    setHoldingsReturns(0);
-    setHoldingsReturnsRia(0);
-    setHoldingsReturnsArn(0);
-    setExternalAum(0);
-    setExternalAumRia(0);
-    setExternalAumArn(0);
+    setAumSummaryLoading(true);
+    setAumSummaryError(null);
+    setAumSummary(emptyAumSummary());
 
-    const fetchHoldingsCardsData = async () => {
+    const fetchAumSummary = async () => {
       const AUTH_TOKEN = Cookies.get("authToken");
 
       if (!AUTH_TOKEN) {
-        setHoldingsError(new Error("Auth token not found"));
-        setHoldingsLoading(false);
+        setAumSummaryError(new Error("Auth token not found"));
+        setAumSummaryLoading(false);
         return;
       }
 
       try {
-        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/cards-data-mf-holdings?`;
+        let url = `${process.env.NEXT_PUBLIC_API_URL}/referrals/aum-summary-mf?`;
 
         if (selectedOption === "custom") {
           url += `timeframe=custom&startDate=${customDates.start}&endDate=${customDates.end}`;
@@ -326,57 +306,51 @@ const NonAdminDashboard = () => {
         }
 
         if (!response.ok) {
-          throw new Error("Failed to fetch holdings cards data");
+          throw new Error("Failed to fetch investment overview");
         }
 
-        const data: CardData[] = await response.json();
-
-        const aumData = data.find((item) => item.type === "Assets under Management");
-        setHoldingsAum(aumData?.assetsUnderManagement ?? 0);
-        setHoldingsAumRia(aumData?.assetsUnderManagementRia ?? 0);
-        setHoldingsAumArn(aumData?.assetsUnderManagementArn ?? 0);
-
-        const grossData = data.find((item) => item.type === "Gross Investments");
-        setHoldingsGrossInvestments(grossData?.grossInvestments ?? 0);
-        setHoldingsGrossInvestmentsRia(grossData?.grossInvestmentsRia ?? 0);
-        setHoldingsGrossInvestmentsArn(grossData?.grossInvestmentsArn ?? 0);
-
-        const netInflowData = data.find((item) => item.type === "Net Inflow");
-        setHoldingsNetInflow(netInflowData?.netInflow ?? 0);
-        setHoldingsNetInflowRia(netInflowData?.netInflowRia ?? 0);
-        setHoldingsNetInflowArn(netInflowData?.netInflowArn ?? 0);
-
-        const redemptionsData = data.find((item) => item.type === "Redemptions");
-        setHoldingsRedemptions(redemptionsData?.redemptions ?? 0);
-        setHoldingsRedemptionsRia(redemptionsData?.redemptionsRia ?? 0);
-        setHoldingsRedemptionsArn(redemptionsData?.redemptionsArn ?? 0);
-
-        const returnsData = data.find((item) => item.type === "Returns (%)");
-        setHoldingsReturns(returnsData?.returns ?? 0);
-        setHoldingsReturnsRia(returnsData?.returnsRia ?? 0);
-        setHoldingsReturnsArn(returnsData?.returnsArn ?? 0);
-
-        const externalData = data.find((item) => item.type === "External Holdings");
-        setExternalAum(externalData?.externalAum ?? 0);
-        setExternalAumRia(externalData?.externalAumRia ?? 0);
-        setExternalAumArn(externalData?.externalAumArn ?? 0);
-        setHoldingsError(null);
+        const data: AumSummaryData = await response.json();
+        setAumSummary({
+          totalAum: {
+            grossInvestment: data.totalAum?.grossInvestment ?? 0,
+            netInflow: data.totalAum?.netInflow ?? 0,
+            redemptions: data.totalAum?.redemptions ?? 0,
+          },
+          inAppAum: {
+            grossInvestment: data.inAppAum?.grossInvestment ?? 0,
+            netInflow: data.inAppAum?.netInflow ?? 0,
+            redemptions: data.inAppAum?.redemptions ?? 0,
+          },
+          migratedAum: {
+            grossInvestment: data.migratedAum?.grossInvestment ?? 0,
+            netInflow: data.migratedAum?.netInflow ?? 0,
+            redemptions: data.migratedAum?.redemptions ?? 0,
+          },
+          externalAum: {
+            grossInvestment: data.externalAum?.grossInvestment ?? 0,
+            netInflow: data.externalAum?.netInflow ?? 0,
+            redemptions: data.externalAum?.redemptions ?? 0,
+          },
+        });
+        setAumSummaryError(null);
       } catch (error) {
         if (controller.signal.aborted) {
           return;
         }
-        setHoldingsError(error instanceof Error ? error : new Error(String(error)));
+        setAumSummaryError(
+          error instanceof Error ? error : new Error(String(error)),
+        );
       } finally {
         if (!controller.signal.aborted) {
-          setHoldingsLoading(false);
+          setAumSummaryLoading(false);
         }
       }
     };
 
-    fetchHoldingsCardsData();
+    fetchAumSummary();
 
     return () => controller.abort();
-  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, holdingsRetry]);
+  }, [selectedOption, customDates, selectedEmployee, selectedTeamMember, selectedType, hierarchyViewMode, userAppTypeLock, aumSummaryRetry]);
 
   // Fetch till-date data for Client & SIP Metrics - Not affected by date filter
   useEffect(() => {
@@ -613,7 +587,6 @@ const NonAdminDashboard = () => {
     kind: "amount" | "rate" = "amount",
   ) => pickModelMetric(investmentModelFilter, combined, ria, arn, kind);
 
-  const displayRevenue = metric(totalRevenue, totalRevenueRia, totalRevenueArn);
   const displayNewInvestors = metric(newInvestors, newInvestorsRia, newInvestorsArn);
   const displayNewSips = metric(newSipsCount, newSipsCountRia, newSipsCountArn);
   const displayCancelledSips = metric(cancelledSipsCount, cancelledSipsCountRia, cancelledSipsCountArn);
@@ -622,16 +595,6 @@ const NonAdminDashboard = () => {
   const displayActiveSips = metric(activeSipsTillDate, activeSipsTillDateRia, activeSipsTillDateArn);
   const displayAvgTicket = metric(avgTicketSizeTillDate, avgTicketSizeTillDateRia, avgTicketSizeTillDateArn, "rate");
   const displayRedemptionRate = metric(redemptionRateTillDate, redemptionRateTillDateRia, redemptionRateTillDateArn, "rate");
-  const displayHoldingsAum = metric(holdingsAum, holdingsAumRia, holdingsAumArn);
-  const displayHoldingsGrossInvestments = metric(
-    holdingsGrossInvestments,
-    holdingsGrossInvestmentsRia,
-    holdingsGrossInvestmentsArn,
-  );
-  const displayHoldingsReturns = metric(holdingsReturns, holdingsReturnsRia, holdingsReturnsArn, "rate");
-  const displayHoldingsNetInflow = metric(holdingsNetInflow, holdingsNetInflowRia, holdingsNetInflowArn);
-  const displayHoldingsRedemptions = metric(holdingsRedemptions, holdingsRedemptionsRia, holdingsRedemptionsArn);
-  const displayExternalAum = metric(externalAum, externalAumRia, externalAumArn);
 
   const renderMetricBreakdown = (
     arn: number,
@@ -650,143 +613,82 @@ const NonAdminDashboard = () => {
     </div>
   );
 
-  const growthLoading = cardsLoading || holdingsLoading;
-  const growthError = cardsError || holdingsError;
   const sipActivityLoading = cardsLoading || sipLoading;
   const sipActivityError = cardsError || sipError;
 
+  const investmentOverviewCards: Array<{
+    key: keyof AumSummaryData;
+    title: string;
+    icon: React.ReactNode;
+  }> = [
+    { key: "totalAum", title: "Total AUM", icon: <SalesIcon /> },
+    { key: "inAppAum", title: "In-App AUM", icon: <SalesIconOrange /> },
+    { key: "migratedAum", title: "Migrated AUM", icon: <SalesIconGreen /> },
+    { key: "externalAum", title: "External AUM", icon: <SalesIconViolet /> },
+  ];
+
   return (
     <div className="grid grid-cols-12 gap-4 md:gap-6 w-full max-w-full">
-      {/* Growth Overview: Revenue + holdings AUM / Gross / Net / Redeem */}
+      {/* Investment Overview: total / in-app / migrated / external net inflow */}
       <div className="col-span-12">
-        {growthLoading ? (
-          <DashboardSkeleton variant="cards" count={6} />
-        ) : growthError ? (
+        {aumSummaryLoading ? (
+          <DashboardSkeleton variant="cards" count={4} />
+        ) : aumSummaryError ? (
           <DashboardLoadError
-            message={growthError.message || "Failed to load growth overview"}
-            onRetry={() => {
-              if (cardsError) setCardsRetry((c) => c + 1);
-              if (holdingsError) setHoldingsRetry((c) => c + 1);
-            }}
+            message={aumSummaryError.message || "Failed to load investment overview"}
+            onRetry={() => setAumSummaryRetry((c) => c + 1)}
           />
         ) : (
-        <div className="grid">
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-                  Growth Overview
-                </h3>
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Revenue, closing AUM, gross investments, net inflow, and redemptions for the selected period
-                </span>
+          <div className="grid">
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] h-full flex justify-between flex-col">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                    Investment Overview
+                  </h3>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Net inflow by source for the selected period, with gross investments and redemptions
+                  </span>
+                </div>
+              </div>
+
+              <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
+                {investmentOverviewCards.map((card) => {
+                  const bucket = aumSummary[card.key];
+                  return (
+                    <div key={card.key} className="col-span-4">
+                      <div className="box-total-sales h-full">
+                        {card.icon}
+                        <h2 className="numbers-sale text-gray-900">
+                          {formatCurrency(bucket.netInflow)}
+                        </h2>
+                        <p className="total-sale-text">{card.title}</p>
+                        <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-white/70 p-2 dark:bg-white/10">
+                          <div className="min-w-0 text-center">
+                            <p className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">
+                              Gross
+                            </p>
+                            <p className="truncate text-xs font-semibold text-gray-900 dark:text-white">
+                              {formatCurrency(bucket.grossInvestment)}
+                            </p>
+                          </div>
+                          <div className="min-w-0 text-center">
+                            <p className="text-[10px] font-semibold uppercase text-gray-500 dark:text-gray-400">
+                              Redemptions
+                            </p>
+                            <p className="truncate text-xs font-semibold text-gray-900 dark:text-white">
+                              {formatCurrency(bucket.redemptions)}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="total-yes"></span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-
-            <div className="xl:flex items-stretch justify-between mt-5 sales-box-row">
-              {/* Total Revenue */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayRevenue)}</h2>
-                  <p className="total-sale-text">Total Revenue</p>
-                  {renderMetricBreakdown(
-                    totalRevenueArn,
-                    totalRevenueRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-
-              {/* Total AUM (holdings) */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIconOrange />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsAum)}</h2>
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <p className="total-sale-text" style={{ margin: 0 }}>Total AUM</p>
-                    <p className="text-xs font-medium" style={{ color: "#000000", margin: 0, lineHeight: "24px" }}>
-                      <span style={{ color: "#000000" }}>Returns: </span>
-                      <span className={displayHoldingsReturns >= 0 ? "text-green-600" : "text-red-600"}>
-                        {displayHoldingsReturns?.toFixed(2)}%
-                      </span>
-                    </p>
-                  </div>
-                  {renderMetricBreakdown(
-                    holdingsAumArn,
-                    holdingsAumRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-
-              {/* Gross Investments (holdings) */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIconGreen />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsGrossInvestments)}</h2>
-                  <p className="total-sale-text">Gross Investments</p>
-                  {renderMetricBreakdown(
-                    holdingsGrossInvestmentsArn,
-                    holdingsGrossInvestmentsRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-
-              {/* Net Inflow (holdings) */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIconViolet />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsNetInflow)}</h2>
-                  <p className="total-sale-text">Net Inflow</p>
-                  {renderMetricBreakdown(
-                    holdingsNetInflowArn,
-                    holdingsNetInflowRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-
-              {/* Redemptions (holdings) */}
-              <div className="col-span-4">
-                <div className="box-total-sales h-full">
-                  <SalesIcon />
-                  <h2 className="numbers-sale text-gray-900">{formatCurrency(displayHoldingsRedemptions)}</h2>
-                  <p className="total-sale-text">Redemptions</p>
-                  {renderMetricBreakdown(
-                    holdingsRedemptionsArn,
-                    holdingsRedemptionsRia,
-                    formatCurrency
-                  )}
-                  <span className="total-yes"></span>
-                </div>
-              </div>
-
-              {/* External Holdings (holdings) */}
-              {displayExternalAum > 0 && (
-                <div className="col-span-4">
-                  <div className="box-total-sales h-full">
-                    <SalesIconOrange />
-                    <h2 className="numbers-sale text-gray-900">{formatCurrency(displayExternalAum)}</h2>
-                    <p className="total-sale-text">External Holdings</p>
-                    {renderMetricBreakdown(
-                      externalAumArn,
-                      externalAumRia,
-                      formatCurrency
-                    )}
-                    <span className="total-yes"></span>
-                  </div>
-                </div>
-              )}
-            </div>
-
           </div>
-        </div>
         )}
       </div>
 

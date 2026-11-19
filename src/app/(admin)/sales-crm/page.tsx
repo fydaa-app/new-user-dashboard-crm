@@ -117,11 +117,12 @@ export default function SalesCRM() {
     }
   }, []); // Only run on mount
 
-  // Employee assignment dropdowns
+  // Employee assignment dropdowns (local to Add Lead modal — not global header filters)
   const [designations, setDesignations] = useState<{value: string, label: string}[]>([]);
   const [employees, setEmployees] = useState<{value: string, label: string}[]>([]);
   const [isLoadingDesignations, setIsLoadingDesignations] = useState(false);
   const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
+  const [assignDesignation, setAssignDesignation] = useState<string>('assign_to_yourself');
 
   const [newLead, setNewLead] = useState<CreateLeadData>({
     name: '',
@@ -1019,13 +1020,17 @@ export default function SalesCRM() {
     fetchDesignations();
   }, []);
 
-  // Fetch employees when designation changes
+  // Fetch employees when Add Lead designation changes (skip assign_to_yourself)
   useEffect(() => {
-    if (selectedDesignation && selectedDesignation !== 'all') {
+    if (
+      assignDesignation &&
+      assignDesignation !== 'all' &&
+      assignDesignation !== 'assign_to_yourself'
+    ) {
       const fetchEmployees = async () => {
         setIsLoadingEmployees(true);
         try {
-          const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${selectedDesignation}`;
+          const endpoint = `${AdminEndpoints.ROLE_WISE_EMPLOYEE_LIST}?role=${assignDesignation}`;
           const response = await apiClient.get<{ success: boolean; data: EmployeeItem[] }>(endpoint);
 
           if (response.data.success) {
@@ -1047,7 +1052,7 @@ export default function SalesCRM() {
     } else {
       setEmployees([]);
     }
-  }, [selectedDesignation]);
+  }, [assignDesignation]);
 
   // Abort in-flight requests on unmount
   useEffect(() => {
@@ -1179,7 +1184,7 @@ export default function SalesCRM() {
           imageUrl: ''
         });
         setErrorCategory('none');
-        setSelectedDesignation('');
+        setAssignDesignation('assign_to_yourself');
         setEmployees([]);
         // Reset validation states
         setEmailError('');
@@ -1416,7 +1421,15 @@ export default function SalesCRM() {
               
               <Button
                 variant="primary"
-                onClick={() => setShowAddLead(true)}
+                onClick={() => {
+                  setAssignDesignation('assign_to_yourself');
+                  setEmployees([]);
+                  setNewLead((prev) => ({
+                    ...prev,
+                    assignedToId: user?.id,
+                  }));
+                  setShowAddLead(true);
+                }}
               >
                 <PlusIcon className="w-4 h-4 mr-2" />
                 Add Lead
@@ -1550,6 +1563,8 @@ export default function SalesCRM() {
             setShowAddLead(false);
             setError(null); // Clear error when closing
             setErrorCategory('none');
+            setAssignDesignation('assign_to_yourself');
+            setEmployees([]);
             // Reset validation states
             setEmailError('');
             setPhoneError('');
@@ -1753,10 +1768,10 @@ export default function SalesCRM() {
                         ...designations,
                       ]}
                       placeholder="Select Designation"
-                      value={selectedDesignation}
+                      value={assignDesignation}
                       onChange={(option) => {
                         const value = option?.value || '';
-                        setSelectedDesignation(value);
+                        setAssignDesignation(value);
                         // If "assign to yourself" is selected, automatically set the current user
                         if (value === 'assign_to_yourself' && user?.id) {
                           setNewLead({ ...newLead, assignedToId: user.id });
@@ -1776,7 +1791,7 @@ export default function SalesCRM() {
                   <div className="relative">
                     <Select
                       options={
-                        selectedDesignation === 'assign_to_yourself'
+                        assignDesignation === 'assign_to_yourself'
                           ? user?.id
                             ? [
                                 {
@@ -1787,26 +1802,26 @@ export default function SalesCRM() {
                             : []
                           : [
                               { value: '', label: 'Unassigned' },
-                              ...(selectedDesignation && !isLoadingEmployees && employees.length > 0
+                              ...(assignDesignation && !isLoadingEmployees && employees.length > 0
                                 ? employees
-                                : !selectedDesignation && userOptions.length > 0
+                                : !assignDesignation && userOptions.length > 0
                                 ? userOptions
                                 : []),
                             ]
                       }
                       placeholder="Select Employee"
                       value={
-                        selectedDesignation === 'assign_to_yourself'
+                        assignDesignation === 'assign_to_yourself'
                           ? user?.id?.toString() || ''
                           : (newLead.assignedToId && String(newLead.assignedToId)) || ''
                       }
                       onChange={(option) => {
-                        if (selectedDesignation === 'assign_to_yourself') return;
+                        if (assignDesignation === 'assign_to_yourself') return;
                         const id = option?.value ? Number(option.value) : undefined;
                         setNewLead({ ...newLead, assignedToId: id });
                       }}
                       className={`dark:bg-dark-900 ${
-                        selectedDesignation === 'assign_to_yourself' || isLoadingEmployees
+                        assignDesignation === 'assign_to_yourself' || isLoadingEmployees
                           ? 'opacity-50 cursor-not-allowed pointer-events-none'
                           : ''
                       }`}
@@ -1818,7 +1833,7 @@ export default function SalesCRM() {
                   {isLoadingEmployees && (
                     <p className="text-sm text-gray-500 mt-1">Loading employees...</p>
                   )}
-                  {selectedDesignation === 'assign_to_yourself' && (
+                  {assignDesignation === 'assign_to_yourself' && (
                     <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                       💡 Lead will be assigned to you automatically
                     </p>
@@ -1918,7 +1933,11 @@ export default function SalesCRM() {
               <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setShowAddLead(false)}
+                  onClick={() => {
+                    setAssignDesignation('assign_to_yourself');
+                    setEmployees([]);
+                    setShowAddLead(false);
+                  }}
                   className="flex-1"
                 >
                   Cancel
