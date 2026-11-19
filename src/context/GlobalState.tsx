@@ -28,6 +28,7 @@ interface GlobalContextProps {
   setUserAppTypeLock: (value: string | null) => void;
   investmentModelFilter: InvestmentModelFilter;
   setInvestmentModelFilter: (value: InvestmentModelFilter) => void;
+  resetHeaderFilters: () => void;
 }
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
@@ -389,6 +390,38 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     setHierarchyViewModeState(value);
   }, []);
 
+  /** Reset AppHeader filters to the same defaults used on full page refresh. */
+  const resetHeaderFilters = useCallback(() => {
+    setSelectedOptionState(HEADER_FILTER_DEFAULTS.selectedOption);
+    setCustomDatesState(HEADER_FILTER_DEFAULTS.customDates);
+    setSelectedDesignationState(undefined);
+    setSelectedEmployeeState(undefined);
+    setSelectedTeamMemberState(undefined);
+    setSelectedTypeState(HEADER_FILTER_DEFAULTS.selectedType);
+    setHierarchyViewModeState("team");
+    setInvestmentModelFilterState(HEADER_FILTER_DEFAULTS.investmentModelFilter);
+
+    localStorage.setItem("selectedOption", HEADER_FILTER_DEFAULTS.selectedOption);
+    localStorage.setItem("customDates", JSON.stringify(HEADER_FILTER_DEFAULTS.customDates));
+    localStorage.setItem("selectedType", JSON.stringify(HEADER_FILTER_DEFAULTS.selectedType));
+    localStorage.removeItem("selectedDesignation");
+    localStorage.removeItem("selectedEmployee");
+    localStorage.removeItem("selectedTeamMember");
+    localStorage.setItem(
+      INVESTMENT_MODEL_STORAGE_KEY,
+      HEADER_FILTER_DEFAULTS.investmentModelFilter,
+    );
+
+    const lock = localStorage.getItem("userAppTypeLock");
+    if (lock === "Fydaa" || lock === "Savestment") {
+      setAppTypeState(lock);
+      localStorage.setItem("appType", lock);
+    } else {
+      setAppTypeState(HEADER_FILTER_DEFAULTS.appType);
+      localStorage.setItem("appType", HEADER_FILTER_DEFAULTS.appType);
+    }
+  }, []);
+
   // Sync initial state
   useEffect(() => {
     const handleStorage = (e: StorageEvent) => {
@@ -475,6 +508,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
         setUserAppTypeLock,
         investmentModelFilter,
         setInvestmentModelFilter,
+        resetHeaderFilters,
       }}
     >
       {children}
